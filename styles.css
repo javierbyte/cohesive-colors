@@ -1,0 +1,50 @@
+* {
+  padding: 0a;
+  margin: 0;
+  position: relative;
+}
+
+body {
+  font: 17px Monaco, sans-serif;
+  text-align: center;
+}
+
+button {
+  font-size: 13px;
+}
+
+.content {
+  padding: 2vh 1em;
+}
+.content-block {
+  padding: 2vh 1em;
+}
+
+.colorbar {
+  display: block;
+  margin: 1em auto;
+}
+.colorbar-element {
+  text-align: center;
+  padding: 1em;
+  line-height: 1;
+  display: inline-block;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, .8);
+  font-weight: 700;
+  transition: background .3s;
+  cursor: pointer;
+}
+.colorbar-element:hover {
+  top: -1px;
+}
+.colorbar-element:first-child {
+  border-top-left-radius: 1.5em;
+  border-bottom-left-radius: 1.5em;
+  padding-left: 1.57em;
+}
+.colorbar-element:last-child {
+  border-top-right-radius: 1.5em;
+  border-bottom-right-radius: 1.5em;
+  padding-right: 1.57em;
+}

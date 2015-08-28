@@ -1,0 +1,45 @@
+{
+  "name": "cohesive-colors",
+  "version": "0.0.1",
+  "description": "A tool for creating more cohesive color schemes.",
+  "scripts": {
+    "build": "webpack --progress --profile --colors",
+    "dev": "webpack-dev-server --progress --profile --colors --hot"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/javierbyte/cohesive-colors"
+  },
+  "keywords": [
+    "color",
+    "scheme",
+    "tool",
+    "design",
+    "cohesive"
+  ],
+  "author": "javierbyte <hi@javierbyte.com> (http://github.com/javierbyte)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/javierbyte/cohesive-colors/issues"
+  },
+  "homepage": "https://github.com/javierbyte/cohesive-colors",
+  "devDependencies": {
+    "babel-core": "^5.4.7",
+    "babel-loader": "^5.1.2",
+    "react-hot-loader": "^1.2.7",
+    "standard": "^5.1.0",
+    "webpack": "^1.9.6",
+    "webpack-dev-server": "^1.8.2"
+  },
+  "dependencies": {
+    "colorblendjs": "0.0.1",
+    "jsonp": "^0.2.0",
+    "lodash": "^3.10.0",
+    "randomcolor": "^0.4.0",
+    "react": "^0.13.0",
+    "react-color": "^1.0.5",
+    "superagent": "^1.3.0",
+    "superagent-jsonp": "0.0.5",
+    "tinycolor2": "^1.1.2"
+  }
+}
