@@ -116,7 +116,7 @@ var App = React.createClass({
 
         <div className='content-block'>
           <div>
-            This is a tool that may help you to create more cohesive color schemes.
+            This is a tool that may help you to create cohesive color schemes.
           </div>
           <div>
             Based on <a href='https://dribbble.com/shots/166246-My-Secret-for-Color-Schemes'>this idea</a> by <a href='https://dribbble.com/_erica'>Erica Schoonmaker</a>.
