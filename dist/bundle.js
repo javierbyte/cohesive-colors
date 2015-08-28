@@ -27760,14 +27760,177 @@
 	'use strict';
 	
 	var React = __webpack_require__(57);
+	var _ = __webpack_require__(214);
+	var tinycolor = __webpack_require__(215);
+	var colorblend = __webpack_require__(216);
+	var randomcolor = __webpack_require__(217);
 	
-	var Clash = __webpack_require__(214);
+	var jsonp = __webpack_require__(218);
+	
+	var ColorBar = __webpack_require__(222);
+	
+	var colorToRgbArray = function colorToRgbArray(color) {
+	  var rgbColor = tinycolor(color).toRgb();
+	  return [rgbColor.r, rgbColor.g, rgbColor.b];
+	};
+	
+	var rgbArrayToHex = function rgbArrayToHex(color) {
+	  return tinycolor({
+	    r: color[0],
+	    g: color[1],
+	    b: color[2]
+	  }).toHex();
+	};
+	
+	var fixMyColors = function fixMyColors(colorScheme, overlayColor, overlayIntensity) {
+	  return _.map(colorScheme, function (color) {
+	    var newColor = colorblend.overlay(colorToRgbArray(color), colorToRgbArray(overlayColor), overlayIntensity);
+	    return rgbArrayToHex(newColor);
+	  });
+	};
+	
+	var getPalleteFromColorLovers = function getPalleteFromColorLovers(callback) {
+	  jsonp('http://www.colourlovers.com/api/palettes/random?format=json&jsonCallback=callback', {
+	    param: 'jsonCallback'
+	  }, callback);
+	};
 	
 	var App = React.createClass({
 	  displayName: 'App',
 	
+	  getInitialState: function getInitialState() {
+	    return {
+	      colorScheme: ['555e7b', 'b7d968', 'b576ad', 'e04644', 'fde47f', '7ccce5'],
+	
+	      overlayColor: 'FF9C00',
+	      overlayIntensity: 0.3,
+	
+	      colorLovers: this.colorScheme
+	    };
+	  },
+	
+	  componentDidMount: function componentDidMount() {
+	    var _this = this;
+	
+	    getPalleteFromColorLovers(function (err, res) {
+	      if (err) return console.error(err);
+	
+	      _this.setState({
+	        colorLovers: res[0].colors
+	      });
+	    });
+	  },
+	
+	  handleChangeColor: function handleChangeColor(index, color) {
+	    var newColorScheme = this.state.colorScheme.slice();
+	    newColorScheme[index] = color.hex.replace('#', '');
+	
+	    this.setState({
+	      colorScheme: newColorScheme
+	    });
+	  },
+	
+	  handleOverlayChange: function handleOverlayChange(index, color) {
+	    var newColor = color.hex.replace('#', '');
+	
+	    this.setState({
+	      overlayColor: newColor
+	    });
+	  },
+	
+	  handleOverlayIntensityChange: function handleOverlayIntensityChange(evt) {
+	    this.setState({
+	      overlayIntensity: parseFloat(evt.target.value)
+	    });
+	  },
+	
+	  handleResizePallete: function handleResizePallete(delta) {
+	    var colorScheme = this.state.colorScheme.slice();
+	
+	    if (delta === 1) {
+	      colorScheme.push(randomcolor().replace('#', ''));
+	    } else {
+	      colorScheme.pop();
+	    }
+	
+	    this.setState({
+	      colorScheme: colorScheme
+	    });
+	  },
+	
+	  randomize: function randomize() {
+	    var _this2 = this;
+	
+	    this.setState({
+	      colorScheme: this.state.colorLovers
+	    });
+	
+	    getPalleteFromColorLovers(function (err, res) {
+	      if (err) return console.error(err);
+	
+	      _this2.setState({
+	        colorLovers: res[0].colors
+	      });
+	    });
+	  },
+	
 	  render: function render() {
-	    return React.createElement(Clash, null);
+	    var _state = this.state;
+	    var colorScheme = _state.colorScheme;
+	    var overlayColor = _state.overlayColor;
+	    var overlayIntensity = _state.overlayIntensity;
+	
+	    return React.createElement(
+	      'div',
+	      { className: 'content' },
+	      React.createElement(
+	        'div',
+	        { className: 'content-block' },
+	        React.createElement(
+	          'h2',
+	          null,
+	          'Before:'
+	        ),
+	        React.createElement(ColorBar, { colors: colorScheme, onChange: this.handleChangeColor }),
+	        React.createElement(
+	          'button',
+	          { onClick: this.randomize },
+	          'Ger random from ColourLovers'
+	        ),
+	        ' - ',
+	        React.createElement(
+	          'button',
+	          { onClick: this.handleResizePallete.bind(null, -1), disabled: colorScheme.length < 2 },
+	          'Less colors'
+	        ),
+	        React.createElement(
+	          'button',
+	          { onClick: this.handleResizePallete.bind(null, 1) },
+	          'More colors'
+	        )
+	      ),
+	      React.createElement(
+	        'div',
+	        { className: 'content-block' },
+	        React.createElement(
+	          'h2',
+	          null,
+	          'OverlayColor'
+	        ),
+	        React.createElement(ColorBar, { colors: [overlayColor], onChange: this.handleOverlayChange }),
+	        React.createElement('input', { type: 'range', min: '0', max: '1', step: '.01', onChange: this.handleOverlayIntensityChange, value: overlayIntensity })
+	      ),
+	      React.createElement(
+	        'div',
+	        { className: 'content-block' },
+	        React.createElement(
+	          'h2',
+	          null,
+	          'After:'
+	        ),
+	        React.createElement(ColorBar, { colors: fixMyColors(colorScheme, overlayColor, overlayIntensity) })
+	      )
+	    );
 	  }
 	
 	});
@@ -27776,257 +27939,6 @@
 
 /***/ },
 /* 214 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-	
-	var React = __webpack_require__(57);
-	var _ = __webpack_require__(215);
-	var fx = __webpack_require__(216);
-	var Tiles = __webpack_require__(217);
-	var Ammos = __webpack_require__(236);
-	var Players = __webpack_require__(237);
-	var Stats = __webpack_require__(238);
-	var Shoots = __webpack_require__(239);
-	var Notifications = __webpack_require__(240);
-	
-	var deepSetState = __webpack_require__(241);
-	
-	var ClashJS = __webpack_require__(242);
-	
-	var playerObjects = __webpack_require__(247);
-	var playerArray = _.shuffle(_.map(playerObjects, function (el) {
-	  return el;
-	}));
-	
-	var sudeenDeathCount = 0;
-	var killsStack = [];
-	
-	var Clash = React.createClass({
-	  displayName: 'Clash',
-	
-	  mixins: [deepSetState],
-	
-	  getInitialState: function getInitialState() {
-	    this.ClashJS = new ClashJS(playerArray, {}, this.handleEvent);
-	    return {
-	      clashjs: this.ClashJS.getState(),
-	      shoots: [],
-	      speed: 150,
-	      kills: []
-	    };
-	  },
-	
-	  componentDidMount: function componentDidMount() {
-	    this.nextTurn();
-	  },
-	
-	  newGame: function newGame() {
-	    var _this = this;
-	
-	    killsStack = [];
-	
-	    window.setTimeout(function () {
-	      sudeenDeathCount = 0;
-	      _this.ClashJS.setupGame();
-	      _this.setState({
-	        clashjs: _this.ClashJS.getState(),
-	        shoots: [],
-	        speed: 150,
-	        kills: []
-	      }, _this.nextTurn);
-	    }, 1000);
-	  },
-	
-	  nextTurn: function nextTurn() {
-	    var _this2 = this;
-	
-	    var _ClashJS$getState = this.ClashJS.getState();
-	
-	    var playerStates = _ClashJS$getState.playerStates;
-	    var rounds = _ClashJS$getState.rounds;
-	    var totalRounds = _ClashJS$getState.totalRounds;
-	
-	    var alivePlayerCount = playerStates.reduce(function (result, el) {
-	      return el.isAlive ? result + 1 : result;
-	    }, 0);
-	    if (alivePlayerCount < 2) return false;
-	
-	    window.setTimeout(function () {
-	      _this2.setState({
-	        clashjs: _this2.ClashJS.nextPly(),
-	        speed: _this2.state.speed > 20 ? parseInt(_this2.state.speed * 0.98, 10) : 20
-	      }, _this2.nextTurn);
-	    }, this.state.speed);
-	  },
-	
-	  handleEvent: function handleEvent(evt, data) {
-	    if (evt === 'SHOOT') {
-	      var newShoots = this.state.shoots;
-	      var players = this.ClashJS.getState().playerInstances;
-	      newShoots.push({
-	        direction: data.direction,
-	        origin: data.origin.slice(),
-	        time: new Date().getTime()
-	      });
-	
-	      this.setState({
-	        shoots: newShoots
-	      });
-	
-	      players[data.shooter].playLaser();
-	    }
-	    if (evt === 'WIN') return this.newGame();
-	    if (evt === 'DRAW') {
-	      this.setState({
-	        kills: [{ date: new Date(), text: 'Stalemate!' }]
-	      });
-	      return this.newGame();
-	    }
-	    if (evt === 'KILL') return this._handleKill(data);
-	    if (evt === 'END') return this.endGame();
-	  },
-	
-	  _handleKill: function _handleKill(data) {
-	    var _this3 = this;
-	
-	    var players = this.ClashJS.getState().playerInstances;
-	    var kills = this.state.kills;
-	    var killer = players[data.killer];
-	    var killed = _.map(data.killed, function (index) {
-	      killsStack.push(data.killer);
-	      killer.kills++;
-	      players[index].deaths++;
-	      return players[index];
-	    });
-	    var notification = [killer.getName(), 'killed', _.map(killed, function (player) {
-	      return player.getName();
-	    }).join(',')].join(' ');
-	
-	    kills.push({ date: new Date(), text: notification });
-	    this.setState({
-	      kills: kills
-	    });
-	
-	    setTimeout(function () {
-	      return _this3.handleStreak(data.killer, killer, killed);
-	    }, 100);
-	  },
-	
-	  endGame: function endGame() {
-	    this.setState({
-	      clashjs: null,
-	      shoots: [],
-	      speed: 0,
-	      kills: []
-	    });
-	    return 'finish';
-	  },
-	
-	  handleStreak: function handleStreak(index, killer, killed) {
-	    var streakCount = _.filter(killsStack, function (player) {
-	      return player === index;
-	    }).length;
-	    var multiKill = '';
-	    var spreeMessage = '';
-	    var kills = this.state.kills;
-	    if (killsStack.length === 1) {
-	      setTimeout(fx.streak.firstBlood.play(), 50);
-	    }
-	
-	    switch (killed.length) {
-	      case 2:
-	        setTimeout(fx.streak.doubleKill.play(), 100);
-	        multiKill = killer.getName() + ' got a double kill!';
-	        break;
-	      case 3:
-	        setTimeout(fx.streak.tripleKill.play(), 100);
-	        multiKill = killer.getName() + ' got a Triple Kill!';
-	        break;
-	      case 4:
-	        setTimeout(fx.streak.monsterKill.play(), 100);
-	        multiKill = killer.getName() + ' is a MONSTER KILLER!';
-	        break;
-	    }
-	    kills.push({ date: new Date(), text: multiKill });
-	    switch (streakCount) {
-	      case 1:
-	      case 2:
-	        break;
-	      case 3:
-	        setTimeout(fx.streak.killingSpree.play(), 300);
-	        spreeMessage = killer.getName() + ' is on a killing spree!';
-	        break;
-	      case 4:
-	        setTimeout(fx.streak.dominating.play(), 300);
-	        spreeMessage = killer.getName() + ' is dominating!';
-	        break;
-	      case 5:
-	        setTimeout(fx.streak.rampage.play(), 300);
-	        spreeMessage = killer.getName() + ' is on a rampage of kills!';
-	        break;
-	      case 6:
-	        setTimeout(fx.streak.godLike.play(), 300);
-	        spreeMessage = killer.getName() + ' is Godlike!';
-	        break;
-	      default:
-	        spreeMessage = 'Somebody stop that bastard ' + killer.getName();
-	        setTimeout(fx.streak.ownage.play(), 300);
-	    }
-	    kills.push({ date: new Date(), text: spreeMessage });
-	    this.setState({
-	      kills: kills
-	    });
-	  },
-	
-	  render: function render() {
-	    var _state = this.state;
-	    var clashjs = _state.clashjs;
-	    var shoots = _state.shoots;
-	    var kills = _state.kills;
-	    var gameEnvironment = clashjs.gameEnvironment;
-	    var gameStats = clashjs.gameStats;
-	    var playerStates = clashjs.playerStates;
-	    var playerInstances = clashjs.playerInstances;
-	    var rounds = clashjs.rounds;
-	    var totalRounds = clashjs.totalRounds;
-	
-	    gameEnvironment = gameEnvironment || { gridSize: 13 };
-	
-	    _.forEach(playerInstances, function (player, index) {
-	      gameStats[player.getId()].isAlive = playerStates[index].isAlive;
-	    });
-	    return React.createElement(
-	      'div',
-	      { className: 'clash', onClick: this.handleClick },
-	      React.createElement(Tiles, {
-	        gridSize: gameEnvironment.gridSize }),
-	      React.createElement(Shoots, {
-	        shoots: shoots.slice(),
-	        gridSize: gameEnvironment.gridSize }),
-	      React.createElement(Ammos, {
-	        gridSize: gameEnvironment.gridSize,
-	        ammoPosition: gameEnvironment.ammoPosition }),
-	      React.createElement(Players, {
-	        gridSize: gameEnvironment.gridSize,
-	        playerInstances: playerInstances,
-	        playerStates: playerStates }),
-	      React.createElement(Notifications, {
-	        kills: kills }),
-	      React.createElement(Stats, {
-	        rounds: rounds,
-	        total: totalRounds,
-	        playerStates: playerStates,
-	        stats: gameStats })
-	    );
-	  }
-	
-	});
-	
-	module.exports = Clash;
-
-/***/ },
-/* 215 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(module, global) {/**
@@ -40384,2206 +40296,4227 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(33)(module), (function() { return this; }())))
 
 /***/ },
+/* 215 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_RESULT__;// TinyColor v1.1.2
+	// https://github.com/bgrins/TinyColor
+	// Brian Grinstead, MIT License
+	
+	(function() {
+	
+	var trimLeft = /^[\s,#]+/,
+	    trimRight = /\s+$/,
+	    tinyCounter = 0,
+	    math = Math,
+	    mathRound = math.round,
+	    mathMin = math.min,
+	    mathMax = math.max,
+	    mathRandom = math.random;
+	
+	function tinycolor (color, opts) {
+	
+	    color = (color) ? color : '';
+	    opts = opts || { };
+	
+	    // If input is already a tinycolor, return itself
+	    if (color instanceof tinycolor) {
+	       return color;
+	    }
+	    // If we are called as a function, call using new instead
+	    if (!(this instanceof tinycolor)) {
+	        return new tinycolor(color, opts);
+	    }
+	
+	    var rgb = inputToRGB(color);
+	    this._originalInput = color,
+	    this._r = rgb.r,
+	    this._g = rgb.g,
+	    this._b = rgb.b,
+	    this._a = rgb.a,
+	    this._roundA = mathRound(100*this._a) / 100,
+	    this._format = opts.format || rgb.format;
+	    this._gradientType = opts.gradientType;
+	
+	    // Don't let the range of [0,255] come back in [0,1].
+	    // Potentially lose a little bit of precision here, but will fix issues where
+	    // .5 gets interpreted as half of the total, instead of half of 1
+	    // If it was supposed to be 128, this was already taken care of by `inputToRgb`
+	    if (this._r < 1) { this._r = mathRound(this._r); }
+	    if (this._g < 1) { this._g = mathRound(this._g); }
+	    if (this._b < 1) { this._b = mathRound(this._b); }
+	
+	    this._ok = rgb.ok;
+	    this._tc_id = tinyCounter++;
+	}
+	
+	tinycolor.prototype = {
+	    isDark: function() {
+	        return this.getBrightness() < 128;
+	    },
+	    isLight: function() {
+	        return !this.isDark();
+	    },
+	    isValid: function() {
+	        return this._ok;
+	    },
+	    getOriginalInput: function() {
+	      return this._originalInput;
+	    },
+	    getFormat: function() {
+	        return this._format;
+	    },
+	    getAlpha: function() {
+	        return this._a;
+	    },
+	    getBrightness: function() {
+	        //http://www.w3.org/TR/AERT#color-contrast
+	        var rgb = this.toRgb();
+	        return (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
+	    },
+	    getLuminance: function() {
+	        //http://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef
+	        var rgb = this.toRgb();
+	        var RsRGB, GsRGB, BsRGB, R, G, B;
+	        RsRGB = rgb.r/255;
+	        GsRGB = rgb.g/255;
+	        BsRGB = rgb.b/255;
+	
+	        if (RsRGB <= 0.03928) {R = RsRGB / 12.92;} else {R = Math.pow(((RsRGB + 0.055) / 1.055), 2.4);}
+	        if (GsRGB <= 0.03928) {G = GsRGB / 12.92;} else {G = Math.pow(((GsRGB + 0.055) / 1.055), 2.4);}
+	        if (BsRGB <= 0.03928) {B = BsRGB / 12.92;} else {B = Math.pow(((BsRGB + 0.055) / 1.055), 2.4);}
+	        return (0.2126 * R) + (0.7152 * G) + (0.0722 * B);
+	    },
+	    setAlpha: function(value) {
+	        this._a = boundAlpha(value);
+	        this._roundA = mathRound(100*this._a) / 100;
+	        return this;
+	    },
+	    toHsv: function() {
+	        var hsv = rgbToHsv(this._r, this._g, this._b);
+	        return { h: hsv.h * 360, s: hsv.s, v: hsv.v, a: this._a };
+	    },
+	    toHsvString: function() {
+	        var hsv = rgbToHsv(this._r, this._g, this._b);
+	        var h = mathRound(hsv.h * 360), s = mathRound(hsv.s * 100), v = mathRound(hsv.v * 100);
+	        return (this._a == 1) ?
+	          "hsv("  + h + ", " + s + "%, " + v + "%)" :
+	          "hsva(" + h + ", " + s + "%, " + v + "%, "+ this._roundA + ")";
+	    },
+	    toHsl: function() {
+	        var hsl = rgbToHsl(this._r, this._g, this._b);
+	        return { h: hsl.h * 360, s: hsl.s, l: hsl.l, a: this._a };
+	    },
+	    toHslString: function() {
+	        var hsl = rgbToHsl(this._r, this._g, this._b);
+	        var h = mathRound(hsl.h * 360), s = mathRound(hsl.s * 100), l = mathRound(hsl.l * 100);
+	        return (this._a == 1) ?
+	          "hsl("  + h + ", " + s + "%, " + l + "%)" :
+	          "hsla(" + h + ", " + s + "%, " + l + "%, "+ this._roundA + ")";
+	    },
+	    toHex: function(allow3Char) {
+	        return rgbToHex(this._r, this._g, this._b, allow3Char);
+	    },
+	    toHexString: function(allow3Char) {
+	        return '#' + this.toHex(allow3Char);
+	    },
+	    toHex8: function() {
+	        return rgbaToHex(this._r, this._g, this._b, this._a);
+	    },
+	    toHex8String: function() {
+	        return '#' + this.toHex8();
+	    },
+	    toRgb: function() {
+	        return { r: mathRound(this._r), g: mathRound(this._g), b: mathRound(this._b), a: this._a };
+	    },
+	    toRgbString: function() {
+	        return (this._a == 1) ?
+	          "rgb("  + mathRound(this._r) + ", " + mathRound(this._g) + ", " + mathRound(this._b) + ")" :
+	          "rgba(" + mathRound(this._r) + ", " + mathRound(this._g) + ", " + mathRound(this._b) + ", " + this._roundA + ")";
+	    },
+	    toPercentageRgb: function() {
+	        return { r: mathRound(bound01(this._r, 255) * 100) + "%", g: mathRound(bound01(this._g, 255) * 100) + "%", b: mathRound(bound01(this._b, 255) * 100) + "%", a: this._a };
+	    },
+	    toPercentageRgbString: function() {
+	        return (this._a == 1) ?
+	          "rgb("  + mathRound(bound01(this._r, 255) * 100) + "%, " + mathRound(bound01(this._g, 255) * 100) + "%, " + mathRound(bound01(this._b, 255) * 100) + "%)" :
+	          "rgba(" + mathRound(bound01(this._r, 255) * 100) + "%, " + mathRound(bound01(this._g, 255) * 100) + "%, " + mathRound(bound01(this._b, 255) * 100) + "%, " + this._roundA + ")";
+	    },
+	    toName: function() {
+	        if (this._a === 0) {
+	            return "transparent";
+	        }
+	
+	        if (this._a < 1) {
+	            return false;
+	        }
+	
+	        return hexNames[rgbToHex(this._r, this._g, this._b, true)] || false;
+	    },
+	    toFilter: function(secondColor) {
+	        var hex8String = '#' + rgbaToHex(this._r, this._g, this._b, this._a);
+	        var secondHex8String = hex8String;
+	        var gradientType = this._gradientType ? "GradientType = 1, " : "";
+	
+	        if (secondColor) {
+	            var s = tinycolor(secondColor);
+	            secondHex8String = s.toHex8String();
+	        }
+	
+	        return "progid:DXImageTransform.Microsoft.gradient("+gradientType+"startColorstr="+hex8String+",endColorstr="+secondHex8String+")";
+	    },
+	    toString: function(format) {
+	        var formatSet = !!format;
+	        format = format || this._format;
+	
+	        var formattedString = false;
+	        var hasAlpha = this._a < 1 && this._a >= 0;
+	        var needsAlphaFormat = !formatSet && hasAlpha && (format === "hex" || format === "hex6" || format === "hex3" || format === "name");
+	
+	        if (needsAlphaFormat) {
+	            // Special case for "transparent", all other non-alpha formats
+	            // will return rgba when there is transparency.
+	            if (format === "name" && this._a === 0) {
+	                return this.toName();
+	            }
+	            return this.toRgbString();
+	        }
+	        if (format === "rgb") {
+	            formattedString = this.toRgbString();
+	        }
+	        if (format === "prgb") {
+	            formattedString = this.toPercentageRgbString();
+	        }
+	        if (format === "hex" || format === "hex6") {
+	            formattedString = this.toHexString();
+	        }
+	        if (format === "hex3") {
+	            formattedString = this.toHexString(true);
+	        }
+	        if (format === "hex8") {
+	            formattedString = this.toHex8String();
+	        }
+	        if (format === "name") {
+	            formattedString = this.toName();
+	        }
+	        if (format === "hsl") {
+	            formattedString = this.toHslString();
+	        }
+	        if (format === "hsv") {
+	            formattedString = this.toHsvString();
+	        }
+	
+	        return formattedString || this.toHexString();
+	    },
+	
+	    _applyModification: function(fn, args) {
+	        var color = fn.apply(null, [this].concat([].slice.call(args)));
+	        this._r = color._r;
+	        this._g = color._g;
+	        this._b = color._b;
+	        this.setAlpha(color._a);
+	        return this;
+	    },
+	    lighten: function() {
+	        return this._applyModification(lighten, arguments);
+	    },
+	    brighten: function() {
+	        return this._applyModification(brighten, arguments);
+	    },
+	    darken: function() {
+	        return this._applyModification(darken, arguments);
+	    },
+	    desaturate: function() {
+	        return this._applyModification(desaturate, arguments);
+	    },
+	    saturate: function() {
+	        return this._applyModification(saturate, arguments);
+	    },
+	    greyscale: function() {
+	        return this._applyModification(greyscale, arguments);
+	    },
+	    spin: function() {
+	        return this._applyModification(spin, arguments);
+	    },
+	
+	    _applyCombination: function(fn, args) {
+	        return fn.apply(null, [this].concat([].slice.call(args)));
+	    },
+	    analogous: function() {
+	        return this._applyCombination(analogous, arguments);
+	    },
+	    complement: function() {
+	        return this._applyCombination(complement, arguments);
+	    },
+	    monochromatic: function() {
+	        return this._applyCombination(monochromatic, arguments);
+	    },
+	    splitcomplement: function() {
+	        return this._applyCombination(splitcomplement, arguments);
+	    },
+	    triad: function() {
+	        return this._applyCombination(triad, arguments);
+	    },
+	    tetrad: function() {
+	        return this._applyCombination(tetrad, arguments);
+	    }
+	};
+	
+	// If input is an object, force 1 into "1.0" to handle ratios properly
+	// String input requires "1.0" as input, so 1 will be treated as 1
+	tinycolor.fromRatio = function(color, opts) {
+	    if (typeof color == "object") {
+	        var newColor = {};
+	        for (var i in color) {
+	            if (color.hasOwnProperty(i)) {
+	                if (i === "a") {
+	                    newColor[i] = color[i];
+	                }
+	                else {
+	                    newColor[i] = convertToPercentage(color[i]);
+	                }
+	            }
+	        }
+	        color = newColor;
+	    }
+	
+	    return tinycolor(color, opts);
+	};
+	
+	// Given a string or object, convert that input to RGB
+	// Possible string inputs:
+	//
+	//     "red"
+	//     "#f00" or "f00"
+	//     "#ff0000" or "ff0000"
+	//     "#ff000000" or "ff000000"
+	//     "rgb 255 0 0" or "rgb (255, 0, 0)"
+	//     "rgb 1.0 0 0" or "rgb (1, 0, 0)"
+	//     "rgba (255, 0, 0, 1)" or "rgba 255, 0, 0, 1"
+	//     "rgba (1.0, 0, 0, 1)" or "rgba 1.0, 0, 0, 1"
+	//     "hsl(0, 100%, 50%)" or "hsl 0 100% 50%"
+	//     "hsla(0, 100%, 50%, 1)" or "hsla 0 100% 50%, 1"
+	//     "hsv(0, 100%, 100%)" or "hsv 0 100% 100%"
+	//
+	function inputToRGB(color) {
+	
+	    var rgb = { r: 0, g: 0, b: 0 };
+	    var a = 1;
+	    var ok = false;
+	    var format = false;
+	
+	    if (typeof color == "string") {
+	        color = stringInputToObject(color);
+	    }
+	
+	    if (typeof color == "object") {
+	        if (color.hasOwnProperty("r") && color.hasOwnProperty("g") && color.hasOwnProperty("b")) {
+	            rgb = rgbToRgb(color.r, color.g, color.b);
+	            ok = true;
+	            format = String(color.r).substr(-1) === "%" ? "prgb" : "rgb";
+	        }
+	        else if (color.hasOwnProperty("h") && color.hasOwnProperty("s") && color.hasOwnProperty("v")) {
+	            color.s = convertToPercentage(color.s);
+	            color.v = convertToPercentage(color.v);
+	            rgb = hsvToRgb(color.h, color.s, color.v);
+	            ok = true;
+	            format = "hsv";
+	        }
+	        else if (color.hasOwnProperty("h") && color.hasOwnProperty("s") && color.hasOwnProperty("l")) {
+	            color.s = convertToPercentage(color.s);
+	            color.l = convertToPercentage(color.l);
+	            rgb = hslToRgb(color.h, color.s, color.l);
+	            ok = true;
+	            format = "hsl";
+	        }
+	
+	        if (color.hasOwnProperty("a")) {
+	            a = color.a;
+	        }
+	    }
+	
+	    a = boundAlpha(a);
+	
+	    return {
+	        ok: ok,
+	        format: color.format || format,
+	        r: mathMin(255, mathMax(rgb.r, 0)),
+	        g: mathMin(255, mathMax(rgb.g, 0)),
+	        b: mathMin(255, mathMax(rgb.b, 0)),
+	        a: a
+	    };
+	}
+	
+	
+	// Conversion Functions
+	// --------------------
+	
+	// `rgbToHsl`, `rgbToHsv`, `hslToRgb`, `hsvToRgb` modified from:
+	// <http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript>
+	
+	// `rgbToRgb`
+	// Handle bounds / percentage checking to conform to CSS color spec
+	// <http://www.w3.org/TR/css3-color/>
+	// *Assumes:* r, g, b in [0, 255] or [0, 1]
+	// *Returns:* { r, g, b } in [0, 255]
+	function rgbToRgb(r, g, b){
+	    return {
+	        r: bound01(r, 255) * 255,
+	        g: bound01(g, 255) * 255,
+	        b: bound01(b, 255) * 255
+	    };
+	}
+	
+	// `rgbToHsl`
+	// Converts an RGB color value to HSL.
+	// *Assumes:* r, g, and b are contained in [0, 255] or [0, 1]
+	// *Returns:* { h, s, l } in [0,1]
+	function rgbToHsl(r, g, b) {
+	
+	    r = bound01(r, 255);
+	    g = bound01(g, 255);
+	    b = bound01(b, 255);
+	
+	    var max = mathMax(r, g, b), min = mathMin(r, g, b);
+	    var h, s, l = (max + min) / 2;
+	
+	    if(max == min) {
+	        h = s = 0; // achromatic
+	    }
+	    else {
+	        var d = max - min;
+	        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+	        switch(max) {
+	            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+	            case g: h = (b - r) / d + 2; break;
+	            case b: h = (r - g) / d + 4; break;
+	        }
+	
+	        h /= 6;
+	    }
+	
+	    return { h: h, s: s, l: l };
+	}
+	
+	// `hslToRgb`
+	// Converts an HSL color value to RGB.
+	// *Assumes:* h is contained in [0, 1] or [0, 360] and s and l are contained [0, 1] or [0, 100]
+	// *Returns:* { r, g, b } in the set [0, 255]
+	function hslToRgb(h, s, l) {
+	    var r, g, b;
+	
+	    h = bound01(h, 360);
+	    s = bound01(s, 100);
+	    l = bound01(l, 100);
+	
+	    function hue2rgb(p, q, t) {
+	        if(t < 0) t += 1;
+	        if(t > 1) t -= 1;
+	        if(t < 1/6) return p + (q - p) * 6 * t;
+	        if(t < 1/2) return q;
+	        if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+	        return p;
+	    }
+	
+	    if(s === 0) {
+	        r = g = b = l; // achromatic
+	    }
+	    else {
+	        var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+	        var p = 2 * l - q;
+	        r = hue2rgb(p, q, h + 1/3);
+	        g = hue2rgb(p, q, h);
+	        b = hue2rgb(p, q, h - 1/3);
+	    }
+	
+	    return { r: r * 255, g: g * 255, b: b * 255 };
+	}
+	
+	// `rgbToHsv`
+	// Converts an RGB color value to HSV
+	// *Assumes:* r, g, and b are contained in the set [0, 255] or [0, 1]
+	// *Returns:* { h, s, v } in [0,1]
+	function rgbToHsv(r, g, b) {
+	
+	    r = bound01(r, 255);
+	    g = bound01(g, 255);
+	    b = bound01(b, 255);
+	
+	    var max = mathMax(r, g, b), min = mathMin(r, g, b);
+	    var h, s, v = max;
+	
+	    var d = max - min;
+	    s = max === 0 ? 0 : d / max;
+	
+	    if(max == min) {
+	        h = 0; // achromatic
+	    }
+	    else {
+	        switch(max) {
+	            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+	            case g: h = (b - r) / d + 2; break;
+	            case b: h = (r - g) / d + 4; break;
+	        }
+	        h /= 6;
+	    }
+	    return { h: h, s: s, v: v };
+	}
+	
+	// `hsvToRgb`
+	// Converts an HSV color value to RGB.
+	// *Assumes:* h is contained in [0, 1] or [0, 360] and s and v are contained in [0, 1] or [0, 100]
+	// *Returns:* { r, g, b } in the set [0, 255]
+	 function hsvToRgb(h, s, v) {
+	
+	    h = bound01(h, 360) * 6;
+	    s = bound01(s, 100);
+	    v = bound01(v, 100);
+	
+	    var i = math.floor(h),
+	        f = h - i,
+	        p = v * (1 - s),
+	        q = v * (1 - f * s),
+	        t = v * (1 - (1 - f) * s),
+	        mod = i % 6,
+	        r = [v, q, p, p, t, v][mod],
+	        g = [t, v, v, q, p, p][mod],
+	        b = [p, p, t, v, v, q][mod];
+	
+	    return { r: r * 255, g: g * 255, b: b * 255 };
+	}
+	
+	// `rgbToHex`
+	// Converts an RGB color to hex
+	// Assumes r, g, and b are contained in the set [0, 255]
+	// Returns a 3 or 6 character hex
+	function rgbToHex(r, g, b, allow3Char) {
+	
+	    var hex = [
+	        pad2(mathRound(r).toString(16)),
+	        pad2(mathRound(g).toString(16)),
+	        pad2(mathRound(b).toString(16))
+	    ];
+	
+	    // Return a 3 character hex if possible
+	    if (allow3Char && hex[0].charAt(0) == hex[0].charAt(1) && hex[1].charAt(0) == hex[1].charAt(1) && hex[2].charAt(0) == hex[2].charAt(1)) {
+	        return hex[0].charAt(0) + hex[1].charAt(0) + hex[2].charAt(0);
+	    }
+	
+	    return hex.join("");
+	}
+	    // `rgbaToHex`
+	    // Converts an RGBA color plus alpha transparency to hex
+	    // Assumes r, g, b and a are contained in the set [0, 255]
+	    // Returns an 8 character hex
+	    function rgbaToHex(r, g, b, a) {
+	
+	        var hex = [
+	            pad2(convertDecimalToHex(a)),
+	            pad2(mathRound(r).toString(16)),
+	            pad2(mathRound(g).toString(16)),
+	            pad2(mathRound(b).toString(16))
+	        ];
+	
+	        return hex.join("");
+	    }
+	
+	// `equals`
+	// Can be called with any tinycolor input
+	tinycolor.equals = function (color1, color2) {
+	    if (!color1 || !color2) { return false; }
+	    return tinycolor(color1).toRgbString() == tinycolor(color2).toRgbString();
+	};
+	tinycolor.random = function() {
+	    return tinycolor.fromRatio({
+	        r: mathRandom(),
+	        g: mathRandom(),
+	        b: mathRandom()
+	    });
+	};
+	
+	
+	// Modification Functions
+	// ----------------------
+	// Thanks to less.js for some of the basics here
+	// <https://github.com/cloudhead/less.js/blob/master/lib/less/functions.js>
+	
+	function desaturate(color, amount) {
+	    amount = (amount === 0) ? 0 : (amount || 10);
+	    var hsl = tinycolor(color).toHsl();
+	    hsl.s -= amount / 100;
+	    hsl.s = clamp01(hsl.s);
+	    return tinycolor(hsl);
+	}
+	
+	function saturate(color, amount) {
+	    amount = (amount === 0) ? 0 : (amount || 10);
+	    var hsl = tinycolor(color).toHsl();
+	    hsl.s += amount / 100;
+	    hsl.s = clamp01(hsl.s);
+	    return tinycolor(hsl);
+	}
+	
+	function greyscale(color) {
+	    return tinycolor(color).desaturate(100);
+	}
+	
+	function lighten (color, amount) {
+	    amount = (amount === 0) ? 0 : (amount || 10);
+	    var hsl = tinycolor(color).toHsl();
+	    hsl.l += amount / 100;
+	    hsl.l = clamp01(hsl.l);
+	    return tinycolor(hsl);
+	}
+	
+	function brighten(color, amount) {
+	    amount = (amount === 0) ? 0 : (amount || 10);
+	    var rgb = tinycolor(color).toRgb();
+	    rgb.r = mathMax(0, mathMin(255, rgb.r - mathRound(255 * - (amount / 100))));
+	    rgb.g = mathMax(0, mathMin(255, rgb.g - mathRound(255 * - (amount / 100))));
+	    rgb.b = mathMax(0, mathMin(255, rgb.b - mathRound(255 * - (amount / 100))));
+	    return tinycolor(rgb);
+	}
+	
+	function darken (color, amount) {
+	    amount = (amount === 0) ? 0 : (amount || 10);
+	    var hsl = tinycolor(color).toHsl();
+	    hsl.l -= amount / 100;
+	    hsl.l = clamp01(hsl.l);
+	    return tinycolor(hsl);
+	}
+	
+	// Spin takes a positive or negative amount within [-360, 360] indicating the change of hue.
+	// Values outside of this range will be wrapped into this range.
+	function spin(color, amount) {
+	    var hsl = tinycolor(color).toHsl();
+	    var hue = (mathRound(hsl.h) + amount) % 360;
+	    hsl.h = hue < 0 ? 360 + hue : hue;
+	    return tinycolor(hsl);
+	}
+	
+	// Combination Functions
+	// ---------------------
+	// Thanks to jQuery xColor for some of the ideas behind these
+	// <https://github.com/infusion/jQuery-xcolor/blob/master/jquery.xcolor.js>
+	
+	function complement(color) {
+	    var hsl = tinycolor(color).toHsl();
+	    hsl.h = (hsl.h + 180) % 360;
+	    return tinycolor(hsl);
+	}
+	
+	function triad(color) {
+	    var hsl = tinycolor(color).toHsl();
+	    var h = hsl.h;
+	    return [
+	        tinycolor(color),
+	        tinycolor({ h: (h + 120) % 360, s: hsl.s, l: hsl.l }),
+	        tinycolor({ h: (h + 240) % 360, s: hsl.s, l: hsl.l })
+	    ];
+	}
+	
+	function tetrad(color) {
+	    var hsl = tinycolor(color).toHsl();
+	    var h = hsl.h;
+	    return [
+	        tinycolor(color),
+	        tinycolor({ h: (h + 90) % 360, s: hsl.s, l: hsl.l }),
+	        tinycolor({ h: (h + 180) % 360, s: hsl.s, l: hsl.l }),
+	        tinycolor({ h: (h + 270) % 360, s: hsl.s, l: hsl.l })
+	    ];
+	}
+	
+	function splitcomplement(color) {
+	    var hsl = tinycolor(color).toHsl();
+	    var h = hsl.h;
+	    return [
+	        tinycolor(color),
+	        tinycolor({ h: (h + 72) % 360, s: hsl.s, l: hsl.l}),
+	        tinycolor({ h: (h + 216) % 360, s: hsl.s, l: hsl.l})
+	    ];
+	}
+	
+	function analogous(color, results, slices) {
+	    results = results || 6;
+	    slices = slices || 30;
+	
+	    var hsl = tinycolor(color).toHsl();
+	    var part = 360 / slices;
+	    var ret = [tinycolor(color)];
+	
+	    for (hsl.h = ((hsl.h - (part * results >> 1)) + 720) % 360; --results; ) {
+	        hsl.h = (hsl.h + part) % 360;
+	        ret.push(tinycolor(hsl));
+	    }
+	    return ret;
+	}
+	
+	function monochromatic(color, results) {
+	    results = results || 6;
+	    var hsv = tinycolor(color).toHsv();
+	    var h = hsv.h, s = hsv.s, v = hsv.v;
+	    var ret = [];
+	    var modification = 1 / results;
+	
+	    while (results--) {
+	        ret.push(tinycolor({ h: h, s: s, v: v}));
+	        v = (v + modification) % 1;
+	    }
+	
+	    return ret;
+	}
+	
+	// Utility Functions
+	// ---------------------
+	
+	tinycolor.mix = function(color1, color2, amount) {
+	    amount = (amount === 0) ? 0 : (amount || 50);
+	
+	    var rgb1 = tinycolor(color1).toRgb();
+	    var rgb2 = tinycolor(color2).toRgb();
+	
+	    var p = amount / 100;
+	    var w = p * 2 - 1;
+	    var a = rgb2.a - rgb1.a;
+	
+	    var w1;
+	
+	    if (w * a == -1) {
+	        w1 = w;
+	    } else {
+	        w1 = (w + a) / (1 + w * a);
+	    }
+	
+	    w1 = (w1 + 1) / 2;
+	
+	    var w2 = 1 - w1;
+	
+	    var rgba = {
+	        r: rgb2.r * w1 + rgb1.r * w2,
+	        g: rgb2.g * w1 + rgb1.g * w2,
+	        b: rgb2.b * w1 + rgb1.b * w2,
+	        a: rgb2.a * p  + rgb1.a * (1 - p)
+	    };
+	
+	    return tinycolor(rgba);
+	};
+	
+	
+	// Readability Functions
+	// ---------------------
+	// <http://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef (WCAG Version 2)
+	
+	// `contrast`
+	// Analyze the 2 colors and returns the color contrast defined by (WCAG Version 2)
+	tinycolor.readability = function(color1, color2) {
+	    var c1 = tinycolor(color1);
+	    var c2 = tinycolor(color2);
+	    return (Math.max(c1.getLuminance(),c2.getLuminance())+0.05) / (Math.min(c1.getLuminance(),c2.getLuminance())+0.05);
+	};
+	
+	// `isReadable`
+	// Ensure that foreground and background color combinations meet WCAG2 guidelines.
+	// The third argument is an optional Object.
+	//      the 'level' property states 'AA' or 'AAA' - if missing or invalid, it defaults to 'AA';
+	//      the 'size' property states 'large' or 'small' - if missing or invalid, it defaults to 'small'.
+	// If the entire object is absent, isReadable defaults to {level:"AA",size:"small"}.
+	
+	// *Example*
+	//    tinycolor.isReadable("#000", "#111") => false
+	//    tinycolor.isReadable("#000", "#111",{level:"AA",size:"large"}) => false
+	
+	tinycolor.isReadable = function(color1, color2, wcag2) {
+	    var readability = tinycolor.readability(color1, color2);
+	    var wcag2Parms, out;
+	
+	    out = false;
+	
+	    wcag2Parms = validateWCAG2Parms(wcag2);
+	    switch (wcag2Parms.level + wcag2Parms.size) {
+	        case "AAsmall":
+	        case "AAAlarge":
+	            out = readability >= 4.5;
+	            break;
+	        case "AAlarge":
+	            out = readability >= 3;
+	            break;
+	        case "AAAsmall":
+	            out = readability >= 7;
+	            break;
+	    }
+	    return out;
+	
+	};
+	
+	// `mostReadable`
+	// Given a base color and a list of possible foreground or background
+	// colors for that base, returns the most readable color.
+	// Optionally returns Black or White if the most readable color is unreadable.
+	// *Example*
+	//    tinycolor.mostReadable(tinycolor.mostReadable("#123", ["#124", "#125"],{includeFallbackColors:false}).toHexString(); // "#112255"
+	//    tinycolor.mostReadable(tinycolor.mostReadable("#123", ["#124", "#125"],{includeFallbackColors:true}).toHexString();  // "#ffffff"
+	//    tinycolor.mostReadable("#a8015a", ["#faf3f3"],{includeFallbackColors:true,level:"AAA",size:"large"}).toHexString(); // "#faf3f3"
+	//    tinycolor.mostReadable("#a8015a", ["#faf3f3"],{includeFallbackColors:true,level:"AAA",size:"small"}).toHexString(); // "#ffffff"
+	
+	
+	tinycolor.mostReadable = function(baseColor, colorList, args) {
+	    var bestColor = null;
+	    var bestScore = 0;
+	    var readability;
+	    var includeFallbackColors, level, size ;
+	    args = args || {};
+	    includeFallbackColors = args.includeFallbackColors ;
+	    level = args.level;
+	    size = args.size;
+	
+	    for (var i= 0; i < colorList.length ; i++) {
+	        readability = tinycolor.readability(baseColor, colorList[i]);
+	        if (readability > bestScore) {
+	            bestScore = readability;
+	            bestColor = tinycolor(colorList[i]);
+	        }
+	    }
+	
+	    if (tinycolor.isReadable(baseColor, bestColor, {"level":level,"size":size}) || !includeFallbackColors) {
+	        return bestColor;
+	    }
+	    else {
+	        args.includeFallbackColors=false;
+	        return tinycolor.mostReadable(baseColor,["#fff", "#000"],args);
+	    }
+	};
+	
+	
+	// Big List of Colors
+	// ------------------
+	// <http://www.w3.org/TR/css3-color/#svg-color>
+	var names = tinycolor.names = {
+	    aliceblue: "f0f8ff",
+	    antiquewhite: "faebd7",
+	    aqua: "0ff",
+	    aquamarine: "7fffd4",
+	    azure: "f0ffff",
+	    beige: "f5f5dc",
+	    bisque: "ffe4c4",
+	    black: "000",
+	    blanchedalmond: "ffebcd",
+	    blue: "00f",
+	    blueviolet: "8a2be2",
+	    brown: "a52a2a",
+	    burlywood: "deb887",
+	    burntsienna: "ea7e5d",
+	    cadetblue: "5f9ea0",
+	    chartreuse: "7fff00",
+	    chocolate: "d2691e",
+	    coral: "ff7f50",
+	    cornflowerblue: "6495ed",
+	    cornsilk: "fff8dc",
+	    crimson: "dc143c",
+	    cyan: "0ff",
+	    darkblue: "00008b",
+	    darkcyan: "008b8b",
+	    darkgoldenrod: "b8860b",
+	    darkgray: "a9a9a9",
+	    darkgreen: "006400",
+	    darkgrey: "a9a9a9",
+	    darkkhaki: "bdb76b",
+	    darkmagenta: "8b008b",
+	    darkolivegreen: "556b2f",
+	    darkorange: "ff8c00",
+	    darkorchid: "9932cc",
+	    darkred: "8b0000",
+	    darksalmon: "e9967a",
+	    darkseagreen: "8fbc8f",
+	    darkslateblue: "483d8b",
+	    darkslategray: "2f4f4f",
+	    darkslategrey: "2f4f4f",
+	    darkturquoise: "00ced1",
+	    darkviolet: "9400d3",
+	    deeppink: "ff1493",
+	    deepskyblue: "00bfff",
+	    dimgray: "696969",
+	    dimgrey: "696969",
+	    dodgerblue: "1e90ff",
+	    firebrick: "b22222",
+	    floralwhite: "fffaf0",
+	    forestgreen: "228b22",
+	    fuchsia: "f0f",
+	    gainsboro: "dcdcdc",
+	    ghostwhite: "f8f8ff",
+	    gold: "ffd700",
+	    goldenrod: "daa520",
+	    gray: "808080",
+	    green: "008000",
+	    greenyellow: "adff2f",
+	    grey: "808080",
+	    honeydew: "f0fff0",
+	    hotpink: "ff69b4",
+	    indianred: "cd5c5c",
+	    indigo: "4b0082",
+	    ivory: "fffff0",
+	    khaki: "f0e68c",
+	    lavender: "e6e6fa",
+	    lavenderblush: "fff0f5",
+	    lawngreen: "7cfc00",
+	    lemonchiffon: "fffacd",
+	    lightblue: "add8e6",
+	    lightcoral: "f08080",
+	    lightcyan: "e0ffff",
+	    lightgoldenrodyellow: "fafad2",
+	    lightgray: "d3d3d3",
+	    lightgreen: "90ee90",
+	    lightgrey: "d3d3d3",
+	    lightpink: "ffb6c1",
+	    lightsalmon: "ffa07a",
+	    lightseagreen: "20b2aa",
+	    lightskyblue: "87cefa",
+	    lightslategray: "789",
+	    lightslategrey: "789",
+	    lightsteelblue: "b0c4de",
+	    lightyellow: "ffffe0",
+	    lime: "0f0",
+	    limegreen: "32cd32",
+	    linen: "faf0e6",
+	    magenta: "f0f",
+	    maroon: "800000",
+	    mediumaquamarine: "66cdaa",
+	    mediumblue: "0000cd",
+	    mediumorchid: "ba55d3",
+	    mediumpurple: "9370db",
+	    mediumseagreen: "3cb371",
+	    mediumslateblue: "7b68ee",
+	    mediumspringgreen: "00fa9a",
+	    mediumturquoise: "48d1cc",
+	    mediumvioletred: "c71585",
+	    midnightblue: "191970",
+	    mintcream: "f5fffa",
+	    mistyrose: "ffe4e1",
+	    moccasin: "ffe4b5",
+	    navajowhite: "ffdead",
+	    navy: "000080",
+	    oldlace: "fdf5e6",
+	    olive: "808000",
+	    olivedrab: "6b8e23",
+	    orange: "ffa500",
+	    orangered: "ff4500",
+	    orchid: "da70d6",
+	    palegoldenrod: "eee8aa",
+	    palegreen: "98fb98",
+	    paleturquoise: "afeeee",
+	    palevioletred: "db7093",
+	    papayawhip: "ffefd5",
+	    peachpuff: "ffdab9",
+	    peru: "cd853f",
+	    pink: "ffc0cb",
+	    plum: "dda0dd",
+	    powderblue: "b0e0e6",
+	    purple: "800080",
+	    rebeccapurple: "663399",
+	    red: "f00",
+	    rosybrown: "bc8f8f",
+	    royalblue: "4169e1",
+	    saddlebrown: "8b4513",
+	    salmon: "fa8072",
+	    sandybrown: "f4a460",
+	    seagreen: "2e8b57",
+	    seashell: "fff5ee",
+	    sienna: "a0522d",
+	    silver: "c0c0c0",
+	    skyblue: "87ceeb",
+	    slateblue: "6a5acd",
+	    slategray: "708090",
+	    slategrey: "708090",
+	    snow: "fffafa",
+	    springgreen: "00ff7f",
+	    steelblue: "4682b4",
+	    tan: "d2b48c",
+	    teal: "008080",
+	    thistle: "d8bfd8",
+	    tomato: "ff6347",
+	    turquoise: "40e0d0",
+	    violet: "ee82ee",
+	    wheat: "f5deb3",
+	    white: "fff",
+	    whitesmoke: "f5f5f5",
+	    yellow: "ff0",
+	    yellowgreen: "9acd32"
+	};
+	
+	// Make it easy to access colors via `hexNames[hex]`
+	var hexNames = tinycolor.hexNames = flip(names);
+	
+	
+	// Utilities
+	// ---------
+	
+	// `{ 'name1': 'val1' }` becomes `{ 'val1': 'name1' }`
+	function flip(o) {
+	    var flipped = { };
+	    for (var i in o) {
+	        if (o.hasOwnProperty(i)) {
+	            flipped[o[i]] = i;
+	        }
+	    }
+	    return flipped;
+	}
+	
+	// Return a valid alpha value [0,1] with all invalid values being set to 1
+	function boundAlpha(a) {
+	    a = parseFloat(a);
+	
+	    if (isNaN(a) || a < 0 || a > 1) {
+	        a = 1;
+	    }
+	
+	    return a;
+	}
+	
+	// Take input from [0, n] and return it as [0, 1]
+	function bound01(n, max) {
+	    if (isOnePointZero(n)) { n = "100%"; }
+	
+	    var processPercent = isPercentage(n);
+	    n = mathMin(max, mathMax(0, parseFloat(n)));
+	
+	    // Automatically convert percentage into number
+	    if (processPercent) {
+	        n = parseInt(n * max, 10) / 100;
+	    }
+	
+	    // Handle floating point rounding errors
+	    if ((math.abs(n - max) < 0.000001)) {
+	        return 1;
+	    }
+	
+	    // Convert into [0, 1] range if it isn't already
+	    return (n % max) / parseFloat(max);
+	}
+	
+	// Force a number between 0 and 1
+	function clamp01(val) {
+	    return mathMin(1, mathMax(0, val));
+	}
+	
+	// Parse a base-16 hex value into a base-10 integer
+	function parseIntFromHex(val) {
+	    return parseInt(val, 16);
+	}
+	
+	// Need to handle 1.0 as 100%, since once it is a number, there is no difference between it and 1
+	// <http://stackoverflow.com/questions/7422072/javascript-how-to-detect-number-as-a-decimal-including-1-0>
+	function isOnePointZero(n) {
+	    return typeof n == "string" && n.indexOf('.') != -1 && parseFloat(n) === 1;
+	}
+	
+	// Check to see if string passed in is a percentage
+	function isPercentage(n) {
+	    return typeof n === "string" && n.indexOf('%') != -1;
+	}
+	
+	// Force a hex value to have 2 characters
+	function pad2(c) {
+	    return c.length == 1 ? '0' + c : '' + c;
+	}
+	
+	// Replace a decimal with it's percentage value
+	function convertToPercentage(n) {
+	    if (n <= 1) {
+	        n = (n * 100) + "%";
+	    }
+	
+	    return n;
+	}
+	
+	// Converts a decimal to a hex value
+	function convertDecimalToHex(d) {
+	    return Math.round(parseFloat(d) * 255).toString(16);
+	}
+	// Converts a hex value to a decimal
+	function convertHexToDecimal(h) {
+	    return (parseIntFromHex(h) / 255);
+	}
+	
+	var matchers = (function() {
+	
+	    // <http://www.w3.org/TR/css3-values/#integers>
+	    var CSS_INTEGER = "[-\\+]?\\d+%?";
+	
+	    // <http://www.w3.org/TR/css3-values/#number-value>
+	    var CSS_NUMBER = "[-\\+]?\\d*\\.\\d+%?";
+	
+	    // Allow positive/negative integer/number.  Don't capture the either/or, just the entire outcome.
+	    var CSS_UNIT = "(?:" + CSS_NUMBER + ")|(?:" + CSS_INTEGER + ")";
+	
+	    // Actual matching.
+	    // Parentheses and commas are optional, but not required.
+	    // Whitespace can take the place of commas or opening paren
+	    var PERMISSIVE_MATCH3 = "[\\s|\\(]+(" + CSS_UNIT + ")[,|\\s]+(" + CSS_UNIT + ")[,|\\s]+(" + CSS_UNIT + ")\\s*\\)?";
+	    var PERMISSIVE_MATCH4 = "[\\s|\\(]+(" + CSS_UNIT + ")[,|\\s]+(" + CSS_UNIT + ")[,|\\s]+(" + CSS_UNIT + ")[,|\\s]+(" + CSS_UNIT + ")\\s*\\)?";
+	
+	    return {
+	        rgb: new RegExp("rgb" + PERMISSIVE_MATCH3),
+	        rgba: new RegExp("rgba" + PERMISSIVE_MATCH4),
+	        hsl: new RegExp("hsl" + PERMISSIVE_MATCH3),
+	        hsla: new RegExp("hsla" + PERMISSIVE_MATCH4),
+	        hsv: new RegExp("hsv" + PERMISSIVE_MATCH3),
+	        hsva: new RegExp("hsva" + PERMISSIVE_MATCH4),
+	        hex3: /^([0-9a-fA-F]{1})([0-9a-fA-F]{1})([0-9a-fA-F]{1})$/,
+	        hex6: /^([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$/,
+	        hex8: /^([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$/
+	    };
+	})();
+	
+	// `stringInputToObject`
+	// Permissive string parsing.  Take in a number of formats, and output an object
+	// based on detected format.  Returns `{ r, g, b }` or `{ h, s, l }` or `{ h, s, v}`
+	function stringInputToObject(color) {
+	
+	    color = color.replace(trimLeft,'').replace(trimRight, '').toLowerCase();
+	    var named = false;
+	    if (names[color]) {
+	        color = names[color];
+	        named = true;
+	    }
+	    else if (color == 'transparent') {
+	        return { r: 0, g: 0, b: 0, a: 0, format: "name" };
+	    }
+	
+	    // Try to match string input using regular expressions.
+	    // Keep most of the number bounding out of this function - don't worry about [0,1] or [0,100] or [0,360]
+	    // Just return an object and let the conversion functions handle that.
+	    // This way the result will be the same whether the tinycolor is initialized with string or object.
+	    var match;
+	    if ((match = matchers.rgb.exec(color))) {
+	        return { r: match[1], g: match[2], b: match[3] };
+	    }
+	    if ((match = matchers.rgba.exec(color))) {
+	        return { r: match[1], g: match[2], b: match[3], a: match[4] };
+	    }
+	    if ((match = matchers.hsl.exec(color))) {
+	        return { h: match[1], s: match[2], l: match[3] };
+	    }
+	    if ((match = matchers.hsla.exec(color))) {
+	        return { h: match[1], s: match[2], l: match[3], a: match[4] };
+	    }
+	    if ((match = matchers.hsv.exec(color))) {
+	        return { h: match[1], s: match[2], v: match[3] };
+	    }
+	    if ((match = matchers.hsva.exec(color))) {
+	        return { h: match[1], s: match[2], v: match[3], a: match[4] };
+	    }
+	    if ((match = matchers.hex8.exec(color))) {
+	        return {
+	            a: convertHexToDecimal(match[1]),
+	            r: parseIntFromHex(match[2]),
+	            g: parseIntFromHex(match[3]),
+	            b: parseIntFromHex(match[4]),
+	            format: named ? "name" : "hex8"
+	        };
+	    }
+	    if ((match = matchers.hex6.exec(color))) {
+	        return {
+	            r: parseIntFromHex(match[1]),
+	            g: parseIntFromHex(match[2]),
+	            b: parseIntFromHex(match[3]),
+	            format: named ? "name" : "hex"
+	        };
+	    }
+	    if ((match = matchers.hex3.exec(color))) {
+	        return {
+	            r: parseIntFromHex(match[1] + '' + match[1]),
+	            g: parseIntFromHex(match[2] + '' + match[2]),
+	            b: parseIntFromHex(match[3] + '' + match[3]),
+	            format: named ? "name" : "hex"
+	        };
+	    }
+	
+	    return false;
+	}
+	
+	function validateWCAG2Parms(parms) {
+	    // return valid WCAG2 parms for isReadable.
+	    // If input parms are invalid, return {"level":"AA", "size":"small"}
+	    var level, size;
+	    parms = parms || {"level":"AA", "size":"small"};
+	    level = (parms.level || "AA").toUpperCase();
+	    size = (parms.size || "small").toLowerCase();
+	    if (level !== "AA" && level !== "AAA") {
+	        level = "AA";
+	    }
+	    if (size !== "small" && size !== "large") {
+	        size = "small";
+	    }
+	    return {"level":level, "size":size};
+	}
+	// Node: Export function
+	if (typeof module !== "undefined" && module.exports) {
+	    module.exports = tinycolor;
+	}
+	// AMD/requirejs: Define the module
+	else if (true) {
+	    !(__WEBPACK_AMD_DEFINE_RESULT__ = function () {return tinycolor;}.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	}
+	// Browser: Expose to window
+	else {
+	    window.tinycolor = tinycolor;
+	}
+	
+	})();
+
+
+/***/ },
 /* 216 */
 /***/ function(module, exports) {
 
 	'use strict';
 	
-	module.exports.lasers = {
-	  laser0: new Audio('/static/sounds/lasers/laser0.mp3'),
-	  laser1: new Audio('/static/sounds/lasers/laser1.mp3'),
-	  laser2: new Audio('/static/sounds/lasers/laser2.mp3'),
-	  laser3: new Audio('/static/sounds/lasers/laser3.mp3'),
-	  laser4: new Audio('/static/sounds/lasers/laser4.mp3'),
-	  laser5: new Audio('/static/sounds/lasers/laser5.mp3'),
-	  laser6: new Audio('/static/sounds/lasers/laser6.mp3'),
-	  laser7: new Audio('/static/sounds/lasers/laser7.mp3'),
-	  laser8: new Audio('/static/sounds/lasers/laser8.mp3')
-	};
+	;(function () {
 	
-	module.exports.explosions = {
-	  explode0: new Audio('/static/sounds/explosions/explode0.wav'),
-	  explode1: new Audio('/static/sounds/explosions/explode1.wav'),
-	  explode2: new Audio('/static/sounds/explosions/explode2.wav')
-	};
+	  function sanitizeRGB(color) {
+	    return Math.min(Math.round(color), 255);
+	  }
 	
-	module.exports.streak = {
-	  firstBlood: new Audio('/static/sounds/streak/first-blood.mp3'),
-	  doubleKill: new Audio('/static/sounds/streak/double-kill.mp3'),
-	  tripleKill: new Audio('/static/sounds/streak/triple-kill.mp3'),
-	  monsterKill: new Audio('/static/sounds/streak/monster-kill.mp3'),
-	  killingSpree: new Audio('/static/sounds/streak/killing-spree.mp3'),
-	  dominating: new Audio('/static/sounds/streak/dominating.mp3'),
-	  rampage: new Audio('/static/sounds/streak/rampage.mp3'),
-	  godLike: new Audio('/static/sounds/streak/god-like.mp3'),
-	  ownage: new Audio('/static/sounds/streak/ownage.mp3')
-	};
+	  var colorBlend = {
+	    overlay: function overlay(a, b, intesity) {
+	      return a.reduce(function (result, current, index) {
+	        var value = a[index] < 128 ? 2 * b[index] * a[index] / 255 : 255 - 2 * (255 - a[index]) * (255 - b[index]) / 255;
+	        value = value * intesity + a[index] * (1 - intesity);
 	
-	module.exports.music = {
-	  theme0: new Audio('/static/sounds/music/flight.ogg')
-	};
+	        return result.concat(sanitizeRGB(value));
+	      }, []);
+	    }
+	  };
+	
+	  if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+	    module.exports = colorBlend;
+	  } else window.colorBlend = colorBlend;
+	})();
 
 /***/ },
 /* 217 */
 /***/ function(module, exports, __webpack_require__) {
 
-	'use strict';
+	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;// randomColor by David Merfield under the MIT license
+	// https://github.com/davidmerfield/randomColor/
 	
-	var React = __webpack_require__(218);
+	;(function(root, factory) {
 	
-	var Tiles = React.createClass({
-	  displayName: 'Tiles',
+	  // Support AMD
+	  if (true) {
+	    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
 	
-	  propTypes: {
-	    gridSize: React.PropTypes.number.isRequired
-	  },
+	  // Support CommonJS
+	  } else if (typeof exports === 'object') {
+	    var randomColor = factory();
+	    
+	    // Support NodeJS & Component, which allow module.exports to be a function
+	    if (typeof module === 'object' && module && module.exports) {
+	      exports = module.exports = randomColor;
+	    }
+	    
+	    // Support CommonJS 1.1.1 spec
+	    exports.randomColor = randomColor;
+	  
+	  // Support vanilla script loading
+	  } else {
+	    root.randomColor = factory();
+	  };
 	
-	  shouldComponentUpdate: function shouldComponentUpdate() {
-	    return false;
-	  },
+	}(this, function() {
 	
-	  render: function render() {
-	    var gridSize = this.props.gridSize;
+	  // Seed to get repeatable colors
+	  var seed = null;
 	
-	    var tileSize = 100 / gridSize;
-	    var i;
+	  // Shared color dictionary
+	  var colorDictionary = {};
 	
-	    var tileRender = [];
-	    for (i = 0; i < gridSize * gridSize; i++) {
-	      tileRender.push(React.createElement('div', { style: { height: tileSize + 'vmin', width: tileSize + 'vmin' }, className: 'clash-tile', key: i }));
+	  // Populate the color dictionary
+	  loadColorBounds();
+	
+	  var randomColor = function(options) {
+	    options = options || {};
+	    if (options.seed && !seed) seed = options.seed;
+	
+	    var H,S,B;
+	
+	    // Check if we need to generate multiple colors
+	    if (options.count != null) {
+	
+	      var totalColors = options.count,
+	          colors = [];
+	
+	      options.count = null;
+	
+	      while (totalColors > colors.length) {
+	        colors.push(randomColor(options));
+	      }
+	
+	      options.count = totalColors;
+	
+	      //Keep the seed constant between runs. 
+	      if (options.seed) seed = options.seed;
+	      
+	      return colors;
 	    }
 	
-	    return React.createElement(
-	      'div',
-	      null,
-	      tileRender
-	    );
+	    // First we pick a hue (H)
+	    H = pickHue(options);
+	
+	    // Then use H to determine saturation (S)
+	    S = pickSaturation(H, options);
+	
+	    // Then use S and H to determine brightness (B).
+	    B = pickBrightness(H, S, options);
+	
+	    // Then we return the HSB color in the desired format
+	    return setFormat([H,S,B], options);
+	  };
+	
+	  function pickHue (options) {
+	
+	    var hueRange = getHueRange(options.hue),
+	        hue = randomWithin(hueRange);
+	
+	    // Instead of storing red as two seperate ranges,
+	    // we group them, using negative numbers
+	    if (hue < 0) {hue = 360 + hue}
+	
+	    return hue;
+	
 	  }
 	
-	});
+	  function pickSaturation (hue, options) {
 	
-	module.exports = Tiles;
+	    if (options.luminosity === 'random') {
+	      return randomWithin([0,100]);
+	    }
+	
+	    if (options.hue === 'monochrome') {
+	      return 0;
+	    }
+	
+	    var saturationRange = getSaturationRange(hue);
+	
+	    var sMin = saturationRange[0],
+	        sMax = saturationRange[1];
+	
+	    switch (options.luminosity) {
+	
+	      case 'bright':
+	        sMin = 55;
+	        break;
+	
+	      case 'dark':
+	        sMin = sMax - 10;
+	        break;
+	
+	      case 'light':
+	        sMax = 55;
+	        break;
+	   }
+	
+	    return randomWithin([sMin, sMax]);
+	
+	  }
+	
+	  function pickBrightness (H, S, options) {
+	
+	    var brightness,
+	        bMin = getMinimumBrightness(H, S),
+	        bMax = 100;
+	
+	    switch (options.luminosity) {
+	
+	      case 'dark':
+	        bMax = bMin + 20;
+	        break;
+	
+	      case 'light':
+	        bMin = (bMax + bMin)/2;
+	        break;
+	
+	      case 'random':
+	        bMin = 0;
+	        bMax = 100;
+	        break;
+	    }
+	
+	    return randomWithin([bMin, bMax]);
+	
+	  }
+	
+	  function setFormat (hsv, options) {
+	
+	    switch (options.format) {
+	
+	      case 'hsvArray':
+	        return hsv;
+	
+	      case 'hslArray':
+	        return HSVtoHSL(hsv);
+	
+	      case 'hsl':
+	        var hsl = HSVtoHSL(hsv);
+	        return 'hsl('+hsl[0]+', '+hsl[1]+'%, '+hsl[2]+'%)';
+	
+	      case 'rgbArray':
+	        return HSVtoRGB(hsv);
+	
+	      case 'rgb':
+	        var rgb = HSVtoRGB(hsv);
+	        return 'rgb(' + rgb.join(', ') + ')';
+	
+	      default:
+	        return HSVtoHex(hsv);
+	    }
+	
+	  }
+	
+	  function getMinimumBrightness(H, S) {
+	
+	    var lowerBounds = getColorInfo(H).lowerBounds;
+	
+	    for (var i = 0; i < lowerBounds.length - 1; i++) {
+	
+	      var s1 = lowerBounds[i][0],
+	          v1 = lowerBounds[i][1];
+	
+	      var s2 = lowerBounds[i+1][0],
+	          v2 = lowerBounds[i+1][1];
+	
+	      if (S >= s1 && S <= s2) {
+	
+	         var m = (v2 - v1)/(s2 - s1),
+	             b = v1 - m*s1;
+	
+	         return m*S + b;
+	      }
+	
+	    }
+	
+	    return 0;
+	  }
+	
+	  function getHueRange (colorInput) {
+	
+	    if (typeof parseInt(colorInput) === 'number') {
+	
+	      var number = parseInt(colorInput);
+	
+	      if (number < 360 && number > 0) {
+	        return [number, number];
+	      }
+	
+	    }
+	
+	    if (typeof colorInput === 'string') {
+	
+	      if (colorDictionary[colorInput]) {
+	        var color = colorDictionary[colorInput];
+	        if (color.hueRange) {return color.hueRange}
+	      }
+	    }
+	
+	    return [0,360];
+	
+	  }
+	
+	  function getSaturationRange (hue) {
+	    return getColorInfo(hue).saturationRange;
+	  }
+	
+	  function getColorInfo (hue) {
+	
+	    // Maps red colors to make picking hue easier
+	    if (hue >= 334 && hue <= 360) {
+	      hue-= 360;
+	    }
+	
+	    for (var colorName in colorDictionary) {
+	       var color = colorDictionary[colorName];
+	       if (color.hueRange &&
+	           hue >= color.hueRange[0] &&
+	           hue <= color.hueRange[1]) {
+	          return colorDictionary[colorName];
+	       }
+	    } return 'Color not found';
+	  }
+	
+	  function randomWithin (range) {
+	    if (seed == null) {
+	      return Math.floor(range[0] + Math.random()*(range[1] + 1 - range[0]));
+	    } else {
+	      //Seeded random algorithm from http://indiegamr.com/generate-repeatable-random-numbers-in-js/
+	      var max = range[1] || 1;
+	      var min = range[0] || 0;
+	      seed = (seed * 9301 + 49297) % 233280;
+	      var rnd = seed / 233280.0;
+	      return Math.floor(min + rnd * (max - min));
+	    }
+	  }
+	
+	  function HSVtoHex (hsv){
+	
+	    var rgb = HSVtoRGB(hsv);
+	
+	    function componentToHex(c) {
+	        var hex = c.toString(16);
+	        return hex.length == 1 ? "0" + hex : hex;
+	    }
+	
+	    var hex = "#" + componentToHex(rgb[0]) + componentToHex(rgb[1]) + componentToHex(rgb[2]);
+	
+	    return hex;
+	
+	  }
+	
+	  function defineColor (name, hueRange, lowerBounds) {
+	
+	    var sMin = lowerBounds[0][0],
+	        sMax = lowerBounds[lowerBounds.length - 1][0],
+	
+	        bMin = lowerBounds[lowerBounds.length - 1][1],
+	        bMax = lowerBounds[0][1];
+	
+	    colorDictionary[name] = {
+	      hueRange: hueRange,
+	      lowerBounds: lowerBounds,
+	      saturationRange: [sMin, sMax],
+	      brightnessRange: [bMin, bMax]
+	    };
+	
+	  }
+	
+	  function loadColorBounds () {
+	
+	    defineColor(
+	      'monochrome',
+	      null,
+	      [[0,0],[100,0]]
+	    );
+	
+	    defineColor(
+	      'red',
+	      [-26,18],
+	      [[20,100],[30,92],[40,89],[50,85],[60,78],[70,70],[80,60],[90,55],[100,50]]
+	    );
+	
+	    defineColor(
+	      'orange',
+	      [19,46],
+	      [[20,100],[30,93],[40,88],[50,86],[60,85],[70,70],[100,70]]
+	    );
+	
+	    defineColor(
+	      'yellow',
+	      [47,62],
+	      [[25,100],[40,94],[50,89],[60,86],[70,84],[80,82],[90,80],[100,75]]
+	    );
+	
+	    defineColor(
+	      'green',
+	      [63,178],
+	      [[30,100],[40,90],[50,85],[60,81],[70,74],[80,64],[90,50],[100,40]]
+	    );
+	
+	    defineColor(
+	      'blue',
+	      [179, 257],
+	      [[20,100],[30,86],[40,80],[50,74],[60,60],[70,52],[80,44],[90,39],[100,35]]
+	    );
+	
+	    defineColor(
+	      'purple',
+	      [258, 282],
+	      [[20,100],[30,87],[40,79],[50,70],[60,65],[70,59],[80,52],[90,45],[100,42]]
+	    );
+	
+	    defineColor(
+	      'pink',
+	      [283, 334],
+	      [[20,100],[30,90],[40,86],[60,84],[80,80],[90,75],[100,73]]
+	    );
+	
+	  }
+	
+	  function HSVtoRGB (hsv) {
+	
+	    // this doesn't work for the values of 0 and 360
+	    // here's the hacky fix
+	    var h = hsv[0];
+	    if (h === 0) {h = 1}
+	    if (h === 360) {h = 359}
+	
+	    // Rebase the h,s,v values
+	    h = h/360;
+	    var s = hsv[1]/100,
+	        v = hsv[2]/100;
+	
+	    var h_i = Math.floor(h*6),
+	      f = h * 6 - h_i,
+	      p = v * (1 - s),
+	      q = v * (1 - f*s),
+	      t = v * (1 - (1 - f)*s),
+	      r = 256,
+	      g = 256,
+	      b = 256;
+	
+	    switch(h_i) {
+	      case 0: r = v, g = t, b = p;  break;
+	      case 1: r = q, g = v, b = p;  break;
+	      case 2: r = p, g = v, b = t;  break;
+	      case 3: r = p, g = q, b = v;  break;
+	      case 4: r = t, g = p, b = v;  break;
+	      case 5: r = v, g = p, b = q;  break;
+	    }
+	    var result = [Math.floor(r*255), Math.floor(g*255), Math.floor(b*255)];
+	    return result;
+	  }
+	
+	  function HSVtoHSL (hsv) {
+	    var h = hsv[0],
+	      s = hsv[1]/100,
+	      v = hsv[2]/100,
+	      k = (2-s)*v;
+	
+	    return [
+	      h,
+	      Math.round(s*v / (k<1 ? k : 2-k) * 10000) / 100,
+	      k/2 * 100
+	    ];
+	  }
+	
+	  return randomColor;
+	}));
+
 
 /***/ },
 /* 218 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(219);
+	/**
+	 * Module dependencies
+	 */
+	
+	var debug = __webpack_require__(219)('jsonp');
+	
+	/**
+	 * Module exports.
+	 */
+	
+	module.exports = jsonp;
+	
+	/**
+	 * Callback index.
+	 */
+	
+	var count = 0;
+	
+	/**
+	 * Noop function.
+	 */
+	
+	function noop(){}
+	
+	/**
+	 * JSONP handler
+	 *
+	 * Options:
+	 *  - param {String} qs parameter (`callback`)
+	 *  - prefix {String} qs parameter (`__jp`)
+	 *  - name {String} qs parameter (`prefix` + incr)
+	 *  - timeout {Number} how long after a timeout error is emitted (`60000`)
+	 *
+	 * @param {String} url
+	 * @param {Object|Function} optional options / callback
+	 * @param {Function} optional callback
+	 */
+	
+	function jsonp(url, opts, fn){
+	  if ('function' == typeof opts) {
+	    fn = opts;
+	    opts = {};
+	  }
+	  if (!opts) opts = {};
+	
+	  var prefix = opts.prefix || '__jp';
+	
+	  // use the callback name that was passed if one was provided.
+	  // otherwise generate a unique name by incrementing our counter.
+	  var id = opts.name || (prefix + (count++));
+	
+	  var param = opts.param || 'callback';
+	  var timeout = null != opts.timeout ? opts.timeout : 60000;
+	  var enc = encodeURIComponent;
+	  var target = document.getElementsByTagName('script')[0] || document.head;
+	  var script;
+	  var timer;
+	
+	
+	  if (timeout) {
+	    timer = setTimeout(function(){
+	      cleanup();
+	      if (fn) fn(new Error('Timeout'));
+	    }, timeout);
+	  }
+	
+	  function cleanup(){
+	    if (script.parentNode) script.parentNode.removeChild(script);
+	    window[id] = noop;
+	    if (timer) clearTimeout(timer);
+	  }
+	
+	  function cancel(){
+	    if (window[id]) {
+	      cleanup();
+	    }
+	  }
+	
+	  window[id] = function(data){
+	    debug('jsonp got', data);
+	    cleanup();
+	    if (fn) fn(null, data);
+	  };
+	
+	  // add qs component
+	  url += (~url.indexOf('?') ? '&' : '?') + param + '=' + enc(id);
+	  url = url.replace('?&', '?');
+	
+	  debug('jsonp req "%s"', url);
+	
+	  // create script
+	  script = document.createElement('script');
+	  script.src = url;
+	  target.parentNode.insertBefore(script, target);
+	
+	  return cancel;
+	}
 
 
 /***/ },
 /* 219 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2015, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule ReactWithAddons
-	 */
 	
 	/**
-	 * This module exists purely in the open source project, and is meant as a way
-	 * to create a separate standalone build of React. This build has "addons", or
-	 * functionality we've built and think might be useful but doesn't have a good
-	 * place to live inside React core.
+	 * This is the web browser implementation of `debug()`.
+	 *
+	 * Expose `debug()` as the module.
 	 */
 	
-	'use strict';
+	exports = module.exports = __webpack_require__(220);
+	exports.log = log;
+	exports.formatArgs = formatArgs;
+	exports.save = save;
+	exports.load = load;
+	exports.useColors = useColors;
 	
-	var LinkedStateMixin = __webpack_require__(220);
-	var React = __webpack_require__(58);
-	var ReactComponentWithPureRenderMixin =
-	  __webpack_require__(223);
-	var ReactCSSTransitionGroup = __webpack_require__(224);
-	var ReactFragment = __webpack_require__(66);
-	var ReactTransitionGroup = __webpack_require__(225);
-	var ReactUpdates = __webpack_require__(82);
+	/**
+	 * Use chrome.storage.local if we are in an app
+	 */
 	
-	var cx = __webpack_require__(233);
-	var cloneWithProps = __webpack_require__(227);
-	var update = __webpack_require__(234);
+	var storage;
 	
-	React.addons = {
-	  CSSTransitionGroup: ReactCSSTransitionGroup,
-	  LinkedStateMixin: LinkedStateMixin,
-	  PureRenderMixin: ReactComponentWithPureRenderMixin,
-	  TransitionGroup: ReactTransitionGroup,
+	if (typeof chrome !== 'undefined' && typeof chrome.storage !== 'undefined')
+	  storage = chrome.storage.local;
+	else
+	  storage = localstorage();
 	
-	  batchedUpdates: ReactUpdates.batchedUpdates,
-	  classSet: cx,
-	  cloneWithProps: cloneWithProps,
-	  createFragment: ReactFragment.create,
-	  update: update
-	};
+	/**
+	 * Colors.
+	 */
 	
-	if ("production" !== process.env.NODE_ENV) {
-	  React.addons.Perf = __webpack_require__(206);
-	  React.addons.TestUtils = __webpack_require__(235);
+	exports.colors = [
+	  'lightseagreen',
+	  'forestgreen',
+	  'goldenrod',
+	  'dodgerblue',
+	  'darkorchid',
+	  'crimson'
+	];
+	
+	/**
+	 * Currently only WebKit-based Web Inspectors, Firefox >= v31,
+	 * and the Firebug extension (any Firefox version) are known
+	 * to support "%c" CSS customizations.
+	 *
+	 * TODO: add a `localStorage` variable to explicitly enable/disable colors
+	 */
+	
+	function useColors() {
+	  // is webkit? http://stackoverflow.com/a/16459606/376773
+	  return ('WebkitAppearance' in document.documentElement.style) ||
+	    // is firebug? http://stackoverflow.com/a/398120/376773
+	    (window.console && (console.firebug || (console.exception && console.table))) ||
+	    // is firefox >= v31?
+	    // https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
+	    (navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31);
 	}
 	
-	module.exports = React;
+	/**
+	 * Map %j to `JSON.stringify()`, since no Web Inspectors do that by default.
+	 */
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(59)))
+	exports.formatters.j = function(v) {
+	  return JSON.stringify(v);
+	};
+	
+	
+	/**
+	 * Colorize log arguments if enabled.
+	 *
+	 * @api public
+	 */
+	
+	function formatArgs() {
+	  var args = arguments;
+	  var useColors = this.useColors;
+	
+	  args[0] = (useColors ? '%c' : '')
+	    + this.namespace
+	    + (useColors ? ' %c' : ' ')
+	    + args[0]
+	    + (useColors ? '%c ' : ' ')
+	    + '+' + exports.humanize(this.diff);
+	
+	  if (!useColors) return args;
+	
+	  var c = 'color: ' + this.color;
+	  args = [args[0], c, 'color: inherit'].concat(Array.prototype.slice.call(args, 1));
+	
+	  // the final "%c" is somewhat tricky, because there could be other
+	  // arguments passed either before or after the %c, so we need to
+	  // figure out the correct index to insert the CSS into
+	  var index = 0;
+	  var lastC = 0;
+	  args[0].replace(/%[a-z%]/g, function(match) {
+	    if ('%%' === match) return;
+	    index++;
+	    if ('%c' === match) {
+	      // we only are interested in the *last* %c
+	      // (the user may have provided their own)
+	      lastC = index;
+	    }
+	  });
+	
+	  args.splice(lastC, 0, c);
+	  return args;
+	}
+	
+	/**
+	 * Invokes `console.log()` when available.
+	 * No-op when `console.log` is not a "function".
+	 *
+	 * @api public
+	 */
+	
+	function log() {
+	  // this hackery is required for IE8/9, where
+	  // the `console.log` function doesn't have 'apply'
+	  return 'object' === typeof console
+	    && console.log
+	    && Function.prototype.apply.call(console.log, console, arguments);
+	}
+	
+	/**
+	 * Save `namespaces`.
+	 *
+	 * @param {String} namespaces
+	 * @api private
+	 */
+	
+	function save(namespaces) {
+	  try {
+	    if (null == namespaces) {
+	      storage.removeItem('debug');
+	    } else {
+	      storage.debug = namespaces;
+	    }
+	  } catch(e) {}
+	}
+	
+	/**
+	 * Load `namespaces`.
+	 *
+	 * @return {String} returns the previously persisted debug modes
+	 * @api private
+	 */
+	
+	function load() {
+	  var r;
+	  try {
+	    r = storage.debug;
+	  } catch(e) {}
+	  return r;
+	}
+	
+	/**
+	 * Enable namespaces listed in `localStorage.debug` initially.
+	 */
+	
+	exports.enable(load());
+	
+	/**
+	 * Localstorage attempts to return the localstorage.
+	 *
+	 * This is necessary because safari throws
+	 * when a user disables cookies/localstorage
+	 * and you attempt to access it.
+	 *
+	 * @return {LocalStorage}
+	 * @api private
+	 */
+	
+	function localstorage(){
+	  try {
+	    return window.localStorage;
+	  } catch (e) {}
+	}
+
 
 /***/ },
 /* 220 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/**
-	 * Copyright 2013-2015, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule LinkedStateMixin
-	 * @typechecks static-only
-	 */
-	
-	'use strict';
-	
-	var ReactLink = __webpack_require__(221);
-	var ReactStateSetters = __webpack_require__(222);
 	
 	/**
-	 * A simple mixin around ReactLink.forState().
+	 * This is the common logic for both the Node.js and web browser
+	 * implementations of `debug()`.
+	 *
+	 * Expose `debug()` as the module.
 	 */
-	var LinkedStateMixin = {
-	  /**
-	   * Create a ReactLink that's linked to part of this component's state. The
-	   * ReactLink will have the current value of this.state[key] and will call
-	   * setState() when a change is requested.
-	   *
-	   * @param {string} key state key to update. Note: you may want to use keyOf()
-	   * if you're using Google Closure Compiler advanced mode.
-	   * @return {ReactLink} ReactLink instance linking to the state.
-	   */
-	  linkState: function(key) {
-	    return new ReactLink(
-	      this.state[key],
-	      ReactStateSetters.createStateKeySetter(this, key)
-	    );
+	
+	exports = module.exports = debug;
+	exports.coerce = coerce;
+	exports.disable = disable;
+	exports.enable = enable;
+	exports.enabled = enabled;
+	exports.humanize = __webpack_require__(221);
+	
+	/**
+	 * The currently active debug mode names, and names to skip.
+	 */
+	
+	exports.names = [];
+	exports.skips = [];
+	
+	/**
+	 * Map of special "%n" handling functions, for the debug "format" argument.
+	 *
+	 * Valid key names are a single, lowercased letter, i.e. "n".
+	 */
+	
+	exports.formatters = {};
+	
+	/**
+	 * Previously assigned color.
+	 */
+	
+	var prevColor = 0;
+	
+	/**
+	 * Previous log timestamp.
+	 */
+	
+	var prevTime;
+	
+	/**
+	 * Select a color.
+	 *
+	 * @return {Number}
+	 * @api private
+	 */
+	
+	function selectColor() {
+	  return exports.colors[prevColor++ % exports.colors.length];
+	}
+	
+	/**
+	 * Create a debugger with the given `namespace`.
+	 *
+	 * @param {String} namespace
+	 * @return {Function}
+	 * @api public
+	 */
+	
+	function debug(namespace) {
+	
+	  // define the `disabled` version
+	  function disabled() {
 	  }
-	};
+	  disabled.enabled = false;
 	
-	module.exports = LinkedStateMixin;
+	  // define the `enabled` version
+	  function enabled() {
+	
+	    var self = enabled;
+	
+	    // set `diff` timestamp
+	    var curr = +new Date();
+	    var ms = curr - (prevTime || curr);
+	    self.diff = ms;
+	    self.prev = prevTime;
+	    self.curr = curr;
+	    prevTime = curr;
+	
+	    // add the `color` if not set
+	    if (null == self.useColors) self.useColors = exports.useColors();
+	    if (null == self.color && self.useColors) self.color = selectColor();
+	
+	    var args = Array.prototype.slice.call(arguments);
+	
+	    args[0] = exports.coerce(args[0]);
+	
+	    if ('string' !== typeof args[0]) {
+	      // anything else let's inspect with %o
+	      args = ['%o'].concat(args);
+	    }
+	
+	    // apply any `formatters` transformations
+	    var index = 0;
+	    args[0] = args[0].replace(/%([a-z%])/g, function(match, format) {
+	      // if we encounter an escaped % then don't increase the array index
+	      if (match === '%%') return match;
+	      index++;
+	      var formatter = exports.formatters[format];
+	      if ('function' === typeof formatter) {
+	        var val = args[index];
+	        match = formatter.call(self, val);
+	
+	        // now we need to remove `args[index]` since it's inlined in the `format`
+	        args.splice(index, 1);
+	        index--;
+	      }
+	      return match;
+	    });
+	
+	    if ('function' === typeof exports.formatArgs) {
+	      args = exports.formatArgs.apply(self, args);
+	    }
+	    var logFn = enabled.log || exports.log || console.log.bind(console);
+	    logFn.apply(self, args);
+	  }
+	  enabled.enabled = true;
+	
+	  var fn = exports.enabled(namespace) ? enabled : disabled;
+	
+	  fn.namespace = namespace;
+	
+	  return fn;
+	}
+	
+	/**
+	 * Enables a debug mode by namespaces. This can include modes
+	 * separated by a colon and wildcards.
+	 *
+	 * @param {String} namespaces
+	 * @api public
+	 */
+	
+	function enable(namespaces) {
+	  exports.save(namespaces);
+	
+	  var split = (namespaces || '').split(/[\s,]+/);
+	  var len = split.length;
+	
+	  for (var i = 0; i < len; i++) {
+	    if (!split[i]) continue; // ignore empty strings
+	    namespaces = split[i].replace(/\*/g, '.*?');
+	    if (namespaces[0] === '-') {
+	      exports.skips.push(new RegExp('^' + namespaces.substr(1) + '$'));
+	    } else {
+	      exports.names.push(new RegExp('^' + namespaces + '$'));
+	    }
+	  }
+	}
+	
+	/**
+	 * Disable debug output.
+	 *
+	 * @api public
+	 */
+	
+	function disable() {
+	  exports.enable('');
+	}
+	
+	/**
+	 * Returns true if the given mode name is enabled, false otherwise.
+	 *
+	 * @param {String} name
+	 * @return {Boolean}
+	 * @api public
+	 */
+	
+	function enabled(name) {
+	  var i, len;
+	  for (i = 0, len = exports.skips.length; i < len; i++) {
+	    if (exports.skips[i].test(name)) {
+	      return false;
+	    }
+	  }
+	  for (i = 0, len = exports.names.length; i < len; i++) {
+	    if (exports.names[i].test(name)) {
+	      return true;
+	    }
+	  }
+	  return false;
+	}
+	
+	/**
+	 * Coerce `val`.
+	 *
+	 * @param {Mixed} val
+	 * @return {Mixed}
+	 * @api private
+	 */
+	
+	function coerce(val) {
+	  if (val instanceof Error) return val.stack || val.message;
+	  return val;
+	}
 
 
 /***/ },
 /* 221 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
 	/**
-	 * Copyright 2013-2015, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule ReactLink
-	 * @typechecks static-only
+	 * Helpers.
 	 */
 	
-	'use strict';
+	var s = 1000;
+	var m = s * 60;
+	var h = m * 60;
+	var d = h * 24;
+	var y = d * 365.25;
 	
 	/**
-	 * ReactLink encapsulates a common pattern in which a component wants to modify
-	 * a prop received from its parent. ReactLink allows the parent to pass down a
-	 * value coupled with a callback that, when invoked, expresses an intent to
-	 * modify that value. For example:
+	 * Parse or format the given `val`.
 	 *
-	 * React.createClass({
-	 *   getInitialState: function() {
-	 *     return {value: ''};
-	 *   },
-	 *   render: function() {
-	 *     var valueLink = new ReactLink(this.state.value, this._handleValueChange);
-	 *     return <input valueLink={valueLink} />;
-	 *   },
-	 *   this._handleValueChange: function(newValue) {
-	 *     this.setState({value: newValue});
-	 *   }
-	 * });
+	 * Options:
 	 *
-	 * We have provided some sugary mixins to make the creation and
-	 * consumption of ReactLink easier; see LinkedValueUtils and LinkedStateMixin.
+	 *  - `long` verbose formatting [false]
+	 *
+	 * @param {String|Number} val
+	 * @param {Object} options
+	 * @return {String|Number}
+	 * @api public
 	 */
 	
-	var React = __webpack_require__(58);
-	
-	/**
-	 * @param {*} value current value of the link
-	 * @param {function} requestChange callback to request a change
-	 */
-	function ReactLink(value, requestChange) {
-	  this.value = value;
-	  this.requestChange = requestChange;
-	}
-	
-	/**
-	 * Creates a PropType that enforces the ReactLink API and optionally checks the
-	 * type of the value being passed inside the link. Example:
-	 *
-	 * MyComponent.propTypes = {
-	 *   tabIndexLink: ReactLink.PropTypes.link(React.PropTypes.number)
-	 * }
-	 */
-	function createLinkTypeChecker(linkType) {
-	  var shapes = {
-	    value: typeof linkType === 'undefined' ?
-	      React.PropTypes.any.isRequired :
-	      linkType.isRequired,
-	    requestChange: React.PropTypes.func.isRequired
-	  };
-	  return React.PropTypes.shape(shapes);
-	}
-	
-	ReactLink.PropTypes = {
-	  link: createLinkTypeChecker
+	module.exports = function(val, options){
+	  options = options || {};
+	  if ('string' == typeof val) return parse(val);
+	  return options.long
+	    ? long(val)
+	    : short(val);
 	};
 	
-	module.exports = ReactLink;
+	/**
+	 * Parse the given `str` and return milliseconds.
+	 *
+	 * @param {String} str
+	 * @return {Number}
+	 * @api private
+	 */
+	
+	function parse(str) {
+	  var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(str);
+	  if (!match) return;
+	  var n = parseFloat(match[1]);
+	  var type = (match[2] || 'ms').toLowerCase();
+	  switch (type) {
+	    case 'years':
+	    case 'year':
+	    case 'yrs':
+	    case 'yr':
+	    case 'y':
+	      return n * y;
+	    case 'days':
+	    case 'day':
+	    case 'd':
+	      return n * d;
+	    case 'hours':
+	    case 'hour':
+	    case 'hrs':
+	    case 'hr':
+	    case 'h':
+	      return n * h;
+	    case 'minutes':
+	    case 'minute':
+	    case 'mins':
+	    case 'min':
+	    case 'm':
+	      return n * m;
+	    case 'seconds':
+	    case 'second':
+	    case 'secs':
+	    case 'sec':
+	    case 's':
+	      return n * s;
+	    case 'milliseconds':
+	    case 'millisecond':
+	    case 'msecs':
+	    case 'msec':
+	    case 'ms':
+	      return n;
+	  }
+	}
+	
+	/**
+	 * Short format for `ms`.
+	 *
+	 * @param {Number} ms
+	 * @return {String}
+	 * @api private
+	 */
+	
+	function short(ms) {
+	  if (ms >= d) return Math.round(ms / d) + 'd';
+	  if (ms >= h) return Math.round(ms / h) + 'h';
+	  if (ms >= m) return Math.round(ms / m) + 'm';
+	  if (ms >= s) return Math.round(ms / s) + 's';
+	  return ms + 'ms';
+	}
+	
+	/**
+	 * Long format for `ms`.
+	 *
+	 * @param {Number} ms
+	 * @return {String}
+	 * @api private
+	 */
+	
+	function long(ms) {
+	  return plural(ms, d, 'day')
+	    || plural(ms, h, 'hour')
+	    || plural(ms, m, 'minute')
+	    || plural(ms, s, 'second')
+	    || ms + ' ms';
+	}
+	
+	/**
+	 * Pluralization helper.
+	 */
+	
+	function plural(ms, n, name) {
+	  if (ms < n) return;
+	  if (ms < n * 1.5) return Math.floor(ms / n) + ' ' + name;
+	  return Math.ceil(ms / n) + ' ' + name + 's';
+	}
 
 
 /***/ },
 /* 222 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	/**
-	 * Copyright 2013-2015, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule ReactStateSetters
-	 */
-	
 	'use strict';
 	
-	var ReactStateSetters = {
-	  /**
-	   * Returns a function that calls the provided function, and uses the result
-	   * of that to set the component's state.
-	   *
-	   * @param {ReactCompositeComponent} component
-	   * @param {function} funcReturningState Returned callback uses this to
-	   *                                      determine how to update state.
-	   * @return {function} callback that when invoked uses funcReturningState to
-	   *                    determined the object literal to setState.
-	   */
-	  createStateSetter: function(component, funcReturningState) {
-	    return function(a, b, c, d, e, f) {
-	      var partialState = funcReturningState.call(component, a, b, c, d, e, f);
-	      if (partialState) {
-	        component.setState(partialState);
+	var React = __webpack_require__(57);
+	var ColorPicker = __webpack_require__(223);
+	var _ = __webpack_require__(214);
+	
+	var ColorBar = React.createClass({
+	  displayName: 'ColorBar',
+	
+	  propTypes: {
+	    colors: React.PropTypes.array,
+	    onChange: React.PropTypes.func
+	  },
+	
+	  getInitialState: function getInitialState() {
+	    return {
+	      currentlyEditing: -1,
+	
+	      popupPosition: {
+	        position: 'fixed',
+	        top: '0px',
+	        left: '0px'
 	      }
 	    };
 	  },
 	
-	  /**
-	   * Returns a single-argument callback that can be used to update a single
-	   * key in the component's state.
-	   *
-	   * Note: this is memoized function, which makes it inexpensive to call.
-	   *
-	   * @param {ReactCompositeComponent} component
-	   * @param {string} key The key in the state that you should update.
-	   * @return {function} callback of 1 argument which calls setState() with
-	   *                    the provided keyName and callback argument.
-	   */
-	  createStateKeySetter: function(component, key) {
-	    // Memoize the setters.
-	    var cache = component.__keySetters || (component.__keySetters = {});
-	    return cache[key] || (cache[key] = createStateKeySetter(component, key));
-	  }
-	};
+	  onEdit: function onEdit(colorIndex, evt) {
+	    var elReact = evt.currentTarget.getBoundingClientRect();
 	
-	function createStateKeySetter(component, key) {
-	  // Partial state is allocated outside of the function closure so it can be
-	  // reused with every call, avoiding memory allocation when this function
-	  // is called.
-	  var partialState = {};
-	  return function stateKeySetter(value) {
-	    partialState[key] = value;
-	    component.setState(partialState);
-	  };
-	}
-	
-	ReactStateSetters.Mixin = {
-	  /**
-	   * Returns a function that calls the provided function, and uses the result
-	   * of that to set the component's state.
-	   *
-	   * For example, these statements are equivalent:
-	   *
-	   *   this.setState({x: 1});
-	   *   this.createStateSetter(function(xValue) {
-	   *     return {x: xValue};
-	   *   })(1);
-	   *
-	   * @param {function} funcReturningState Returned callback uses this to
-	   *                                      determine how to update state.
-	   * @return {function} callback that when invoked uses funcReturningState to
-	   *                    determined the object literal to setState.
-	   */
-	  createStateSetter: function(funcReturningState) {
-	    return ReactStateSetters.createStateSetter(this, funcReturningState);
+	    this.setState({
+	      currentlyEditing: colorIndex,
+	      popupPosition: {
+	        position: 'fixed',
+	        top: '' + Math.floor(elReact.top + elReact.height) + 'px',
+	        left: '' + Math.floor(elReact.left) + 'px'
+	      }
+	    });
 	  },
 	
-	  /**
-	   * Returns a single-argument callback that can be used to update a single
-	   * key in the component's state.
-	   *
-	   * For example, these statements are equivalent:
-	   *
-	   *   this.setState({x: 1});
-	   *   this.createStateKeySetter('x')(1);
-	   *
-	   * Note: this is memoized function, which makes it inexpensive to call.
-	   *
-	   * @param {string} key The key in the state that you should update.
-	   * @return {function} callback of 1 argument which calls setState() with
-	   *                    the provided keyName and callback argument.
-	   */
-	  createStateKeySetter: function(key) {
-	    return ReactStateSetters.createStateKeySetter(this, key);
-	  }
-	};
+	  handleClose: function handleClose() {
+	    this.setState({
+	      currentlyEditing: -1
+	    });
+	  },
 	
-	module.exports = ReactStateSetters;
-
+	  render: function render() {
+	    var _this = this;
+	
+	    var _props = this.props;
+	    var colors = _props.colors;
+	    var onChange = _props.onChange;
+	    var _state = this.state;
+	    var currentlyEditing = _state.currentlyEditing;
+	    var popupPosition = _state.popupPosition;
+	
+	    var colorRender = _.map(colors, function (color, index) {
+	      return React.createElement(
+	        'div',
+	        { className: 'colorbar-element', key: index, onClick: _this.onEdit.bind(null, index), style: {
+	            backgroundColor: '#' + color
+	          } },
+	        '#',
+	        color
+	      );
+	    });
+	
+	    return React.createElement(
+	      'div',
+	      { className: 'colorbar-container' },
+	      React.createElement(
+	        'div',
+	        { className: 'colorbar' },
+	        colorRender
+	      ),
+	      !!onChange && React.createElement(ColorPicker, {
+	        display: currentlyEditing !== -1,
+	        positionCSS: popupPosition,
+	        onClose: this.handleClose,
+	        type: 'chrome',
+	        onChange: onChange.bind(null, currentlyEditing),
+	        color: colors[currentlyEditing] })
+	    );
+	  }
+	
+	});
+	
+	module.exports = ColorBar;
 
 /***/ },
 /* 223 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/**
-	 * Copyright 2013-2015, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	* @providesModule ReactComponentWithPureRenderMixin
-	*/
-	
 	'use strict';
 	
-	var shallowEqual = __webpack_require__(193);
-	
-	/**
-	 * If your React component's render function is "pure", e.g. it will render the
-	 * same result given the same props and state, provide this Mixin for a
-	 * considerable performance boost.
-	 *
-	 * Most React components have pure render functions.
-	 *
-	 * Example:
-	 *
-	 *   var ReactComponentWithPureRenderMixin =
-	 *     require('ReactComponentWithPureRenderMixin');
-	 *   React.createClass({
-	 *     mixins: [ReactComponentWithPureRenderMixin],
-	 *
-	 *     render: function() {
-	 *       return <div className={this.props.className}>foo</div>;
-	 *     }
-	 *   });
-	 *
-	 * Note: This only checks shallow equality for props and state. If these contain
-	 * complex data structures this mixin may have false-negatives for deeper
-	 * differences. Only mixin to components which have simple props and state, or
-	 * use `forceUpdate()` when you know deep data structures have changed.
-	 */
-	var ReactComponentWithPureRenderMixin = {
-	  shouldComponentUpdate: function(nextProps, nextState) {
-	    return !shallowEqual(this.props, nextProps) ||
-	           !shallowEqual(this.state, nextState);
-	  }
-	};
-	
-	module.exports = ReactComponentWithPureRenderMixin;
-
+	module.exports = __webpack_require__(224);
 
 /***/ },
 /* 224 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/**
-	 * Copyright 2013-2015, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @typechecks
-	 * @providesModule ReactCSSTransitionGroup
-	 */
-	
 	'use strict';
 	
-	var React = __webpack_require__(58);
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 	
-	var assign = __webpack_require__(69);
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 	
-	var ReactTransitionGroup = React.createFactory(
-	  __webpack_require__(225)
-	);
-	var ReactCSSTransitionGroupChild = React.createFactory(
-	  __webpack_require__(230)
-	);
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 	
-	var ReactCSSTransitionGroup = React.createClass({
-	  displayName: 'ReactCSSTransitionGroup',
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 	
-	  propTypes: {
-	    transitionName: React.PropTypes.string.isRequired,
-	    transitionAppear: React.PropTypes.bool,
-	    transitionEnter: React.PropTypes.bool,
-	    transitionLeave: React.PropTypes.bool
-	  },
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
-	  getDefaultProps: function() {
-	    return {
-	      transitionAppear: false,
-	      transitionEnter: true,
-	      transitionLeave: true
-	    };
-	  },
+	var React = __webpack_require__(57);
+	var ReactCSS = __webpack_require__(225);
+	var merge = __webpack_require__(231);
+	var _ = __webpack_require__(214);
+	var color = __webpack_require__(233);
 	
-	  _wrapChild: function(child) {
-	    // We need to provide this childFactory so that
-	    // ReactCSSTransitionGroupChild can receive updates to name, enter, and
-	    // leave while it is leaving.
-	    return ReactCSSTransitionGroupChild(
-	      {
-	        name: this.props.transitionName,
-	        appear: this.props.transitionAppear,
-	        enter: this.props.transitionEnter,
-	        leave: this.props.transitionLeave
-	      },
-	      child
-	    );
-	  },
+	var Photoshop = __webpack_require__(235);
+	var Sketch = __webpack_require__(245);
+	var Chrome = __webpack_require__(248);
+	var Swatches = __webpack_require__(252);
+	var Slider = __webpack_require__(262);
+	var Material = __webpack_require__(266);
+	var Compact = __webpack_require__(267);
 	
-	  render: function() {
-	    return (
-	      ReactTransitionGroup(
-	        assign({}, this.props, {childFactory: this._wrapChild})
-	      )
-	    );
+	var ColorPicker = (function (_ReactCSS$Component) {
+	  _inherits(ColorPicker, _ReactCSS$Component);
+	
+	  function ColorPicker(props) {
+	    _classCallCheck(this, ColorPicker);
+	
+	    _get(Object.getPrototypeOf(ColorPicker.prototype), 'constructor', this).call(this);
+	
+	    this.state = merge(color.toState(props.color), {
+	      visible: props.display
+	    });
+	
+	    this.debounce = _.debounce(function (fn, data) {
+	      fn(data);
+	    }, 100);
+	
+	    this.handleChange = this.handleChange.bind(this);
+	    this.handleHide = this.handleHide.bind(this);
+	    this.handleAccept = this.handleAccept.bind(this);
+	    this.handleCancel = this.handleCancel.bind(this);
 	  }
-	});
 	
-	module.exports = ReactCSSTransitionGroup;
-
+	  _createClass(ColorPicker, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'show': {
+	          wrap: {
+	            zIndex: '999',
+	            position: 'absolute',
+	            display: 'block'
+	          },
+	          picker: {
+	            zIndex: '2',
+	            position: 'relative'
+	          },
+	          cover: {
+	            position: 'fixed',
+	            top: '0',
+	            bottom: '0',
+	            left: '0',
+	            right: '0'
+	          }
+	        },
+	        'hide': {
+	          wrap: {
+	            zIndex: '999',
+	            position: 'absolute',
+	            display: 'none'
+	          }
+	        },
+	        'right': {
+	          wrap: {
+	            left: '100%',
+	            marginLeft: '20px',
+	            top: '0'
+	          }
+	        },
+	        'left': {
+	          wrap: {
+	            right: '100%',
+	            marginRight: '20px',
+	            top: '0'
+	          }
+	        },
+	        'below': {
+	          wrap: {
+	            left: '0',
+	            marginLeft: '0',
+	            top: '100%',
+	            marginTop: '20px'
+	          }
+	        },
+	        'override': {
+	          wrap: this.props.positionCSS
+	        }
+	      };
+	    }
+	  }, {
+	    key: 'styles',
+	    value: function styles() {
+	      return this.css({
+	        'below': this.props.position === 'below' && this.props.display !== null,
+	        'right': this.props.position === 'right' && this.props.display !== null,
+	        'left': this.props.position === 'left' && this.props.display !== null,
+	        'show': this.state.visible === true,
+	        'hide': this.state.visible === false,
+	        'override': _.isPlainObject(this.props.positionCSS)
+	      });
+	    }
+	  }, {
+	    key: 'handleHide',
+	    value: function handleHide() {
+	      if (this.state.visible === true) {
+	        this.setState({
+	          visible: false
+	        });
+	        this.props.onClose && this.props.onClose({
+	          hex: this.state.hex,
+	          hsl: this.state.hsl,
+	          rgb: this.state.rgb
+	        });
+	      }
+	    }
+	  }, {
+	    key: 'handleAccept',
+	    value: function handleAccept() {
+	      this.handleHide();
+	    }
+	  }, {
+	    key: 'handleCancel',
+	    value: function handleCancel() {
+	      if (this.state.visible === true) {
+	        this.setState({
+	          visible: false
+	        });
+	      }
+	    }
+	  }, {
+	    key: 'handleChange',
+	    value: function handleChange(data) {
+	      data = color.simpleCheckForValidColor(data);
+	      if (data) {
+	        var colors = color.toState(data, data.h || this.state.oldHue);
+	        this.setState(colors);
+	        this.props.onChangeComplete && this.debounce(this.props.onChangeComplete, colors);
+	        this.props.onChange && this.props.onChange(colors);
+	      }
+	    }
+	  }, {
+	    key: 'componentWillReceiveProps',
+	    value: function componentWillReceiveProps(nextProps) {
+	      this.setState(merge(color.toState(nextProps.color, this.state.oldHue), {
+	        visible: nextProps.display
+	      }));
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      var Picker;
+	      if (this.props.type === 'sketch') {
+	        Picker = Sketch;
+	      } else if (this.props.type === 'photoshop') {
+	        Picker = Photoshop;
+	      } else if (this.props.type === 'chrome') {
+	        Picker = Chrome;
+	      } else if (this.props.type === 'swatches') {
+	        Picker = Swatches;
+	      } else if (this.props.type === 'slider') {
+	        Picker = Slider;
+	      } else if (this.props.type === 'material') {
+	        Picker = Material;
+	      } else if (this.props.type === 'compact') {
+	        Picker = Compact;
+	      }
+	
+	      return React.createElement(
+	        'div',
+	        { style: this.styles().wrap },
+	        React.createElement(
+	          'div',
+	          { style: this.styles().picker },
+	          React.createElement(Picker, _extends({}, this.state, { onChange: this.handleChange, onAccept: this.handleAccept, onCancel: this.handleCancel }))
+	        ),
+	        React.createElement('div', { style: this.styles().cover, onClick: this.handleHide })
+	      );
+	    }
+	  }]);
+	
+	  return ColorPicker;
+	})(ReactCSS.Component);
+	
+	ColorPicker.defaultProps = {
+	  color: {
+	    h: 250,
+	    s: .50,
+	    l: .20,
+	    a: 1
+	  },
+	  display: null,
+	  type: 'sketch',
+	  position: 'right',
+	  positionCSS: {}
+	};
+	
+	module.exports = ColorPicker;
 
 /***/ },
 /* 225 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/**
-	 * Copyright 2013-2015, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule ReactTransitionGroup
-	 */
-	
-	'use strict';
-	
-	var React = __webpack_require__(58);
-	var ReactTransitionChildMapping = __webpack_require__(226);
-	
-	var assign = __webpack_require__(69);
-	var cloneWithProps = __webpack_require__(227);
-	var emptyFunction = __webpack_require__(72);
-	
-	var ReactTransitionGroup = React.createClass({
-	  displayName: 'ReactTransitionGroup',
-	
-	  propTypes: {
-	    component: React.PropTypes.any,
-	    childFactory: React.PropTypes.func
-	  },
-	
-	  getDefaultProps: function() {
-	    return {
-	      component: 'span',
-	      childFactory: emptyFunction.thatReturnsArgument
-	    };
-	  },
-	
-	  getInitialState: function() {
-	    return {
-	      children: ReactTransitionChildMapping.getChildMapping(this.props.children)
-	    };
-	  },
-	
-	  componentWillMount: function() {
-	    this.currentlyTransitioningKeys = {};
-	    this.keysToEnter = [];
-	    this.keysToLeave = [];
-	  },
-	
-	  componentDidMount: function() {
-	    var initialChildMapping = this.state.children;
-	    for (var key in initialChildMapping) {
-	      if (initialChildMapping[key]) {
-	        this.performAppear(key);
-	      }
-	    }
-	  },
-	
-	  componentWillReceiveProps: function(nextProps) {
-	    var nextChildMapping = ReactTransitionChildMapping.getChildMapping(
-	      nextProps.children
-	    );
-	    var prevChildMapping = this.state.children;
-	
-	    this.setState({
-	      children: ReactTransitionChildMapping.mergeChildMappings(
-	        prevChildMapping,
-	        nextChildMapping
-	      )
-	    });
-	
-	    var key;
-	
-	    for (key in nextChildMapping) {
-	      var hasPrev = prevChildMapping && prevChildMapping.hasOwnProperty(key);
-	      if (nextChildMapping[key] && !hasPrev &&
-	          !this.currentlyTransitioningKeys[key]) {
-	        this.keysToEnter.push(key);
-	      }
-	    }
-	
-	    for (key in prevChildMapping) {
-	      var hasNext = nextChildMapping && nextChildMapping.hasOwnProperty(key);
-	      if (prevChildMapping[key] && !hasNext &&
-	          !this.currentlyTransitioningKeys[key]) {
-	        this.keysToLeave.push(key);
-	      }
-	    }
-	
-	    // If we want to someday check for reordering, we could do it here.
-	  },
-	
-	  componentDidUpdate: function() {
-	    var keysToEnter = this.keysToEnter;
-	    this.keysToEnter = [];
-	    keysToEnter.forEach(this.performEnter);
-	
-	    var keysToLeave = this.keysToLeave;
-	    this.keysToLeave = [];
-	    keysToLeave.forEach(this.performLeave);
-	  },
-	
-	  performAppear: function(key) {
-	    this.currentlyTransitioningKeys[key] = true;
-	
-	    var component = this.refs[key];
-	
-	    if (component.componentWillAppear) {
-	      component.componentWillAppear(
-	        this._handleDoneAppearing.bind(this, key)
-	      );
-	    } else {
-	      this._handleDoneAppearing(key);
-	    }
-	  },
-	
-	  _handleDoneAppearing: function(key) {
-	    var component = this.refs[key];
-	    if (component.componentDidAppear) {
-	      component.componentDidAppear();
-	    }
-	
-	    delete this.currentlyTransitioningKeys[key];
-	
-	    var currentChildMapping = ReactTransitionChildMapping.getChildMapping(
-	      this.props.children
-	    );
-	
-	    if (!currentChildMapping || !currentChildMapping.hasOwnProperty(key)) {
-	      // This was removed before it had fully appeared. Remove it.
-	      this.performLeave(key);
-	    }
-	  },
-	
-	  performEnter: function(key) {
-	    this.currentlyTransitioningKeys[key] = true;
-	
-	    var component = this.refs[key];
-	
-	    if (component.componentWillEnter) {
-	      component.componentWillEnter(
-	        this._handleDoneEntering.bind(this, key)
-	      );
-	    } else {
-	      this._handleDoneEntering(key);
-	    }
-	  },
-	
-	  _handleDoneEntering: function(key) {
-	    var component = this.refs[key];
-	    if (component.componentDidEnter) {
-	      component.componentDidEnter();
-	    }
-	
-	    delete this.currentlyTransitioningKeys[key];
-	
-	    var currentChildMapping = ReactTransitionChildMapping.getChildMapping(
-	      this.props.children
-	    );
-	
-	    if (!currentChildMapping || !currentChildMapping.hasOwnProperty(key)) {
-	      // This was removed before it had fully entered. Remove it.
-	      this.performLeave(key);
-	    }
-	  },
-	
-	  performLeave: function(key) {
-	    this.currentlyTransitioningKeys[key] = true;
-	
-	    var component = this.refs[key];
-	    if (component.componentWillLeave) {
-	      component.componentWillLeave(this._handleDoneLeaving.bind(this, key));
-	    } else {
-	      // Note that this is somewhat dangerous b/c it calls setState()
-	      // again, effectively mutating the component before all the work
-	      // is done.
-	      this._handleDoneLeaving(key);
-	    }
-	  },
-	
-	  _handleDoneLeaving: function(key) {
-	    var component = this.refs[key];
-	
-	    if (component.componentDidLeave) {
-	      component.componentDidLeave();
-	    }
-	
-	    delete this.currentlyTransitioningKeys[key];
-	
-	    var currentChildMapping = ReactTransitionChildMapping.getChildMapping(
-	      this.props.children
-	    );
-	
-	    if (currentChildMapping && currentChildMapping.hasOwnProperty(key)) {
-	      // This entered again before it fully left. Add it again.
-	      this.performEnter(key);
-	    } else {
-	      var newChildren = assign({}, this.state.children);
-	      delete newChildren[key];
-	      this.setState({children: newChildren});
-	    }
-	  },
-	
-	  render: function() {
-	    // TODO: we could get rid of the need for the wrapper node
-	    // by cloning a single child
-	    var childrenToRender = [];
-	    for (var key in this.state.children) {
-	      var child = this.state.children[key];
-	      if (child) {
-	        // You may need to apply reactive updates to a child as it is leaving.
-	        // The normal React way to do it won't work since the child will have
-	        // already been removed. In case you need this behavior you can provide
-	        // a childFactory function to wrap every child, even the ones that are
-	        // leaving.
-	        childrenToRender.push(cloneWithProps(
-	          this.props.childFactory(child),
-	          {ref: key, key: key}
-	        ));
-	      }
-	    }
-	    return React.createElement(
-	      this.props.component,
-	      this.props,
-	      childrenToRender
-	    );
-	  }
-	});
-	
-	module.exports = ReactTransitionGroup;
-
+	"use strict";var css;module.exports=css={Component:__webpack_require__(226),inline:__webpack_require__(227),mixin:{css:__webpack_require__(227)}};
 
 /***/ },
 /* 226 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/**
-	 * Copyright 2013-2015, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @typechecks static-only
-	 * @providesModule ReactTransitionChildMapping
-	 */
-	
-	'use strict';
-	
-	var ReactChildren = __webpack_require__(64);
-	var ReactFragment = __webpack_require__(66);
-	
-	var ReactTransitionChildMapping = {
-	  /**
-	   * Given `this.props.children`, return an object mapping key to child. Just
-	   * simple syntactic sugar around ReactChildren.map().
-	   *
-	   * @param {*} children `this.props.children`
-	   * @return {object} Mapping of key to child
-	   */
-	  getChildMapping: function(children) {
-	    if (!children) {
-	      return children;
-	    }
-	    return ReactFragment.extract(ReactChildren.map(children, function(child) {
-	      return child;
-	    }));
-	  },
-	
-	  /**
-	   * When you're adding or removing children some may be added or removed in the
-	   * same render pass. We want to show *both* since we want to simultaneously
-	   * animate elements in and out. This function takes a previous set of keys
-	   * and a new set of keys and merges them with its best guess of the correct
-	   * ordering. In the future we may expose some of the utilities in
-	   * ReactMultiChild to make this easy, but for now React itself does not
-	   * directly have this concept of the union of prevChildren and nextChildren
-	   * so we implement it here.
-	   *
-	   * @param {object} prev prev children as returned from
-	   * `ReactTransitionChildMapping.getChildMapping()`.
-	   * @param {object} next next children as returned from
-	   * `ReactTransitionChildMapping.getChildMapping()`.
-	   * @return {object} a key set that contains all keys in `prev` and all keys
-	   * in `next` in a reasonable order.
-	   */
-	  mergeChildMappings: function(prev, next) {
-	    prev = prev || {};
-	    next = next || {};
-	
-	    function getValueForKey(key) {
-	      if (next.hasOwnProperty(key)) {
-	        return next[key];
-	      } else {
-	        return prev[key];
-	      }
-	    }
-	
-	    // For each key of `next`, the list of keys to insert before that key in
-	    // the combined list
-	    var nextKeysPending = {};
-	
-	    var pendingKeys = [];
-	    for (var prevKey in prev) {
-	      if (next.hasOwnProperty(prevKey)) {
-	        if (pendingKeys.length) {
-	          nextKeysPending[prevKey] = pendingKeys;
-	          pendingKeys = [];
-	        }
-	      } else {
-	        pendingKeys.push(prevKey);
-	      }
-	    }
-	
-	    var i;
-	    var childMapping = {};
-	    for (var nextKey in next) {
-	      if (nextKeysPending.hasOwnProperty(nextKey)) {
-	        for (i = 0; i < nextKeysPending[nextKey].length; i++) {
-	          var pendingNextKey = nextKeysPending[nextKey][i];
-	          childMapping[nextKeysPending[nextKey][i]] = getValueForKey(
-	            pendingNextKey
-	          );
-	        }
-	      }
-	      childMapping[nextKey] = getValueForKey(nextKey);
-	    }
-	
-	    // Finally, add the keys which didn't appear before any key in `next`
-	    for (i = 0; i < pendingKeys.length; i++) {
-	      childMapping[pendingKeys[i]] = getValueForKey(pendingKeys[i]);
-	    }
-	
-	    return childMapping;
-	  }
-	};
-	
-	module.exports = ReactTransitionChildMapping;
-
+	"use strict";var React,ReactCSSComponent,inline,extend=function(t,e){function n(){this.constructor=t}for(var r in e)hasProp.call(e,r)&&(t[r]=e[r]);return n.prototype=e.prototype,t.prototype=new n,t.__super__=e.prototype,t},hasProp={}.hasOwnProperty;React=__webpack_require__(57),inline=__webpack_require__(227),module.exports=ReactCSSComponent=function(t){function e(){return e.__super__.constructor.apply(this,arguments)}return extend(e,t),e.contextTypes={mixins:React.PropTypes.object},e.prototype.css=function(t){return inline.call(this,t)},e.prototype.styles=function(){return this.css()},e}(React.Component);
 
 /***/ },
 /* 227 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2015, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @typechecks static-only
-	 * @providesModule cloneWithProps
-	 */
-	
-	'use strict';
-	
-	var ReactElement = __webpack_require__(67);
-	var ReactPropTransferer = __webpack_require__(228);
-	
-	var keyOf = __webpack_require__(95);
-	var warning = __webpack_require__(71);
-	
-	var CHILDREN_PROP = keyOf({children: null});
-	
-	/**
-	 * Sometimes you want to change the props of a child passed to you. Usually
-	 * this is to add a CSS class.
-	 *
-	 * @param {ReactElement} child child element you'd like to clone
-	 * @param {object} props props you'd like to modify. className and style will be
-	 * merged automatically.
-	 * @return {ReactElement} a clone of child with props merged in.
-	 */
-	function cloneWithProps(child, props) {
-	  if ("production" !== process.env.NODE_ENV) {
-	    ("production" !== process.env.NODE_ENV ? warning(
-	      !child.ref,
-	      'You are calling cloneWithProps() on a child with a ref. This is ' +
-	      'dangerous because you\'re creating a new child which will not be ' +
-	      'added as a ref to its parent.'
-	    ) : null);
-	  }
-	
-	  var newProps = ReactPropTransferer.mergeProps(props, child.props);
-	
-	  // Use `child.props.children` if it is provided.
-	  if (!newProps.hasOwnProperty(CHILDREN_PROP) &&
-	      child.props.hasOwnProperty(CHILDREN_PROP)) {
-	    newProps.children = child.props.children;
-	  }
-	
-	  // The current API doesn't retain _owner and _context, which is why this
-	  // doesn't use ReactElement.cloneAndReplaceProps.
-	  return ReactElement.createElement(child.type, newProps);
-	}
-	
-	module.exports = cloneWithProps;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(59)))
+	"use strict";var _,checkClassStructure,combine;_=__webpack_require__(214),checkClassStructure=__webpack_require__(228),combine=__webpack_require__(229),module.exports=function(s){var e,c,n,r,t,i,o,u,l;if(combine=__webpack_require__(229),c=[],null==this.classes)throw console.warn("Define this.classes on `"+this.constructor.name+"`");checkClassStructure(this.classes()),e=function(s){return function(e,n){return null!=s.classes()[e]?c.push(s.classes()[e]):e&&(null!=n?n.warn:void 0)===!0?console.warn("The `"+e+"` css class does not exist on `"+s.constructor.name+"`"):void 0}}(this),e("default"),o=this.props;for(i in o)l=o[i],_.isObject(l)||(l===!0?(e(i),e(i+"-true")):e(l?i+"-"+l:i+"-false"));for(t in s)n=s[t],n===!0&&e(t,{warn:!0});return e("public"),r={},(null!=(u=this.context)?u.mixins:void 0)&&(r=this.context.mixins),combine(c,r)};
 
 /***/ },
 /* 228 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/**
-	 * Copyright 2013-2015, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule ReactPropTransferer
-	 */
-	
-	'use strict';
-	
-	var assign = __webpack_require__(69);
-	var emptyFunction = __webpack_require__(72);
-	var joinClasses = __webpack_require__(229);
-	
-	/**
-	 * Creates a transfer strategy that will merge prop values using the supplied
-	 * `mergeStrategy`. If a prop was previously unset, this just sets it.
-	 *
-	 * @param {function} mergeStrategy
-	 * @return {function}
-	 */
-	function createTransferStrategy(mergeStrategy) {
-	  return function(props, key, value) {
-	    if (!props.hasOwnProperty(key)) {
-	      props[key] = value;
-	    } else {
-	      props[key] = mergeStrategy(props[key], value);
-	    }
-	  };
-	}
-	
-	var transferStrategyMerge = createTransferStrategy(function(a, b) {
-	  // `merge` overrides the first object's (`props[key]` above) keys using the
-	  // second object's (`value`) keys. An object's style's existing `propA` would
-	  // get overridden. Flip the order here.
-	  return assign({}, b, a);
-	});
-	
-	/**
-	 * Transfer strategies dictate how props are transferred by `transferPropsTo`.
-	 * NOTE: if you add any more exceptions to this list you should be sure to
-	 * update `cloneWithProps()` accordingly.
-	 */
-	var TransferStrategies = {
-	  /**
-	   * Never transfer `children`.
-	   */
-	  children: emptyFunction,
-	  /**
-	   * Transfer the `className` prop by merging them.
-	   */
-	  className: createTransferStrategy(joinClasses),
-	  /**
-	   * Transfer the `style` prop (which is an object) by merging them.
-	   */
-	  style: transferStrategyMerge
-	};
-	
-	/**
-	 * Mutates the first argument by transferring the properties from the second
-	 * argument.
-	 *
-	 * @param {object} props
-	 * @param {object} newProps
-	 * @return {object}
-	 */
-	function transferInto(props, newProps) {
-	  for (var thisKey in newProps) {
-	    if (!newProps.hasOwnProperty(thisKey)) {
-	      continue;
-	    }
-	
-	    var transferStrategy = TransferStrategies[thisKey];
-	
-	    if (transferStrategy && TransferStrategies.hasOwnProperty(thisKey)) {
-	      transferStrategy(props, thisKey, newProps[thisKey]);
-	    } else if (!props.hasOwnProperty(thisKey)) {
-	      props[thisKey] = newProps[thisKey];
-	    }
-	  }
-	  return props;
-	}
-	
-	/**
-	 * ReactPropTransferer are capable of transferring props to another component
-	 * using a `transferPropsTo` method.
-	 *
-	 * @class ReactPropTransferer
-	 */
-	var ReactPropTransferer = {
-	
-	  /**
-	   * Merge two props objects using TransferStrategies.
-	   *
-	   * @param {object} oldProps original props (they take precedence)
-	   * @param {object} newProps new props to merge in
-	   * @return {object} a new object containing both sets of props merged.
-	   */
-	  mergeProps: function(oldProps, newProps) {
-	    return transferInto(assign({}, oldProps), newProps);
-	  }
-	
-	};
-	
-	module.exports = ReactPropTransferer;
-
+	var _;_=__webpack_require__(214),module.exports=function(e){var o,s,t,n,r;r=[];for(o in e)n=e[o],r.push(_.isObject(n)?function(){var e;e=[];for(t in n)s=n[t],e.push(_.isObject(s)?void 0:console.warn("Make sure the value of the element `"+o+"` is an object of css. You passed it `"+n+"`"));return e}():console.warn("Make sure the value of `"+o+"` is an object of html elements. You passed it `"+n+"`"));return r};
 
 /***/ },
 /* 229 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	/**
-	 * Copyright 2013-2015, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule joinClasses
-	 * @typechecks static-only
-	 */
-	
-	'use strict';
-	
-	/**
-	 * Combines multiple className strings into one.
-	 * http://jsperf.com/joinclasses-args-vs-array
-	 *
-	 * @param {...?string} classes
-	 * @return {string}
-	 */
-	function joinClasses(className/*, ... */) {
-	  if (!className) {
-	    className = '';
-	  }
-	  var nextClass;
-	  var argLength = arguments.length;
-	  if (argLength > 1) {
-	    for (var ii = 1; ii < argLength; ii++) {
-	      nextClass = arguments[ii];
-	      if (nextClass) {
-	        className = (className ? className + ' ' : '') + nextClass;
-	      }
-	    }
-	  }
-	  return className;
-	}
-	
-	module.exports = joinClasses;
-
+	"use strict";var merge,mixins;merge=__webpack_require__(230),mixins=__webpack_require__(232),module.exports=function(e,r){var i;return i=merge(e),mixins(i,r)};
 
 /***/ },
 /* 230 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2015, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @typechecks
-	 * @providesModule ReactCSSTransitionGroupChild
-	 */
-	
-	'use strict';
-	
-	var React = __webpack_require__(58);
-	
-	var CSSCore = __webpack_require__(231);
-	var ReactTransitionEvents = __webpack_require__(232);
-	
-	var onlyChild = __webpack_require__(212);
-	var warning = __webpack_require__(71);
-	
-	// We don't remove the element from the DOM until we receive an animationend or
-	// transitionend event. If the user screws up and forgets to add an animation
-	// their node will be stuck in the DOM forever, so we detect if an animation
-	// does not start and if it doesn't, we just call the end listener immediately.
-	var TICK = 17;
-	var NO_EVENT_TIMEOUT = 5000;
-	
-	var noEventListener = null;
-	
-	
-	if ("production" !== process.env.NODE_ENV) {
-	  noEventListener = function() {
-	    ("production" !== process.env.NODE_ENV ? warning(
-	      false,
-	      'transition(): tried to perform an animation without ' +
-	      'an animationend or transitionend event after timeout (' +
-	      '%sms). You should either disable this ' +
-	      'transition in JS or add a CSS animation/transition.',
-	      NO_EVENT_TIMEOUT
-	    ) : null);
-	  };
-	}
-	
-	var ReactCSSTransitionGroupChild = React.createClass({
-	  displayName: 'ReactCSSTransitionGroupChild',
-	
-	  transition: function(animationType, finishCallback) {
-	    var node = this.getDOMNode();
-	    var className = this.props.name + '-' + animationType;
-	    var activeClassName = className + '-active';
-	    var noEventTimeout = null;
-	
-	    var endListener = function(e) {
-	      if (e && e.target !== node) {
-	        return;
-	      }
-	      if ("production" !== process.env.NODE_ENV) {
-	        clearTimeout(noEventTimeout);
-	      }
-	
-	      CSSCore.removeClass(node, className);
-	      CSSCore.removeClass(node, activeClassName);
-	
-	      ReactTransitionEvents.removeEndEventListener(node, endListener);
-	
-	      // Usually this optional callback is used for informing an owner of
-	      // a leave animation and telling it to remove the child.
-	      if (finishCallback) {
-	        finishCallback();
-	      }
-	    };
-	
-	    ReactTransitionEvents.addEndEventListener(node, endListener);
-	
-	    CSSCore.addClass(node, className);
-	
-	    // Need to do this to actually trigger a transition.
-	    this.queueClass(activeClassName);
-	
-	    if ("production" !== process.env.NODE_ENV) {
-	      noEventTimeout = setTimeout(noEventListener, NO_EVENT_TIMEOUT);
-	    }
-	  },
-	
-	  queueClass: function(className) {
-	    this.classNameQueue.push(className);
-	
-	    if (!this.timeout) {
-	      this.timeout = setTimeout(this.flushClassNameQueue, TICK);
-	    }
-	  },
-	
-	  flushClassNameQueue: function() {
-	    if (this.isMounted()) {
-	      this.classNameQueue.forEach(
-	        CSSCore.addClass.bind(CSSCore, this.getDOMNode())
-	      );
-	    }
-	    this.classNameQueue.length = 0;
-	    this.timeout = null;
-	  },
-	
-	  componentWillMount: function() {
-	    this.classNameQueue = [];
-	  },
-	
-	  componentWillUnmount: function() {
-	    if (this.timeout) {
-	      clearTimeout(this.timeout);
-	    }
-	  },
-	
-	  componentWillAppear: function(done) {
-	    if (this.props.appear) {
-	      this.transition('appear', done);
-	    } else {
-	      done();
-	    }
-	  },
-	
-	  componentWillEnter: function(done) {
-	    if (this.props.enter) {
-	      this.transition('enter', done);
-	    } else {
-	      done();
-	    }
-	  },
-	
-	  componentWillLeave: function(done) {
-	    if (this.props.leave) {
-	      this.transition('leave', done);
-	    } else {
-	      done();
-	    }
-	  },
-	
-	  render: function() {
-	    return onlyChild(this.props.children);
-	  }
-	});
-	
-	module.exports = ReactCSSTransitionGroupChild;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(59)))
+	"use strict";var _,merge;merge=__webpack_require__(231),_=__webpack_require__(214),module.exports=function(e){return _.isObject(e)&&!_.isArray(e)?e:1===e.length?e[0]:merge.recursive.apply(this,e)};
 
 /***/ },
 /* 231 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2015, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule CSSCore
-	 * @typechecks
+	/* WEBPACK VAR INJECTION */(function(module) {/*!
+	 * @name JavaScript/NodeJS Merge v1.2.0
+	 * @author yeikos
+	 * @repository https://github.com/yeikos/js.merge
+	
+	 * Copyright 2014 yeikos - MIT license
+	 * https://raw.github.com/yeikos/js.merge/master/LICENSE
 	 */
 	
-	var invariant = __webpack_require__(63);
+	;(function(isNode) {
 	
-	/**
-	 * The CSSCore module specifies the API (and implements most of the methods)
-	 * that should be used when dealing with the display of elements (via their
-	 * CSS classes and visibility on screen. It is an API focused on mutating the
-	 * display and not reading it as no logical state should be encoded in the
-	 * display of elements.
-	 */
+		/**
+		 * Merge one or more objects 
+		 * @param bool? clone
+		 * @param mixed,... arguments
+		 * @return object
+		 */
 	
-	var CSSCore = {
+		var Public = function(clone) {
 	
-	  /**
-	   * Adds the class passed in to the element if it doesn't already have it.
-	   *
-	   * @param {DOMElement} element the element to set the class on
-	   * @param {string} className the CSS className
-	   * @return {DOMElement} the element passed in
-	   */
-	  addClass: function(element, className) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      !/\s/.test(className),
-	      'CSSCore.addClass takes only a single class name. "%s" contains ' +
-	      'multiple classes.', className
-	    ) : invariant(!/\s/.test(className)));
+			return merge(clone === true, false, arguments);
 	
-	    if (className) {
-	      if (element.classList) {
-	        element.classList.add(className);
-	      } else if (!CSSCore.hasClass(element, className)) {
-	        element.className = element.className + ' ' + className;
-	      }
-	    }
-	    return element;
-	  },
+		}, publicName = 'merge';
 	
-	  /**
-	   * Removes the class passed in from the element
-	   *
-	   * @param {DOMElement} element the element to set the class on
-	   * @param {string} className the CSS className
-	   * @return {DOMElement} the element passed in
-	   */
-	  removeClass: function(element, className) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      !/\s/.test(className),
-	      'CSSCore.removeClass takes only a single class name. "%s" contains ' +
-	      'multiple classes.', className
-	    ) : invariant(!/\s/.test(className)));
+		/**
+		 * Merge two or more objects recursively 
+		 * @param bool? clone
+		 * @param mixed,... arguments
+		 * @return object
+		 */
 	
-	    if (className) {
-	      if (element.classList) {
-	        element.classList.remove(className);
-	      } else if (CSSCore.hasClass(element, className)) {
-	        element.className = element.className
-	          .replace(new RegExp('(^|\\s)' + className + '(?:\\s|$)', 'g'), '$1')
-	          .replace(/\s+/g, ' ') // multiple spaces to one
-	          .replace(/^\s*|\s*$/g, ''); // trim the ends
-	      }
-	    }
-	    return element;
-	  },
+		Public.recursive = function(clone) {
 	
-	  /**
-	   * Helper to add or remove a class from an element based on a condition.
-	   *
-	   * @param {DOMElement} element the element to set the class on
-	   * @param {string} className the CSS className
-	   * @param {*} bool condition to whether to add or remove the class
-	   * @return {DOMElement} the element passed in
-	   */
-	  conditionClass: function(element, className, bool) {
-	    return (bool ? CSSCore.addClass : CSSCore.removeClass)(element, className);
-	  },
+			return merge(clone === true, true, arguments);
 	
-	  /**
-	   * Tests whether the element has the class specified.
-	   *
-	   * @param {DOMNode|DOMWindow} element the element to set the class on
-	   * @param {string} className the CSS className
-	   * @return {boolean} true if the element has the class, false if not
-	   */
-	  hasClass: function(element, className) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      !/\s/.test(className),
-	      'CSS.hasClass takes only a single class name.'
-	    ) : invariant(!/\s/.test(className)));
-	    if (element.classList) {
-	      return !!className && element.classList.contains(className);
-	    }
-	    return (' ' + element.className + ' ').indexOf(' ' + className + ' ') > -1;
-	  }
+		};
 	
-	};
+		/**
+		 * Clone the input removing any reference
+		 * @param mixed input
+		 * @return mixed
+		 */
 	
-	module.exports = CSSCore;
+		Public.clone = function(input) {
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(59)))
+			var output = input,
+				type = typeOf(input),
+				index, size;
+	
+			if (type === 'array') {
+	
+				output = [];
+				size = input.length;
+	
+				for (index=0;index<size;++index)
+	
+					output[index] = Public.clone(input[index]);
+	
+			} else if (type === 'object') {
+	
+				output = {};
+	
+				for (index in input)
+	
+					output[index] = Public.clone(input[index]);
+	
+			}
+	
+			return output;
+	
+		};
+	
+		/**
+		 * Merge two objects recursively
+		 * @param mixed input
+		 * @param mixed extend
+		 * @return mixed
+		 */
+	
+		function merge_recursive(base, extend) {
+	
+			if (typeOf(base) !== 'object')
+	
+				return extend;
+	
+			for (var key in extend) {
+	
+				if (typeOf(base[key]) === 'object' && typeOf(extend[key]) === 'object') {
+	
+					base[key] = merge_recursive(base[key], extend[key]);
+	
+				} else {
+	
+					base[key] = extend[key];
+	
+				}
+	
+			}
+	
+			return base;
+	
+		}
+	
+		/**
+		 * Merge two or more objects
+		 * @param bool clone
+		 * @param bool recursive
+		 * @param array argv
+		 * @return object
+		 */
+	
+		function merge(clone, recursive, argv) {
+	
+			var result = argv[0],
+				size = argv.length;
+	
+			if (clone || typeOf(result) !== 'object')
+	
+				result = {};
+	
+			for (var index=0;index<size;++index) {
+	
+				var item = argv[index],
+	
+					type = typeOf(item);
+	
+				if (type !== 'object') continue;
+	
+				for (var key in item) {
+	
+					var sitem = clone ? Public.clone(item[key]) : item[key];
+	
+					if (recursive) {
+	
+						result[key] = merge_recursive(result[key], sitem);
+	
+					} else {
+	
+						result[key] = sitem;
+	
+					}
+	
+				}
+	
+			}
+	
+			return result;
+	
+		}
+	
+		/**
+		 * Get type of variable
+		 * @param mixed input
+		 * @return string
+		 *
+		 * @see http://jsperf.com/typeofvar
+		 */
+	
+		function typeOf(input) {
+	
+			return ({}).toString.call(input).slice(8, -1).toLowerCase();
+	
+		}
+	
+		if (isNode) {
+	
+			module.exports = Public;
+	
+		} else {
+	
+			window[publicName] = Public;
+	
+		}
+	
+	})(typeof module === 'object' && module && typeof module.exports === 'object' && module.exports);
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(33)(module)))
 
 /***/ },
 /* 232 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/**
-	 * Copyright 2013-2015, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule ReactTransitionEvents
-	 */
-	
-	'use strict';
-	
-	var ExecutionEnvironment = __webpack_require__(107);
-	
-	/**
-	 * EVENT_NAME_MAP is used to determine which event fired when a
-	 * transition/animation ends, based on the style property used to
-	 * define that event.
-	 */
-	var EVENT_NAME_MAP = {
-	  transitionend: {
-	    'transition': 'transitionend',
-	    'WebkitTransition': 'webkitTransitionEnd',
-	    'MozTransition': 'mozTransitionEnd',
-	    'OTransition': 'oTransitionEnd',
-	    'msTransition': 'MSTransitionEnd'
-	  },
-	
-	  animationend: {
-	    'animation': 'animationend',
-	    'WebkitAnimation': 'webkitAnimationEnd',
-	    'MozAnimation': 'mozAnimationEnd',
-	    'OAnimation': 'oAnimationEnd',
-	    'msAnimation': 'MSAnimationEnd'
-	  }
-	};
-	
-	var endEvents = [];
-	
-	function detectEvents() {
-	  var testEl = document.createElement('div');
-	  var style = testEl.style;
-	
-	  // On some platforms, in particular some releases of Android 4.x,
-	  // the un-prefixed "animation" and "transition" properties are defined on the
-	  // style object but the events that fire will still be prefixed, so we need
-	  // to check if the un-prefixed events are useable, and if not remove them
-	  // from the map
-	  if (!('AnimationEvent' in window)) {
-	    delete EVENT_NAME_MAP.animationend.animation;
-	  }
-	
-	  if (!('TransitionEvent' in window)) {
-	    delete EVENT_NAME_MAP.transitionend.transition;
-	  }
-	
-	  for (var baseEventName in EVENT_NAME_MAP) {
-	    var baseEvents = EVENT_NAME_MAP[baseEventName];
-	    for (var styleName in baseEvents) {
-	      if (styleName in style) {
-	        endEvents.push(baseEvents[styleName]);
-	        break;
-	      }
-	    }
-	  }
-	}
-	
-	if (ExecutionEnvironment.canUseDOM) {
-	  detectEvents();
-	}
-	
-	// We use the raw {add|remove}EventListener() call because EventListener
-	// does not know how to remove event listeners and we really should
-	// clean up. Also, these events are not triggered in older browsers
-	// so we should be A-OK here.
-	
-	function addEventListener(node, eventName, eventListener) {
-	  node.addEventListener(eventName, eventListener, false);
-	}
-	
-	function removeEventListener(node, eventName, eventListener) {
-	  node.removeEventListener(eventName, eventListener, false);
-	}
-	
-	var ReactTransitionEvents = {
-	  addEndEventListener: function(node, eventListener) {
-	    if (endEvents.length === 0) {
-	      // If CSS transitions are not supported, trigger an "end animation"
-	      // event immediately.
-	      window.setTimeout(eventListener, 0);
-	      return;
-	    }
-	    endEvents.forEach(function(endEvent) {
-	      addEventListener(node, endEvent, eventListener);
-	    });
-	  },
-	
-	  removeEndEventListener: function(node, eventListener) {
-	    if (endEvents.length === 0) {
-	      return;
-	    }
-	    endEvents.forEach(function(endEvent) {
-	      removeEventListener(node, endEvent, eventListener);
-	    });
-	  }
-	};
-	
-	module.exports = ReactTransitionEvents;
-
+	"use strict";var _,localProps,merge,transform;_=__webpack_require__(214),merge=__webpack_require__(231),localProps={borderRadius:function(r){return null!=r?{msBorderRadius:r,MozBorderRadius:r,OBorderRadius:r,WebkitBorderRadius:r,borderRadius:r}:void 0},boxShadow:function(r){return null!=r?{msBoxShadow:r,MozBoxShadow:r,OBoxShadow:r,WebkitBoxShadow:r,boxShadow:r}:void 0},userSelect:function(r){return null!=r?{WebkitTouchCallout:r,KhtmlUserSelect:r,MozUserSelect:r,msUserSelect:r,WebkitUserSelect:r,userSelect:r}:void 0},flex:function(r){return null!=r?{WebkitBoxFlex:r,MozBoxFlex:r,WebkitFlex:r,msFlex:r,flex:r}:void 0},flexBasis:function(r){return null!=r?{WebkitFlexBasis:r,flexBasis:r}:void 0},justifyContent:function(r){return null!=r?{WebkitJustifyContent:r,justifyContent:r}:void 0},transition:function(r){return null!=r?{msTransition:r,MozTransition:r,OTransition:r,WebkitTransition:r,transition:r}:void 0},transform:function(r){return null!=r?{msTransform:r,MozTransform:r,OTransform:r,WebkitTransform:r,transform:r}:void 0},Absolute:function(r){var o,e;return null!=r?(o=r.split(" "),e={position:"absolute",top:o[0],right:o[1],bottom:o[2],left:o[3]}):void 0},Extend:function(r,o){return o[r]?o[r]:void 0}},transform=function(r,o,e){var t,n,i,s,u,l,a;n=merge(o,localProps),l={};for(u in r)if(a=r[u],_.isObject(a)&&!_.isArray(a))l[u]=transform(a,o,r);else if(null!=n[u]){i=n[u](a,e);for(t in i)s=i[t],l[t]=s}else l[u]=a;return l},module.exports=function(r,o,e){return transform(r,o,e)};
 
 /***/ },
 /* 233 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2015, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule cx
-	 */
-	
-	/**
-	 * This function is used to mark string literals representing CSS class names
-	 * so that they can be transformed statically. This allows for modularization
-	 * and minification of CSS class names.
-	 *
-	 * In static_upstream, this function is actually implemented, but it should
-	 * eventually be replaced with something more descriptive, and the transform
-	 * that is used in the main stack should be ported for use elsewhere.
-	 *
-	 * @param string|object className to modularize, or an object of key/values.
-	 *                      In the object case, the values are conditions that
-	 *                      determine if the className keys should be included.
-	 * @param [string ...]  Variable list of classNames in the string case.
-	 * @return string       Renderable space-separated CSS className.
-	 */
-	
 	'use strict';
-	var warning = __webpack_require__(71);
 	
-	var warned = false;
+	var tinycolor = __webpack_require__(234);
 	
-	function cx(classNames) {
-	  if ("production" !== process.env.NODE_ENV) {
-	    ("production" !== process.env.NODE_ENV ? warning(
-	      warned,
-	      'React.addons.classSet will be deprecated in a future version. See ' +
-	      'http://fb.me/react-addons-classset'
-	    ) : null);
-	    warned = true;
+	module.exports = {
+	
+	  simpleCheckForValidColor: function simpleCheckForValidColor(data) {
+	    var keysToCheck = ['r', 'g', 'b', 'a', 'h', 's', 'a', 'v'];
+	    var checked = 0;
+	    var passed = 0;
+	    for (var i = 0; i < keysToCheck.length; i++) {
+	      var letter = keysToCheck[i];
+	      if (data[letter]) {
+	        checked++;
+	        if (!isNaN(data[letter])) {
+	          passed++;
+	        }
+	      }
+	    }
+	
+	    if (checked === passed) {
+	      return data;
+	    }
+	  },
+	
+	  toState: function toState(data, oldHue) {
+	    var color = tinycolor(data);
+	    var hsl = color.toHsl();
+	    var hsv = color.toHsv();
+	    if (hsl.s === 0) {
+	      hsl.h = oldHue;
+	      hsv.h = oldHue;
+	    }
+	
+	    return {
+	      hsl: hsl,
+	      hex: color.toHex(),
+	      rgb: color.toRgb(),
+	      hsv: hsv,
+	      oldHue: data.h || oldHue || hsl.h
+	    };
+	  },
+	
+	  isValidHex: function isValidHex(hex) {
+	    return tinycolor(hex).isValid();
 	  }
 	
-	  if (typeof classNames == 'object') {
-	    return Object.keys(classNames).filter(function(className) {
-	      return classNames[className];
-	    }).join(' ');
-	  } else {
-	    return Array.prototype.join.call(arguments, ' ');
-	  }
-	}
-	
-	module.exports = cx;
-	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(59)))
+	};
 
 /***/ },
 /* 234 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/* WEBPACK VAR INJECTION */(function(process) {/**
-	 * Copyright 2013-2015, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule update
-	 */
+	var __WEBPACK_AMD_DEFINE_RESULT__;// jscs: disable
 	
-	 /* global hasOwnProperty:true */
+	// TinyColor v1.1.2
+	// https://github.com/bgrins/TinyColor
+	// Brian Grinstead, MIT License
 	
-	'use strict';
+	(function() {
 	
-	var assign = __webpack_require__(69);
-	var keyOf = __webpack_require__(95);
-	var invariant = __webpack_require__(63);
-	var hasOwnProperty = {}.hasOwnProperty;
+	var trimLeft = /^[\s,#]+/;
+	var trimRight = /\s+$/;
+	var tinyCounter = 0;
+	var math = Math;
+	var mathRound = math.round;
+	var mathMin = math.min;
+	var mathMax = math.max;
+	var mathRandom = math.random;
 	
-	function shallowCopy(x) {
-	  if (Array.isArray(x)) {
-	    return x.concat();
-	  } else if (x && typeof x === 'object') {
-	    return assign(new x.constructor(), x);
-	  } else {
-	    return x;
-	  }
+	function tinycolor(color, opts) {
+	
+			color = (color) ? color : '';
+			opts = opts || { };
+	
+			// If input is already a tinycolor, return itself
+			if (color instanceof tinycolor) {
+				 return color;
+			}
+			// If we are called as a function, call using new instead
+			if (!(this instanceof tinycolor)) {
+					return new tinycolor(color, opts);
+			}
+	
+			var rgb = inputToRGB(color);
+			this._originalInput = color,
+			this._r = rgb.r,
+			this._g = rgb.g,
+			this._b = rgb.b,
+			this._a = rgb.a,
+			this._roundA = mathRound(100*this._a) / 100,
+			this._format = opts.format || rgb.format;
+			this._gradientType = opts.gradientType;
+	
+			// Don't let the range of [0,255] come back in [0,1].
+			// Potentially lose a little bit of precision here, but will fix issues where
+			// .5 gets interpreted as half of the total, instead of half of 1
+			// If it was supposed to be 128, this was already taken care of by `inputToRgb`
+			if (this._r < 1) { this._r = mathRound(this._r); }
+			if (this._g < 1) { this._g = mathRound(this._g); }
+			if (this._b < 1) { this._b = mathRound(this._b); }
+	
+			this._ok = rgb.ok;
+			this._tc_id = tinyCounter++;
 	}
 	
-	var COMMAND_PUSH = keyOf({$push: null});
-	var COMMAND_UNSHIFT = keyOf({$unshift: null});
-	var COMMAND_SPLICE = keyOf({$splice: null});
-	var COMMAND_SET = keyOf({$set: null});
-	var COMMAND_MERGE = keyOf({$merge: null});
-	var COMMAND_APPLY = keyOf({$apply: null});
+	tinycolor.prototype = {
+			isDark: function() {
+					return this.getBrightness() < 128;
+			},
+			isLight: function() {
+					return !this.isDark();
+			},
+			isValid: function() {
+					return this._ok;
+			},
+			getOriginalInput: function() {
+				return this._originalInput;
+			},
+			getFormat: function() {
+					return this._format;
+			},
+			getAlpha: function() {
+					return this._a;
+			},
+			getBrightness: function() {
+					//http://www.w3.org/TR/AERT#color-contrast
+					var rgb = this.toRgb();
+					return (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
+			},
+			getLuminance: function() {
+					//http://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef
+					var rgb = this.toRgb();
+					var RsRGB, GsRGB, BsRGB, R, G, B;
+					RsRGB = rgb.r/255;
+					GsRGB = rgb.g/255;
+					BsRGB = rgb.b/255;
 	
-	var ALL_COMMANDS_LIST = [
-	  COMMAND_PUSH,
-	  COMMAND_UNSHIFT,
-	  COMMAND_SPLICE,
-	  COMMAND_SET,
-	  COMMAND_MERGE,
-	  COMMAND_APPLY
-	];
+					if (RsRGB <= 0.03928) {R = RsRGB / 12.92;} else {R = Math.pow(((RsRGB + 0.055) / 1.055), 2.4);}
+					if (GsRGB <= 0.03928) {G = GsRGB / 12.92;} else {G = Math.pow(((GsRGB + 0.055) / 1.055), 2.4);}
+					if (BsRGB <= 0.03928) {B = BsRGB / 12.92;} else {B = Math.pow(((BsRGB + 0.055) / 1.055), 2.4);}
+					return (0.2126 * R) + (0.7152 * G) + (0.0722 * B);
+			},
+			setAlpha: function(value) {
+					this._a = boundAlpha(value);
+					this._roundA = mathRound(100*this._a) / 100;
+					return this;
+			},
+			toHsv: function() {
+					var hsv = rgbToHsv(this._r, this._g, this._b);
+					return { h: hsv.h * 360, s: hsv.s, v: hsv.v, a: this._a };
+			},
+			toHsvString: function() {
+					var hsv = rgbToHsv(this._r, this._g, this._b);
+					var h = mathRound(hsv.h * 360), s = mathRound(hsv.s * 100), v = mathRound(hsv.v * 100);
+					return (this._a == 1) ?
+						"hsv("	+ h + ", " + s + "%, " + v + "%)" :
+						"hsva(" + h + ", " + s + "%, " + v + "%, "+ this._roundA + ")";
+			},
+			toHsl: function() {
+					var hsl = rgbToHsl(this._r, this._g, this._b);
+					return { h: hsl.h * 360, s: hsl.s, l: hsl.l, a: this._a };
+			},
+			toHslString: function() {
+					var hsl = rgbToHsl(this._r, this._g, this._b);
+					var h = mathRound(hsl.h * 360), s = mathRound(hsl.s * 100), l = mathRound(hsl.l * 100);
+					return (this._a == 1) ?
+						"hsl("	+ h + ", " + s + "%, " + l + "%)" :
+						"hsla(" + h + ", " + s + "%, " + l + "%, "+ this._roundA + ")";
+			},
+			toHex: function(allow3Char) {
+					return rgbToHex(this._r, this._g, this._b, allow3Char);
+			},
+			toHexString: function(allow3Char) {
+					return '#' + this.toHex(allow3Char);
+			},
+			toHex8: function() {
+					return rgbaToHex(this._r, this._g, this._b, this._a);
+			},
+			toHex8String: function() {
+					return '#' + this.toHex8();
+			},
+			toRgb: function() {
+					return { r: mathRound(this._r), g: mathRound(this._g), b: mathRound(this._b), a: this._a };
+			},
+			toRgbString: function() {
+					return (this._a == 1) ?
+						"rgb("	+ mathRound(this._r) + ", " + mathRound(this._g) + ", " + mathRound(this._b) + ")" :
+						"rgba(" + mathRound(this._r) + ", " + mathRound(this._g) + ", " + mathRound(this._b) + ", " + this._roundA + ")";
+			},
+			toPercentageRgb: function() {
+					return { r: mathRound(bound01(this._r, 255) * 100) + "%", g: mathRound(bound01(this._g, 255) * 100) + "%", b: mathRound(bound01(this._b, 255) * 100) + "%", a: this._a };
+			},
+			toPercentageRgbString: function() {
+					return (this._a == 1) ?
+						"rgb("	+ mathRound(bound01(this._r, 255) * 100) + "%, " + mathRound(bound01(this._g, 255) * 100) + "%, " + mathRound(bound01(this._b, 255) * 100) + "%)" :
+						"rgba(" + mathRound(bound01(this._r, 255) * 100) + "%, " + mathRound(bound01(this._g, 255) * 100) + "%, " + mathRound(bound01(this._b, 255) * 100) + "%, " + this._roundA + ")";
+			},
+			toName: function() {
+					if (this._a === 0) {
+							return "transparent";
+					}
 	
-	var ALL_COMMANDS_SET = {};
+					if (this._a < 1) {
+							return false;
+					}
 	
-	ALL_COMMANDS_LIST.forEach(function(command) {
-	  ALL_COMMANDS_SET[command] = true;
-	});
+					return hexNames[rgbToHex(this._r, this._g, this._b, true)] || false;
+			},
+			toFilter: function(secondColor) {
+					var hex8String = '#' + rgbaToHex(this._r, this._g, this._b, this._a);
+					var secondHex8String = hex8String;
+					var gradientType = this._gradientType ? "GradientType = 1, " : "";
 	
-	function invariantArrayCase(value, spec, command) {
-	  ("production" !== process.env.NODE_ENV ? invariant(
-	    Array.isArray(value),
-	    'update(): expected target of %s to be an array; got %s.',
-	    command,
-	    value
-	  ) : invariant(Array.isArray(value)));
-	  var specValue = spec[command];
-	  ("production" !== process.env.NODE_ENV ? invariant(
-	    Array.isArray(specValue),
-	    'update(): expected spec of %s to be an array; got %s. ' +
-	    'Did you forget to wrap your parameter in an array?',
-	    command,
-	    specValue
-	  ) : invariant(Array.isArray(specValue)));
+					if (secondColor) {
+							var s = tinycolor(secondColor);
+							secondHex8String = s.toHex8String();
+					}
+	
+					return "progid:DXImageTransform.Microsoft.gradient("+gradientType+"startColorstr="+hex8String+",endColorstr="+secondHex8String+")";
+			},
+			toString: function(format) {
+					var formatSet = !!format;
+					format = format || this._format;
+	
+					var formattedString = false;
+					var hasAlpha = this._a < 1 && this._a >= 0;
+					var needsAlphaFormat = !formatSet && hasAlpha && (format === "hex" || format === "hex6" || format === "hex3" || format === "name");
+	
+					if (needsAlphaFormat) {
+							// Special case for "transparent", all other non-alpha formats
+							// will return rgba when there is transparency.
+							if (format === "name" && this._a === 0) {
+									return this.toName();
+							}
+							return this.toRgbString();
+					}
+					if (format === "rgb") {
+							formattedString = this.toRgbString();
+					}
+					if (format === "prgb") {
+							formattedString = this.toPercentageRgbString();
+					}
+					if (format === "hex" || format === "hex6") {
+							formattedString = this.toHexString();
+					}
+					if (format === "hex3") {
+							formattedString = this.toHexString(true);
+					}
+					if (format === "hex8") {
+							formattedString = this.toHex8String();
+					}
+					if (format === "name") {
+							formattedString = this.toName();
+					}
+					if (format === "hsl") {
+							formattedString = this.toHslString();
+					}
+					if (format === "hsv") {
+							formattedString = this.toHsvString();
+					}
+	
+					return formattedString || this.toHexString();
+			},
+	
+			_applyModification: function(fn, args) {
+					var color = fn.apply(null, [this].concat([].slice.call(args)));
+					this._r = color._r;
+					this._g = color._g;
+					this._b = color._b;
+					this.setAlpha(color._a);
+					return this;
+			},
+			lighten: function() {
+					return this._applyModification(lighten, arguments);
+			},
+			brighten: function() {
+					return this._applyModification(brighten, arguments);
+			},
+			darken: function() {
+					return this._applyModification(darken, arguments);
+			},
+			desaturate: function() {
+					return this._applyModification(desaturate, arguments);
+			},
+			saturate: function() {
+					return this._applyModification(saturate, arguments);
+			},
+			greyscale: function() {
+					return this._applyModification(greyscale, arguments);
+			},
+			spin: function() {
+					return this._applyModification(spin, arguments);
+			},
+	
+			_applyCombination: function(fn, args) {
+					return fn.apply(null, [this].concat([].slice.call(args)));
+			},
+			analogous: function() {
+					return this._applyCombination(analogous, arguments);
+			},
+			complement: function() {
+					return this._applyCombination(complement, arguments);
+			},
+			monochromatic: function() {
+					return this._applyCombination(monochromatic, arguments);
+			},
+			splitcomplement: function() {
+					return this._applyCombination(splitcomplement, arguments);
+			},
+			triad: function() {
+					return this._applyCombination(triad, arguments);
+			},
+			tetrad: function() {
+					return this._applyCombination(tetrad, arguments);
+			}
+	};
+	
+	// If input is an object, force 1 into "1.0" to handle ratios properly
+	// String input requires "1.0" as input, so 1 will be treated as 1
+	tinycolor.fromRatio = function(color, opts) {
+			if (typeof color == "object") {
+					var newColor = {};
+					for (var i in color) {
+							if (color.hasOwnProperty(i)) {
+									if (i === "a") {
+											newColor[i] = color[i];
+									}
+									else {
+											newColor[i] = convertToPercentage(color[i]);
+									}
+							}
+					}
+					color = newColor;
+			}
+	
+			return tinycolor(color, opts);
+	};
+	
+	// Given a string or object, convert that input to RGB
+	// Possible string inputs:
+	//
+	//		 "red"
+	//		 "#f00" or "f00"
+	//		 "#ff0000" or "ff0000"
+	//		 "#ff000000" or "ff000000"
+	//		 "rgb 255 0 0" or "rgb (255, 0, 0)"
+	//		 "rgb 1.0 0 0" or "rgb (1, 0, 0)"
+	//		 "rgba (255, 0, 0, 1)" or "rgba 255, 0, 0, 1"
+	//		 "rgba (1.0, 0, 0, 1)" or "rgba 1.0, 0, 0, 1"
+	//		 "hsl(0, 100%, 50%)" or "hsl 0 100% 50%"
+	//		 "hsla(0, 100%, 50%, 1)" or "hsla 0 100% 50%, 1"
+	//		 "hsv(0, 100%, 100%)" or "hsv 0 100% 100%"
+	//
+	function inputToRGB(color) {
+	
+			var rgb = { r: 0, g: 0, b: 0 };
+			var a = 1;
+			var ok = false;
+			var format = false;
+	
+			if (typeof color == "string") {
+					color = stringInputToObject(color);
+			}
+	
+			if (typeof color == "object") {
+					if (color.hasOwnProperty("r") && color.hasOwnProperty("g") && color.hasOwnProperty("b")) {
+							rgb = rgbToRgb(color.r, color.g, color.b);
+							ok = true;
+							format = String(color.r).substr(-1) === "%" ? "prgb" : "rgb";
+					}
+					else if (color.hasOwnProperty("h") && color.hasOwnProperty("s") && color.hasOwnProperty("v")) {
+							color.s = convertToPercentage(color.s, 1);
+							color.v = convertToPercentage(color.v, 1);
+							rgb = hsvToRgb(color.h, color.s, color.v);
+							ok = true;
+							format = "hsv";
+					}
+					else if (color.hasOwnProperty("h") && color.hasOwnProperty("s") && color.hasOwnProperty("l")) {
+							color.s = convertToPercentage(color.s);
+							color.l = convertToPercentage(color.l);
+							rgb = hslToRgb(color.h, color.s, color.l);
+							ok = true;
+							format = "hsl";
+					}
+	
+					if (color.hasOwnProperty("a")) {
+							a = color.a;
+					}
+			}
+	
+			a = boundAlpha(a);
+	
+			return {
+					ok: ok,
+					format: color.format || format,
+					r: mathMin(255, mathMax(rgb.r, 0)),
+					g: mathMin(255, mathMax(rgb.g, 0)),
+					b: mathMin(255, mathMax(rgb.b, 0)),
+					a: a
+			};
 	}
 	
-	function update(value, spec) {
-	  ("production" !== process.env.NODE_ENV ? invariant(
-	    typeof spec === 'object',
-	    'update(): You provided a key path to update() that did not contain one ' +
-	    'of %s. Did you forget to include {%s: ...}?',
-	    ALL_COMMANDS_LIST.join(', '),
-	    COMMAND_SET
-	  ) : invariant(typeof spec === 'object'));
 	
-	  if (hasOwnProperty.call(spec, COMMAND_SET)) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      Object.keys(spec).length === 1,
-	      'Cannot have more than one key in an object with %s',
-	      COMMAND_SET
-	    ) : invariant(Object.keys(spec).length === 1));
+	// Conversion Functions
+	// --------------------
 	
-	    return spec[COMMAND_SET];
-	  }
+	// `rgbToHsl`, `rgbToHsv`, `hslToRgb`, `hsvToRgb` modified from:
+	// <http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript>
 	
-	  var nextValue = shallowCopy(value);
-	
-	  if (hasOwnProperty.call(spec, COMMAND_MERGE)) {
-	    var mergeObj = spec[COMMAND_MERGE];
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      mergeObj && typeof mergeObj === 'object',
-	      'update(): %s expects a spec of type \'object\'; got %s',
-	      COMMAND_MERGE,
-	      mergeObj
-	    ) : invariant(mergeObj && typeof mergeObj === 'object'));
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      nextValue && typeof nextValue === 'object',
-	      'update(): %s expects a target of type \'object\'; got %s',
-	      COMMAND_MERGE,
-	      nextValue
-	    ) : invariant(nextValue && typeof nextValue === 'object'));
-	    assign(nextValue, spec[COMMAND_MERGE]);
-	  }
-	
-	  if (hasOwnProperty.call(spec, COMMAND_PUSH)) {
-	    invariantArrayCase(value, spec, COMMAND_PUSH);
-	    spec[COMMAND_PUSH].forEach(function(item) {
-	      nextValue.push(item);
-	    });
-	  }
-	
-	  if (hasOwnProperty.call(spec, COMMAND_UNSHIFT)) {
-	    invariantArrayCase(value, spec, COMMAND_UNSHIFT);
-	    spec[COMMAND_UNSHIFT].forEach(function(item) {
-	      nextValue.unshift(item);
-	    });
-	  }
-	
-	  if (hasOwnProperty.call(spec, COMMAND_SPLICE)) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      Array.isArray(value),
-	      'Expected %s target to be an array; got %s',
-	      COMMAND_SPLICE,
-	      value
-	    ) : invariant(Array.isArray(value)));
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      Array.isArray(spec[COMMAND_SPLICE]),
-	      'update(): expected spec of %s to be an array of arrays; got %s. ' +
-	      'Did you forget to wrap your parameters in an array?',
-	      COMMAND_SPLICE,
-	      spec[COMMAND_SPLICE]
-	    ) : invariant(Array.isArray(spec[COMMAND_SPLICE])));
-	    spec[COMMAND_SPLICE].forEach(function(args) {
-	      ("production" !== process.env.NODE_ENV ? invariant(
-	        Array.isArray(args),
-	        'update(): expected spec of %s to be an array of arrays; got %s. ' +
-	        'Did you forget to wrap your parameters in an array?',
-	        COMMAND_SPLICE,
-	        spec[COMMAND_SPLICE]
-	      ) : invariant(Array.isArray(args)));
-	      nextValue.splice.apply(nextValue, args);
-	    });
-	  }
-	
-	  if (hasOwnProperty.call(spec, COMMAND_APPLY)) {
-	    ("production" !== process.env.NODE_ENV ? invariant(
-	      typeof spec[COMMAND_APPLY] === 'function',
-	      'update(): expected spec of %s to be a function; got %s.',
-	      COMMAND_APPLY,
-	      spec[COMMAND_APPLY]
-	    ) : invariant(typeof spec[COMMAND_APPLY] === 'function'));
-	    nextValue = spec[COMMAND_APPLY](nextValue);
-	  }
-	
-	  for (var k in spec) {
-	    if (!(ALL_COMMANDS_SET.hasOwnProperty(k) && ALL_COMMANDS_SET[k])) {
-	      nextValue[k] = update(value[k], spec[k]);
-	    }
-	  }
-	
-	  return nextValue;
+	// `rgbToRgb`
+	// Handle bounds / percentage checking to conform to CSS color spec
+	// <http://www.w3.org/TR/css3-color/>
+	// *Assumes:* r, g, b in [0, 255] or [0, 1]
+	// *Returns:* { r, g, b } in [0, 255]
+	function rgbToRgb(r, g, b){
+			return {
+					r: bound01(r, 255) * 255,
+					g: bound01(g, 255) * 255,
+					b: bound01(b, 255) * 255
+			};
 	}
 	
-	module.exports = update;
+	// `rgbToHsl`
+	// Converts an RGB color value to HSL.
+	// *Assumes:* r, g, and b are contained in [0, 255] or [0, 1]
+	// *Returns:* { h, s, l } in [0,1]
+	function rgbToHsl(r, g, b) {
 	
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(59)))
+			r = bound01(r, 255);
+			g = bound01(g, 255);
+			b = bound01(b, 255);
+	
+			var max = mathMax(r, g, b), min = mathMin(r, g, b);
+			var h, s, l = (max + min) / 2;
+	
+			if(max == min) {
+					h = s = 0; // achromatic
+			}
+			else {
+					var d = max - min;
+					s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+					switch(max) {
+							case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+							case g: h = (b - r) / d + 2; break;
+							case b: h = (r - g) / d + 4; break;
+					}
+	
+					h /= 6;
+			}
+	
+			return { h: h, s: s, l: l };
+	}
+	
+	// `hslToRgb`
+	// Converts an HSL color value to RGB.
+	// *Assumes:* h is contained in [0, 1] or [0, 360] and s and l are contained [0, 1] or [0, 100]
+	// *Returns:* { r, g, b } in the set [0, 255]
+	function hslToRgb(h, s, l) {
+			var r, g, b;
+	
+			h = bound01(h, 360);
+			s = bound01(s, 100);
+			l = bound01(l, 100);
+	
+			function hue2rgb(p, q, t) {
+					if(t < 0) t += 1;
+					if(t > 1) t -= 1;
+					if(t < 1/6) return p + (q - p) * 6 * t;
+					if(t < 1/2) return q;
+					if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+					return p;
+			}
+	
+			if(s === 0) {
+					r = g = b = l; // achromatic
+			}
+			else {
+					var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+					var p = 2 * l - q;
+					r = hue2rgb(p, q, h + 1/3);
+					g = hue2rgb(p, q, h);
+					b = hue2rgb(p, q, h - 1/3);
+			}
+	
+			return { r: r * 255, g: g * 255, b: b * 255 };
+	}
+	
+	// `rgbToHsv`
+	// Converts an RGB color value to HSV
+	// *Assumes:* r, g, and b are contained in the set [0, 255] or [0, 1]
+	// *Returns:* { h, s, v } in [0,1]
+	function rgbToHsv(r, g, b) {
+	
+			r = bound01(r, 255);
+			g = bound01(g, 255);
+			b = bound01(b, 255);
+	
+			var max = mathMax(r, g, b), min = mathMin(r, g, b);
+			var h, s, v = max;
+	
+			var d = max - min;
+			s = max === 0 ? 0 : d / max;
+	
+			if(max == min) {
+					h = 0; // achromatic
+			}
+			else {
+					switch(max) {
+							case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+							case g: h = (b - r) / d + 2; break;
+							case b: h = (r - g) / d + 4; break;
+					}
+					h /= 6;
+			}
+			return { h: h, s: s, v: v };
+	}
+	
+	// `hsvToRgb`
+	// Converts an HSV color value to RGB.
+	// *Assumes:* h is contained in [0, 1] or [0, 360] and s and v are contained in [0, 1] or [0, 100]
+	// *Returns:* { r, g, b } in the set [0, 255]
+	 function hsvToRgb(h, s, v) {
+	
+			h = bound01(h, 360) * 6;
+			s = bound01(s, 100);
+			v = bound01(v, 100);
+	
+			var i = math.floor(h),
+					f = h - i,
+					p = v * (1 - s),
+					q = v * (1 - f * s),
+					t = v * (1 - (1 - f) * s),
+					mod = i % 6,
+					r = [v, q, p, p, t, v][mod],
+					g = [t, v, v, q, p, p][mod],
+					b = [p, p, t, v, v, q][mod];
+	
+			return { r: r * 255, g: g * 255, b: b * 255 };
+	}
+	
+	// `rgbToHex`
+	// Converts an RGB color to hex
+	// Assumes r, g, and b are contained in the set [0, 255]
+	// Returns a 3 or 6 character hex
+	function rgbToHex(r, g, b, allow3Char) {
+	
+			var hex = [
+					pad2(mathRound(r).toString(16)),
+					pad2(mathRound(g).toString(16)),
+					pad2(mathRound(b).toString(16))
+			];
+	
+			// Return a 3 character hex if possible
+			if (allow3Char && hex[0].charAt(0) == hex[0].charAt(1) && hex[1].charAt(0) == hex[1].charAt(1) && hex[2].charAt(0) == hex[2].charAt(1)) {
+					return hex[0].charAt(0) + hex[1].charAt(0) + hex[2].charAt(0);
+			}
+	
+			return hex.join("");
+	}
+			// `rgbaToHex`
+			// Converts an RGBA color plus alpha transparency to hex
+			// Assumes r, g, b and a are contained in the set [0, 255]
+			// Returns an 8 character hex
+			function rgbaToHex(r, g, b, a) {
+	
+					var hex = [
+							pad2(convertDecimalToHex(a)),
+							pad2(mathRound(r).toString(16)),
+							pad2(mathRound(g).toString(16)),
+							pad2(mathRound(b).toString(16))
+					];
+	
+					return hex.join("");
+			}
+	
+	// `equals`
+	// Can be called with any tinycolor input
+	tinycolor.equals = function (color1, color2) {
+			if (!color1 || !color2) { return false; }
+			return tinycolor(color1).toRgbString() == tinycolor(color2).toRgbString();
+	};
+	tinycolor.random = function() {
+			return tinycolor.fromRatio({
+					r: mathRandom(),
+					g: mathRandom(),
+					b: mathRandom()
+			});
+	};
+	
+	
+	// Modification Functions
+	// ----------------------
+	// Thanks to less.js for some of the basics here
+	// <https://github.com/cloudhead/less.js/blob/master/lib/less/functions.js>
+	
+	function desaturate(color, amount) {
+			amount = (amount === 0) ? 0 : (amount || 10);
+			var hsl = tinycolor(color).toHsl();
+			hsl.s -= amount / 100;
+			hsl.s = clamp01(hsl.s);
+			return tinycolor(hsl);
+	}
+	
+	function saturate(color, amount) {
+			amount = (amount === 0) ? 0 : (amount || 10);
+			var hsl = tinycolor(color).toHsl();
+			hsl.s += amount / 100;
+			hsl.s = clamp01(hsl.s);
+			return tinycolor(hsl);
+	}
+	
+	function greyscale(color) {
+			return tinycolor(color).desaturate(100);
+	}
+	
+	function lighten (color, amount) {
+			amount = (amount === 0) ? 0 : (amount || 10);
+			var hsl = tinycolor(color).toHsl();
+			hsl.l += amount / 100;
+			hsl.l = clamp01(hsl.l);
+			return tinycolor(hsl);
+	}
+	
+	function brighten(color, amount) {
+			amount = (amount === 0) ? 0 : (amount || 10);
+			var rgb = tinycolor(color).toRgb();
+			rgb.r = mathMax(0, mathMin(255, rgb.r - mathRound(255 * - (amount / 100))));
+			rgb.g = mathMax(0, mathMin(255, rgb.g - mathRound(255 * - (amount / 100))));
+			rgb.b = mathMax(0, mathMin(255, rgb.b - mathRound(255 * - (amount / 100))));
+			return tinycolor(rgb);
+	}
+	
+	function darken (color, amount) {
+			amount = (amount === 0) ? 0 : (amount || 10);
+			var hsl = tinycolor(color).toHsl();
+			hsl.l -= amount / 100;
+			hsl.l = clamp01(hsl.l);
+			return tinycolor(hsl);
+	}
+	
+	// Spin takes a positive or negative amount within [-360, 360] indicating the change of hue.
+	// Values outside of this range will be wrapped into this range.
+	function spin(color, amount) {
+			var hsl = tinycolor(color).toHsl();
+			var hue = (mathRound(hsl.h) + amount) % 360;
+			hsl.h = hue < 0 ? 360 + hue : hue;
+			return tinycolor(hsl);
+	}
+	
+	// Combination Functions
+	// ---------------------
+	// Thanks to jQuery xColor for some of the ideas behind these
+	// <https://github.com/infusion/jQuery-xcolor/blob/master/jquery.xcolor.js>
+	
+	function complement(color) {
+			var hsl = tinycolor(color).toHsl();
+			hsl.h = (hsl.h + 180) % 360;
+			return tinycolor(hsl);
+	}
+	
+	function triad(color) {
+			var hsl = tinycolor(color).toHsl();
+			var h = hsl.h;
+			return [
+					tinycolor(color),
+					tinycolor({ h: (h + 120) % 360, s: hsl.s, l: hsl.l }),
+					tinycolor({ h: (h + 240) % 360, s: hsl.s, l: hsl.l })
+			];
+	}
+	
+	function tetrad(color) {
+			var hsl = tinycolor(color).toHsl();
+			var h = hsl.h;
+			return [
+					tinycolor(color),
+					tinycolor({ h: (h + 90) % 360, s: hsl.s, l: hsl.l }),
+					tinycolor({ h: (h + 180) % 360, s: hsl.s, l: hsl.l }),
+					tinycolor({ h: (h + 270) % 360, s: hsl.s, l: hsl.l })
+			];
+	}
+	
+	function splitcomplement(color) {
+			var hsl = tinycolor(color).toHsl();
+			var h = hsl.h;
+			return [
+					tinycolor(color),
+					tinycolor({ h: (h + 72) % 360, s: hsl.s, l: hsl.l}),
+					tinycolor({ h: (h + 216) % 360, s: hsl.s, l: hsl.l})
+			];
+	}
+	
+	function analogous(color, results, slices) {
+			results = results || 6;
+			slices = slices || 30;
+	
+			var hsl = tinycolor(color).toHsl();
+			var part = 360 / slices;
+			var ret = [tinycolor(color)];
+	
+			for (hsl.h = ((hsl.h - (part * results >> 1)) + 720) % 360; --results; ) {
+					hsl.h = (hsl.h + part) % 360;
+					ret.push(tinycolor(hsl));
+			}
+			return ret;
+	}
+	
+	function monochromatic(color, results) {
+			results = results || 6;
+			var hsv = tinycolor(color).toHsv();
+			var h = hsv.h, s = hsv.s, v = hsv.v;
+			var ret = [];
+			var modification = 1 / results;
+	
+			while (results--) {
+					ret.push(tinycolor({ h: h, s: s, v: v}));
+					v = (v + modification) % 1;
+			}
+	
+			return ret;
+	}
+	
+	// Utility Functions
+	// ---------------------
+	
+	tinycolor.mix = function(color1, color2, amount) {
+			amount = (amount === 0) ? 0 : (amount || 50);
+	
+			var rgb1 = tinycolor(color1).toRgb();
+			var rgb2 = tinycolor(color2).toRgb();
+	
+			var p = amount / 100;
+			var w = p * 2 - 1;
+			var a = rgb2.a - rgb1.a;
+	
+			var w1;
+	
+			if (w * a == -1) {
+					w1 = w;
+			} else {
+					w1 = (w + a) / (1 + w * a);
+			}
+	
+			w1 = (w1 + 1) / 2;
+	
+			var w2 = 1 - w1;
+	
+			var rgba = {
+					r: rgb2.r * w1 + rgb1.r * w2,
+					g: rgb2.g * w1 + rgb1.g * w2,
+					b: rgb2.b * w1 + rgb1.b * w2,
+					a: rgb2.a * p	+ rgb1.a * (1 - p)
+			};
+	
+			return tinycolor(rgba);
+	};
+	
+	
+	// Readability Functions
+	// ---------------------
+	// <http://www.w3.org/TR/2008/REC-WCAG20-20081211/#contrast-ratiodef (WCAG Version 2)
+	
+	// `contrast`
+	// Analyze the 2 colors and returns the color contrast defined by (WCAG Version 2)
+	tinycolor.readability = function(color1, color2) {
+			var c1 = tinycolor(color1);
+			var c2 = tinycolor(color2);
+			return (Math.max(c1.getLuminance(),c2.getLuminance())+0.05) / (Math.min(c1.getLuminance(),c2.getLuminance())+0.05);
+	};
+	
+	// `isReadable`
+	// Ensure that foreground and background color combinations meet WCAG2 guidelines.
+	// The third argument is an optional Object.
+	//			the 'level' property states 'AA' or 'AAA' - if missing or invalid, it defaults to 'AA';
+	//			the 'size' property states 'large' or 'small' - if missing or invalid, it defaults to 'small'.
+	// If the entire object is absent, isReadable defaults to {level:"AA",size:"small"}.
+	
+	// *Example*
+	//		tinycolor.isReadable("#000", "#111") => false
+	//		tinycolor.isReadable("#000", "#111",{level:"AA",size:"large"}) => false
+	
+	tinycolor.isReadable = function(color1, color2, wcag2) {
+			var readability = tinycolor.readability(color1, color2);
+			var wcag2Parms, out;
+	
+			out = false;
+	
+			wcag2Parms = validateWCAG2Parms(wcag2);
+			switch (wcag2Parms.level + wcag2Parms.size) {
+					case "AAsmall":
+					case "AAAlarge":
+							out = readability >= 4.5;
+							break;
+					case "AAlarge":
+							out = readability >= 3;
+							break;
+					case "AAAsmall":
+							out = readability >= 7;
+							break;
+			}
+			return out;
+	
+	};
+	
+	// `mostReadable`
+	// Given a base color and a list of possible foreground or background
+	// colors for that base, returns the most readable color.
+	// Optionally returns Black or White if the most readable color is unreadable.
+	// *Example*
+	//		tinycolor.mostReadable(tinycolor.mostReadable("#123", ["#124", "#125"],{includeFallbackColors:false}).toHexString(); // "#112255"
+	//		tinycolor.mostReadable(tinycolor.mostReadable("#123", ["#124", "#125"],{includeFallbackColors:true}).toHexString();	// "#ffffff"
+	//		tinycolor.mostReadable("#a8015a", ["#faf3f3"],{includeFallbackColors:true,level:"AAA",size:"large"}).toHexString(); // "#faf3f3"
+	//		tinycolor.mostReadable("#a8015a", ["#faf3f3"],{includeFallbackColors:true,level:"AAA",size:"small"}).toHexString(); // "#ffffff"
+	
+	
+	tinycolor.mostReadable = function(baseColor, colorList, args) {
+			var bestColor = null;
+			var bestScore = 0;
+			var readability;
+			var includeFallbackColors, level, size ;
+			args = args || {};
+			includeFallbackColors = args.includeFallbackColors ;
+			level = args.level;
+			size = args.size;
+	
+			for (var i= 0; i < colorList.length ; i++) {
+					readability = tinycolor.readability(baseColor, colorList[i]);
+					if (readability > bestScore) {
+							bestScore = readability;
+							bestColor = tinycolor(colorList[i]);
+					}
+			}
+	
+			if (tinycolor.isReadable(baseColor, bestColor, {"level":level,"size":size}) || !includeFallbackColors) {
+					return bestColor;
+			}
+			else {
+					args.includeFallbackColors=false;
+					return tinycolor.mostReadable(baseColor,["#fff", "#000"],args);
+			}
+	};
+	
+	
+	// Big List of Colors
+	// ------------------
+	// <http://www.w3.org/TR/css3-color/#svg-color>
+	var names = tinycolor.names = {
+			aliceblue: "f0f8ff",
+			antiquewhite: "faebd7",
+			aqua: "0ff",
+			aquamarine: "7fffd4",
+			azure: "f0ffff",
+			beige: "f5f5dc",
+			bisque: "ffe4c4",
+			black: "000",
+			blanchedalmond: "ffebcd",
+			blue: "00f",
+			blueviolet: "8a2be2",
+			brown: "a52a2a",
+			burlywood: "deb887",
+			burntsienna: "ea7e5d",
+			cadetblue: "5f9ea0",
+			chartreuse: "7fff00",
+			chocolate: "d2691e",
+			coral: "ff7f50",
+			cornflowerblue: "6495ed",
+			cornsilk: "fff8dc",
+			crimson: "dc143c",
+			cyan: "0ff",
+			darkblue: "00008b",
+			darkcyan: "008b8b",
+			darkgoldenrod: "b8860b",
+			darkgray: "a9a9a9",
+			darkgreen: "006400",
+			darkgrey: "a9a9a9",
+			darkkhaki: "bdb76b",
+			darkmagenta: "8b008b",
+			darkolivegreen: "556b2f",
+			darkorange: "ff8c00",
+			darkorchid: "9932cc",
+			darkred: "8b0000",
+			darksalmon: "e9967a",
+			darkseagreen: "8fbc8f",
+			darkslateblue: "483d8b",
+			darkslategray: "2f4f4f",
+			darkslategrey: "2f4f4f",
+			darkturquoise: "00ced1",
+			darkviolet: "9400d3",
+			deeppink: "ff1493",
+			deepskyblue: "00bfff",
+			dimgray: "696969",
+			dimgrey: "696969",
+			dodgerblue: "1e90ff",
+			firebrick: "b22222",
+			floralwhite: "fffaf0",
+			forestgreen: "228b22",
+			fuchsia: "f0f",
+			gainsboro: "dcdcdc",
+			ghostwhite: "f8f8ff",
+			gold: "ffd700",
+			goldenrod: "daa520",
+			gray: "808080",
+			green: "008000",
+			greenyellow: "adff2f",
+			grey: "808080",
+			honeydew: "f0fff0",
+			hotpink: "ff69b4",
+			indianred: "cd5c5c",
+			indigo: "4b0082",
+			ivory: "fffff0",
+			khaki: "f0e68c",
+			lavender: "e6e6fa",
+			lavenderblush: "fff0f5",
+			lawngreen: "7cfc00",
+			lemonchiffon: "fffacd",
+			lightblue: "add8e6",
+			lightcoral: "f08080",
+			lightcyan: "e0ffff",
+			lightgoldenrodyellow: "fafad2",
+			lightgray: "d3d3d3",
+			lightgreen: "90ee90",
+			lightgrey: "d3d3d3",
+			lightpink: "ffb6c1",
+			lightsalmon: "ffa07a",
+			lightseagreen: "20b2aa",
+			lightskyblue: "87cefa",
+			lightslategray: "789",
+			lightslategrey: "789",
+			lightsteelblue: "b0c4de",
+			lightyellow: "ffffe0",
+			lime: "0f0",
+			limegreen: "32cd32",
+			linen: "faf0e6",
+			magenta: "f0f",
+			maroon: "800000",
+			mediumaquamarine: "66cdaa",
+			mediumblue: "0000cd",
+			mediumorchid: "ba55d3",
+			mediumpurple: "9370db",
+			mediumseagreen: "3cb371",
+			mediumslateblue: "7b68ee",
+			mediumspringgreen: "00fa9a",
+			mediumturquoise: "48d1cc",
+			mediumvioletred: "c71585",
+			midnightblue: "191970",
+			mintcream: "f5fffa",
+			mistyrose: "ffe4e1",
+			moccasin: "ffe4b5",
+			navajowhite: "ffdead",
+			navy: "000080",
+			oldlace: "fdf5e6",
+			olive: "808000",
+			olivedrab: "6b8e23",
+			orange: "ffa500",
+			orangered: "ff4500",
+			orchid: "da70d6",
+			palegoldenrod: "eee8aa",
+			palegreen: "98fb98",
+			paleturquoise: "afeeee",
+			palevioletred: "db7093",
+			papayawhip: "ffefd5",
+			peachpuff: "ffdab9",
+			peru: "cd853f",
+			pink: "ffc0cb",
+			plum: "dda0dd",
+			powderblue: "b0e0e6",
+			purple: "800080",
+			rebeccapurple: "663399",
+			red: "f00",
+			rosybrown: "bc8f8f",
+			royalblue: "4169e1",
+			saddlebrown: "8b4513",
+			salmon: "fa8072",
+			sandybrown: "f4a460",
+			seagreen: "2e8b57",
+			seashell: "fff5ee",
+			sienna: "a0522d",
+			silver: "c0c0c0",
+			skyblue: "87ceeb",
+			slateblue: "6a5acd",
+			slategray: "708090",
+			slategrey: "708090",
+			snow: "fffafa",
+			springgreen: "00ff7f",
+			steelblue: "4682b4",
+			tan: "d2b48c",
+			teal: "008080",
+			thistle: "d8bfd8",
+			tomato: "ff6347",
+			turquoise: "40e0d0",
+			violet: "ee82ee",
+			wheat: "f5deb3",
+			white: "fff",
+			whitesmoke: "f5f5f5",
+			yellow: "ff0",
+			yellowgreen: "9acd32"
+	};
+	
+	// Make it easy to access colors via `hexNames[hex]`
+	var hexNames = tinycolor.hexNames = flip(names);
+	
+	
+	// Utilities
+	// ---------
+	
+	// `{ 'name1': 'val1' }` becomes `{ 'val1': 'name1' }`
+	function flip(o) {
+			var flipped = { };
+			for (var i in o) {
+					if (o.hasOwnProperty(i)) {
+							flipped[o[i]] = i;
+					}
+			}
+			return flipped;
+	}
+	
+	// Return a valid alpha value [0,1] with all invalid values being set to 1
+	function boundAlpha(a) {
+			a = parseFloat(a);
+	
+			if (isNaN(a) || a < 0 || a > 1) {
+					a = 1;
+			}
+	
+			return a;
+	}
+	
+	// Take input from [0, n] and return it as [0, 1]
+	function bound01(n, max) {
+			if (isOnePointZero(n)) { n = "100%"; }
+	
+			var processPercent = isPercentage(n);
+			n = mathMin(max, mathMax(0, parseFloat(n)));
+	
+			// Automatically convert percentage into number
+			if (processPercent) {
+					n = parseInt(n * max, 10) / 100;
+			}
+	
+			// Handle floating point rounding errors
+			if ((math.abs(n - max) < 0.000001)) {
+					return 1;
+			}
+	
+			// Convert into [0, 1] range if it isn't already
+			return (n % max) / parseFloat(max);
+	}
+	
+	// Force a number between 0 and 1
+	function clamp01(val) {
+			return mathMin(1, mathMax(0, val));
+	}
+	
+	// Parse a base-16 hex value into a base-10 integer
+	function parseIntFromHex(val) {
+			return parseInt(val, 16);
+	}
+	
+	// Need to handle 1.0 as 100%, since once it is a number, there is no difference between it and 1
+	// <http://stackoverflow.com/questions/7422072/javascript-how-to-detect-number-as-a-decimal-including-1-0>
+	function isOnePointZero(n) {
+			return typeof n == "string" && n.indexOf('.') != -1 && parseFloat(n) === 1;
+	}
+	
+	// Check to see if string passed in is a percentage
+	function isPercentage(n) {
+			return typeof n === "string" && n.indexOf('%') != -1;
+	}
+	
+	// Force a hex value to have 2 characters
+	function pad2(c) {
+			return c.length == 1 ? '0' + c : '' + c;
+	}
+	
+	// Replace a decimal with it's percentage value
+	function convertToPercentage(n, multiplier) {
+			multiplier = multiplier || 100;
+			if (n <= 1) {
+					n = (n * multiplier) + "%";
+			}
+	
+			return n;
+	}
+	
+	// Converts a decimal to a hex value
+	function convertDecimalToHex(d) {
+			return Math.round(parseFloat(d) * 255).toString(16);
+	}
+	// Converts a hex value to a decimal
+	function convertHexToDecimal(h) {
+			return (parseIntFromHex(h) / 255);
+	}
+	
+	var matchers = (function() {
+	
+			// <http://www.w3.org/TR/css3-values/#integers>
+			var CSS_INTEGER = "[-\\+]?\\d+%?";
+	
+			// <http://www.w3.org/TR/css3-values/#number-value>
+			var CSS_NUMBER = "[-\\+]?\\d*\\.\\d+%?";
+	
+			// Allow positive/negative integer/number.	Don't capture the either/or, just the entire outcome.
+			var CSS_UNIT = "(?:" + CSS_NUMBER + ")|(?:" + CSS_INTEGER + ")";
+	
+			// Actual matching.
+			// Parentheses and commas are optional, but not required.
+			// Whitespace can take the place of commas or opening paren
+			var PERMISSIVE_MATCH3 = "[\\s|\\(]+(" + CSS_UNIT + ")[,|\\s]+(" + CSS_UNIT + ")[,|\\s]+(" + CSS_UNIT + ")\\s*\\)?";
+			var PERMISSIVE_MATCH4 = "[\\s|\\(]+(" + CSS_UNIT + ")[,|\\s]+(" + CSS_UNIT + ")[,|\\s]+(" + CSS_UNIT + ")[,|\\s]+(" + CSS_UNIT + ")\\s*\\)?";
+	
+			return {
+					rgb: new RegExp("rgb" + PERMISSIVE_MATCH3),
+					rgba: new RegExp("rgba" + PERMISSIVE_MATCH4),
+					hsl: new RegExp("hsl" + PERMISSIVE_MATCH3),
+					hsla: new RegExp("hsla" + PERMISSIVE_MATCH4),
+					hsv: new RegExp("hsv" + PERMISSIVE_MATCH3),
+					hsva: new RegExp("hsva" + PERMISSIVE_MATCH4),
+					hex3: /^([0-9a-fA-F]{1})([0-9a-fA-F]{1})([0-9a-fA-F]{1})$/,
+					hex6: /^([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$/,
+					hex8: /^([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$/
+			};
+	})();
+	
+	// `stringInputToObject`
+	// Permissive string parsing.	Take in a number of formats, and output an object
+	// based on detected format.	Returns `{ r, g, b }` or `{ h, s, l }` or `{ h, s, v}`
+	function stringInputToObject(color) {
+	
+			color = color.replace(trimLeft,'').replace(trimRight, '').toLowerCase();
+			var named = false;
+			if (names[color]) {
+					color = names[color];
+					named = true;
+			}
+			else if (color == 'transparent') {
+					return { r: 0, g: 0, b: 0, a: 0, format: "name" };
+			}
+	
+			// Try to match string input using regular expressions.
+			// Keep most of the number bounding out of this function - don't worry about [0,1] or [0,100] or [0,360]
+			// Just return an object and let the conversion functions handle that.
+			// This way the result will be the same whether the tinycolor is initialized with string or object.
+			var match;
+			if ((match = matchers.rgb.exec(color))) {
+					return { r: match[1], g: match[2], b: match[3] };
+			}
+			if ((match = matchers.rgba.exec(color))) {
+					return { r: match[1], g: match[2], b: match[3], a: match[4] };
+			}
+			if ((match = matchers.hsl.exec(color))) {
+					return { h: match[1], s: match[2], l: match[3] };
+			}
+			if ((match = matchers.hsla.exec(color))) {
+					return { h: match[1], s: match[2], l: match[3], a: match[4] };
+			}
+			if ((match = matchers.hsv.exec(color))) {
+					return { h: match[1], s: match[2], v: match[3] };
+			}
+			if ((match = matchers.hsva.exec(color))) {
+					return { h: match[1], s: match[2], v: match[3], a: match[4] };
+			}
+			if ((match = matchers.hex8.exec(color))) {
+					return {
+							a: convertHexToDecimal(match[1]),
+							r: parseIntFromHex(match[2]),
+							g: parseIntFromHex(match[3]),
+							b: parseIntFromHex(match[4]),
+							format: named ? "name" : "hex8"
+					};
+			}
+			if ((match = matchers.hex6.exec(color))) {
+					return {
+							r: parseIntFromHex(match[1]),
+							g: parseIntFromHex(match[2]),
+							b: parseIntFromHex(match[3]),
+							format: named ? "name" : "hex"
+					};
+			}
+			if ((match = matchers.hex3.exec(color))) {
+					return {
+							r: parseIntFromHex(match[1] + '' + match[1]),
+							g: parseIntFromHex(match[2] + '' + match[2]),
+							b: parseIntFromHex(match[3] + '' + match[3]),
+							format: named ? "name" : "hex"
+					};
+			}
+	
+			return false;
+	}
+	
+	function validateWCAG2Parms(parms) {
+			// return valid WCAG2 parms for isReadable.
+			// If input parms are invalid, return {"level":"AA", "size":"small"}
+			var level, size;
+			parms = parms || {"level":"AA", "size":"small"};
+			level = (parms.level || "AA").toUpperCase();
+			size = (parms.size || "small").toLowerCase();
+			if (level !== "AA" && level !== "AAA") {
+					level = "AA";
+			}
+			if (size !== "small" && size !== "large") {
+					size = "small";
+			}
+			return {"level":level, "size":size};
+	}
+	// Node: Export function
+	if (typeof module !== "undefined" && module.exports) {
+			module.exports = tinycolor;
+	}
+	// AMD/requirejs: Define the module
+	else if (true) {
+			!(__WEBPACK_AMD_DEFINE_RESULT__ = function () {return tinycolor;}.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	}
+	// Browser: Expose to window
+	else {
+			window.tinycolor = tinycolor;
+	}
+	
+	})();
+
 
 /***/ },
 /* 235 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/**
-	 * Copyright 2013-2015, Facebook, Inc.
-	 * All rights reserved.
-	 *
-	 * This source code is licensed under the BSD-style license found in the
-	 * LICENSE file in the root directory of this source tree. An additional grant
-	 * of patent rights can be found in the PATENTS file in the same directory.
-	 *
-	 * @providesModule ReactTestUtils
-	 */
-	
 	'use strict';
 	
-	var EventConstants = __webpack_require__(61);
-	var EventPluginHub = __webpack_require__(125);
-	var EventPropagators = __webpack_require__(149);
-	var React = __webpack_require__(58);
-	var ReactElement = __webpack_require__(67);
-	var ReactEmptyComponent = __webpack_require__(132);
-	var ReactBrowserEventEmitter = __webpack_require__(124);
-	var ReactCompositeComponent = __webpack_require__(140);
-	var ReactInstanceHandles = __webpack_require__(75);
-	var ReactInstanceMap = __webpack_require__(81);
-	var ReactMount = __webpack_require__(123);
-	var ReactUpdates = __webpack_require__(82);
-	var SyntheticEvent = __webpack_require__(153);
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 	
-	var assign = __webpack_require__(69);
-	var emptyObject = __webpack_require__(70);
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 	
-	var topLevelTypes = EventConstants.topLevelTypes;
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 	
-	function Event(suffix) {}
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 	
-	/**
-	 * @class ReactTestUtils
-	 */
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
-	/**
-	 * Todo: Support the entire DOM.scry query syntax. For now, these simple
-	 * utilities will suffice for testing purposes.
-	 * @lends ReactTestUtils
-	 */
-	var ReactTestUtils = {
-	  renderIntoDocument: function(instance) {
-	    var div = document.createElement('div');
-	    // None of our tests actually require attaching the container to the
-	    // DOM, and doing so creates a mess that we rely on test isolation to
-	    // clean up, so we're going to stop honoring the name of this method
-	    // (and probably rename it eventually) if no problems arise.
-	    // document.documentElement.appendChild(div);
-	    return React.render(instance, div);
-	  },
+	var React = __webpack_require__(57);
+	var ReactCSS = __webpack_require__(225);
 	
-	  isElement: function(element) {
-	    return ReactElement.isValidElement(element);
-	  },
+	var _require = __webpack_require__(236);
 	
-	  isElementOfType: function(inst, convenienceConstructor) {
-	    return (
-	      ReactElement.isValidElement(inst) &&
-	      inst.type === convenienceConstructor
-	    );
-	  },
+	var Saturation = _require.Saturation;
+	var Hue = _require.Hue;
 	
-	  isDOMComponent: function(inst) {
-	    // TODO: Fix this heuristic. It's just here because composites can currently
-	    // pretend to be DOM components.
-	    return !!(inst && inst.tagName && inst.getDOMNode);
-	  },
+	var PhotoshopFields = __webpack_require__(242);
+	var PhotoshopPointerCircle = __webpack_require__(243);
+	var PhotoshopPointer = __webpack_require__(244);
 	
-	  isDOMComponentElement: function(inst) {
-	    return !!(inst &&
-	              ReactElement.isValidElement(inst) &&
-	              !!inst.tagName);
-	  },
+	var PhotoshopPicker = (function (_ReactCSS$Component) {
+	  _inherits(PhotoshopPicker, _ReactCSS$Component);
 	
-	  isCompositeComponent: function(inst) {
-	    return typeof inst.render === 'function' &&
-	           typeof inst.setState === 'function';
-	  },
+	  function PhotoshopPicker(props) {
+	    _classCallCheck(this, PhotoshopPicker);
 	
-	  isCompositeComponentWithType: function(inst, type) {
-	    return !!(ReactTestUtils.isCompositeComponent(inst) &&
-	             (inst.constructor === type));
-	  },
+	    _get(Object.getPrototypeOf(PhotoshopPicker.prototype), 'constructor', this).call(this);
 	
-	  isCompositeComponentElement: function(inst) {
-	    if (!ReactElement.isValidElement(inst)) {
-	      return false;
-	    }
-	    // We check the prototype of the type that will get mounted, not the
-	    // instance itself. This is a future proof way of duck typing.
-	    var prototype = inst.type.prototype;
-	    return (
-	      typeof prototype.render === 'function' &&
-	      typeof prototype.setState === 'function'
-	    );
-	  },
+	    this.state = {
+	      currentColor: props.hex
+	    };
 	
-	  isCompositeComponentElementWithType: function(inst, type) {
-	    return !!(ReactTestUtils.isCompositeComponentElement(inst) &&
-	             (inst.constructor === type));
-	  },
+	    this.handleChange = this.handleChange.bind(this);
+	    this.handleAccept = this.handleAccept.bind(this);
+	    this.handleCancel = this.handleCancel.bind(this);
+	  }
 	
-	  getRenderedChildOfCompositeComponent: function(inst) {
-	    if (!ReactTestUtils.isCompositeComponent(inst)) {
-	      return null;
-	    }
-	    var internalInstance = ReactInstanceMap.get(inst);
-	    return internalInstance._renderedComponent.getPublicInstance();
-	  },
+	  _createClass(PhotoshopPicker, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'default': {
+	          picker: {
+	            background: '#DCDCDC',
+	            borderRadius: '4px',
+	            boxShadow: '0 0 0 1px rgba(0,0,0,.25), 0 8px 16px rgba(0,0,0,.15)',
+	            width: '513px'
+	          },
+	          head: {
+	            backgroundImage: 'linear-gradient(-180deg, #F0F0F0 0%, #D4D4D4 100%)',
+	            borderBottom: '1px solid #B1B1B1',
+	            boxShadow: 'inset 0 1px 0 0 rgba(255,255,255,.2), inset 0 -1px 0 0 rgba(0,0,0,.02)',
+	            height: '23px',
+	            lineHeight: '24px',
+	            borderRadius: '4px 4px 0 0',
+	            fontSize: '13px',
+	            color: '#4D4D4D',
+	            textAlign: 'center'
+	          },
+	          body: {
+	            padding: '15px 15px 0',
+	            display: 'flex'
+	          },
+	          saturation: {
+	            width: '256px',
+	            height: '256px',
+	            position: 'relative',
+	            border: '2px solid #B3B3B3',
+	            borderBottom: '2px solid #F0F0F0',
+	            overflow: 'hidden'
+	          },
+	          hue: {
+	            position: 'relative',
+	            height: '256px',
+	            width: '19px',
+	            marginLeft: '10px',
+	            border: '2px solid #B3B3B3',
+	            borderBottom: '2px solid #F0F0F0'
+	          },
+	          Hue: {
+	            direction: 'vertical'
+	          },
+	          controls: {
+	            width: '180px',
+	            marginLeft: '10px'
+	          },
 	
-	  findAllInRenderedTree: function(inst, test) {
-	    if (!inst) {
-	      return [];
-	    }
-	    var ret = test(inst) ? [inst] : [];
-	    if (ReactTestUtils.isDOMComponent(inst)) {
-	      var internalInstance = ReactInstanceMap.get(inst);
-	      var renderedChildren = internalInstance
-	        ._renderedComponent
-	        ._renderedChildren;
-	      var key;
-	      for (key in renderedChildren) {
-	        if (!renderedChildren.hasOwnProperty(key)) {
-	          continue;
+	          top: {
+	            display: 'flex'
+	          },
+	          previews: {
+	            width: '60px'
+	          },
+	          swatches: {
+	            border: '1px solid #B3B3B3',
+	            borderBottom: '1px solid #F0F0F0',
+	            marginBottom: '2px',
+	            marginTop: '1px'
+	          },
+	          'new': {
+	            height: '34px',
+	            background: 'rgb(' + this.props.rgb.r + ', ' + this.props.rgb.g + ', ' + this.props.rgb.b + ')',
+	            boxShadow: 'inset 1px 0 0 #000, inset -1px 0 0 #000, inset 0 1px 0 #000'
+	          },
+	          current: {
+	            height: '34px',
+	            background: '#' + this.state.currentColor,
+	            boxShadow: 'inset 1px 0 0 #000, inset -1px 0 0 #000, inset 0 -1px 0 #000'
+	          },
+	          label: {
+	            fontSize: '14px',
+	            color: '#000',
+	            textAlign: 'center'
+	          },
+	          actions: {
+	            flex: '1',
+	            marginLeft: '20px'
+	          },
+	          button: {
+	            backgroundImage: 'linear-gradient(-180deg, #FFFFFF 0%, #E6E6E6 100%)',
+	            border: '1px solid #878787',
+	            borderRadius: '2px',
+	            height: '20px',
+	            boxShadow: '0 1px 0 0 #EAEAEA',
+	            fontSize: '14px',
+	            color: '#000',
+	            lineHeight: '20px',
+	            textAlign: 'center',
+	            marginBottom: '10px'
+	          },
+	          acceptButton: {
+	            Extend: 'button',
+	            boxShadow: '0 0 0 1px #878787'
+	          }
 	        }
-	        if (!renderedChildren[key].getPublicInstance) {
-	          continue;
-	        }
-	        ret = ret.concat(
-	          ReactTestUtils.findAllInRenderedTree(
-	            renderedChildren[key].getPublicInstance(),
-	            test
-	          )
+	      };
+	    }
+	  }, {
+	    key: 'handleChange',
+	    value: function handleChange(data) {
+	      this.props.onChange(data);
+	    }
+	  }, {
+	    key: 'handleAccept',
+	    value: function handleAccept() {
+	      this.props.onAccept && this.props.onAccept();
+	    }
+	  }, {
+	    key: 'handleCancel',
+	    value: function handleCancel() {
+	      this.props.onCancel && this.props.onCancel();
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      var header;
+	
+	      if (this.props.header) {
+	        header = React.createElement(
+	          'div',
+	          { style: this.styles().head },
+	          this.props.header
 	        );
 	      }
-	    } else if (ReactTestUtils.isCompositeComponent(inst)) {
-	      ret = ret.concat(
-	        ReactTestUtils.findAllInRenderedTree(
-	          ReactTestUtils.getRenderedChildOfCompositeComponent(inst),
-	          test
+	
+	      return React.createElement(
+	        'div',
+	        { style: this.styles().picker },
+	        header,
+	        React.createElement(
+	          'div',
+	          { style: this.styles().body, className: 'flexbox-fix' },
+	          React.createElement(
+	            'div',
+	            { style: this.styles().saturation },
+	            React.createElement(Saturation, _extends({}, this.styles().Saturation, this.props, { pointer: PhotoshopPointerCircle, onChange: this.handleChange }))
+	          ),
+	          React.createElement(
+	            'div',
+	            { style: this.styles().hue },
+	            React.createElement(Hue, _extends({}, this.styles().Hue, this.props, { pointer: PhotoshopPointer, onChange: this.handleChange }))
+	          ),
+	          React.createElement(
+	            'div',
+	            { style: this.styles().controls },
+	            React.createElement(
+	              'div',
+	              { style: this.styles().top, className: 'flexbox-fix' },
+	              React.createElement(
+	                'div',
+	                { style: this.styles().previews },
+	                React.createElement(
+	                  'div',
+	                  { style: this.styles().label },
+	                  'new'
+	                ),
+	                React.createElement(
+	                  'div',
+	                  { style: this.styles().swatches },
+	                  React.createElement('div', { style: this.styles()['new'] }),
+	                  React.createElement('div', { style: this.styles().current })
+	                ),
+	                React.createElement(
+	                  'div',
+	                  { style: this.styles().label },
+	                  'current'
+	                )
+	              ),
+	              React.createElement(
+	                'div',
+	                { style: this.styles().actions },
+	                React.createElement(
+	                  'div',
+	                  { style: this.styles().acceptButton, onClick: this.handleAccept },
+	                  'OK'
+	                ),
+	                React.createElement(
+	                  'div',
+	                  { style: this.styles().button, onClick: this.handleCancel },
+	                  'Cancel'
+	                ),
+	                React.createElement(PhotoshopFields, this.props)
+	              )
+	            )
+	          )
 	        )
 	      );
 	    }
-	    return ret;
-	  },
+	  }]);
 	
-	  /**
-	   * Finds all instance of components in the rendered tree that are DOM
-	   * components with the class name matching `className`.
-	   * @return an array of all the matches.
-	   */
-	  scryRenderedDOMComponentsWithClass: function(root, className) {
-	    return ReactTestUtils.findAllInRenderedTree(root, function(inst) {
-	      var instClassName = inst.props.className;
-	      return ReactTestUtils.isDOMComponent(inst) && (
-	        (instClassName && (' ' + instClassName + ' ').indexOf(' ' + className + ' ') !== -1)
-	      );
-	    });
-	  },
+	  return PhotoshopPicker;
+	})(ReactCSS.Component);
 	
-	  /**
-	   * Like scryRenderedDOMComponentsWithClass but expects there to be one result,
-	   * and returns that one result, or throws exception if there is any other
-	   * number of matches besides one.
-	   * @return {!ReactDOMComponent} The one match.
-	   */
-	  findRenderedDOMComponentWithClass: function(root, className) {
-	    var all =
-	      ReactTestUtils.scryRenderedDOMComponentsWithClass(root, className);
-	    if (all.length !== 1) {
-	      throw new Error('Did not find exactly one match ' +
-	        '(found: ' + all.length + ') for class:' + className
-	      );
-	    }
-	    return all[0];
-	  },
-	
-	
-	  /**
-	   * Finds all instance of components in the rendered tree that are DOM
-	   * components with the tag name matching `tagName`.
-	   * @return an array of all the matches.
-	   */
-	  scryRenderedDOMComponentsWithTag: function(root, tagName) {
-	    return ReactTestUtils.findAllInRenderedTree(root, function(inst) {
-	      return ReactTestUtils.isDOMComponent(inst) &&
-	            inst.tagName === tagName.toUpperCase();
-	    });
-	  },
-	
-	  /**
-	   * Like scryRenderedDOMComponentsWithTag but expects there to be one result,
-	   * and returns that one result, or throws exception if there is any other
-	   * number of matches besides one.
-	   * @return {!ReactDOMComponent} The one match.
-	   */
-	  findRenderedDOMComponentWithTag: function(root, tagName) {
-	    var all = ReactTestUtils.scryRenderedDOMComponentsWithTag(root, tagName);
-	    if (all.length !== 1) {
-	      throw new Error('Did not find exactly one match for tag:' + tagName);
-	    }
-	    return all[0];
-	  },
-	
-	
-	  /**
-	   * Finds all instances of components with type equal to `componentType`.
-	   * @return an array of all the matches.
-	   */
-	  scryRenderedComponentsWithType: function(root, componentType) {
-	    return ReactTestUtils.findAllInRenderedTree(root, function(inst) {
-	      return ReactTestUtils.isCompositeComponentWithType(
-	        inst,
-	        componentType
-	      );
-	    });
-	  },
-	
-	  /**
-	   * Same as `scryRenderedComponentsWithType` but expects there to be one result
-	   * and returns that one result, or throws exception if there is any other
-	   * number of matches besides one.
-	   * @return {!ReactComponent} The one match.
-	   */
-	  findRenderedComponentWithType: function(root, componentType) {
-	    var all = ReactTestUtils.scryRenderedComponentsWithType(
-	      root,
-	      componentType
-	    );
-	    if (all.length !== 1) {
-	      throw new Error(
-	        'Did not find exactly one match for componentType:' + componentType
-	      );
-	    }
-	    return all[0];
-	  },
-	
-	  /**
-	   * Pass a mocked component module to this method to augment it with
-	   * useful methods that allow it to be used as a dummy React component.
-	   * Instead of rendering as usual, the component will become a simple
-	   * <div> containing any provided children.
-	   *
-	   * @param {object} module the mock function object exported from a
-	   *                        module that defines the component to be mocked
-	   * @param {?string} mockTagName optional dummy root tag name to return
-	   *                              from render method (overrides
-	   *                              module.mockTagName if provided)
-	   * @return {object} the ReactTestUtils object (for chaining)
-	   */
-	  mockComponent: function(module, mockTagName) {
-	    mockTagName = mockTagName || module.mockTagName || "div";
-	
-	    module.prototype.render.mockImplementation(function() {
-	      return React.createElement(
-	        mockTagName,
-	        null,
-	        this.props.children
-	      );
-	    });
-	
-	    return this;
-	  },
-	
-	  /**
-	   * Simulates a top level event being dispatched from a raw event that occured
-	   * on an `Element` node.
-	   * @param topLevelType {Object} A type from `EventConstants.topLevelTypes`
-	   * @param {!Element} node The dom to simulate an event occurring on.
-	   * @param {?Event} fakeNativeEvent Fake native event to use in SyntheticEvent.
-	   */
-	  simulateNativeEventOnNode: function(topLevelType, node, fakeNativeEvent) {
-	    fakeNativeEvent.target = node;
-	    ReactBrowserEventEmitter.ReactEventListener.dispatchEvent(
-	      topLevelType,
-	      fakeNativeEvent
-	    );
-	  },
-	
-	  /**
-	   * Simulates a top level event being dispatched from a raw event that occured
-	   * on the `ReactDOMComponent` `comp`.
-	   * @param topLevelType {Object} A type from `EventConstants.topLevelTypes`.
-	   * @param comp {!ReactDOMComponent}
-	   * @param {?Event} fakeNativeEvent Fake native event to use in SyntheticEvent.
-	   */
-	  simulateNativeEventOnDOMComponent: function(
-	      topLevelType,
-	      comp,
-	      fakeNativeEvent) {
-	    ReactTestUtils.simulateNativeEventOnNode(
-	      topLevelType,
-	      comp.getDOMNode(),
-	      fakeNativeEvent
-	    );
-	  },
-	
-	  nativeTouchData: function(x, y) {
-	    return {
-	      touches: [
-	        {pageX: x, pageY: y}
-	      ]
-	    };
-	  },
-	
-	  createRenderer: function() {
-	    return new ReactShallowRenderer();
-	  },
-	
-	  Simulate: null,
-	  SimulateNative: {}
+	PhotoshopPicker.defaultProps = {
+	  header: 'Color Picker'
 	};
 	
-	/**
-	 * @class ReactShallowRenderer
-	 */
-	var ReactShallowRenderer = function() {
-	  this._instance = null;
-	};
-	
-	ReactShallowRenderer.prototype.getRenderOutput = function() {
-	  return (
-	    (this._instance && this._instance._renderedComponent &&
-	     this._instance._renderedComponent._renderedOutput)
-	    || null
-	  );
-	};
-	
-	var NoopInternalComponent = function(element) {
-	  this._renderedOutput = element;
-	  this._currentElement = element === null || element === false ?
-	    ReactEmptyComponent.emptyElement :
-	    element;
-	};
-	
-	NoopInternalComponent.prototype = {
-	
-	  mountComponent: function() {
-	  },
-	
-	  receiveComponent: function(element) {
-	    this._renderedOutput = element;
-	    this._currentElement = element === null || element === false ?
-	      ReactEmptyComponent.emptyElement :
-	      element;
-	  },
-	
-	  unmountComponent: function() {
-	  }
-	
-	};
-	
-	var ShallowComponentWrapper = function() { };
-	assign(
-	  ShallowComponentWrapper.prototype,
-	  ReactCompositeComponent.Mixin, {
-	    _instantiateReactComponent: function(element) {
-	      return new NoopInternalComponent(element);
-	    },
-	    _replaceNodeWithMarkupByID: function() {},
-	    _renderValidatedComponent:
-	      ReactCompositeComponent.Mixin.
-	        _renderValidatedComponentWithoutOwnerOrContext
-	  }
-	);
-	
-	ReactShallowRenderer.prototype.render = function(element, context) {
-	  if (!context) {
-	    context = emptyObject;
-	  }
-	  var transaction = ReactUpdates.ReactReconcileTransaction.getPooled();
-	  this._render(element, transaction, context);
-	  ReactUpdates.ReactReconcileTransaction.release(transaction);
-	};
-	
-	ReactShallowRenderer.prototype.unmount = function() {
-	  if (this._instance) {
-	    this._instance.unmountComponent();
-	  }
-	};
-	
-	ReactShallowRenderer.prototype._render = function(element, transaction, context) {
-	  if (!this._instance) {
-	    var rootID = ReactInstanceHandles.createReactRootID();
-	    var instance = new ShallowComponentWrapper(element.type);
-	    instance.construct(element);
-	
-	    instance.mountComponent(rootID, transaction, context);
-	
-	    this._instance = instance;
-	  } else {
-	    this._instance.receiveComponent(element, transaction, context);
-	  }
-	};
-	
-	/**
-	 * Exports:
-	 *
-	 * - `ReactTestUtils.Simulate.click(Element/ReactDOMComponent)`
-	 * - `ReactTestUtils.Simulate.mouseMove(Element/ReactDOMComponent)`
-	 * - `ReactTestUtils.Simulate.change(Element/ReactDOMComponent)`
-	 * - ... (All keys from event plugin `eventTypes` objects)
-	 */
-	function makeSimulator(eventType) {
-	  return function(domComponentOrNode, eventData) {
-	    var node;
-	    if (ReactTestUtils.isDOMComponent(domComponentOrNode)) {
-	      node = domComponentOrNode.getDOMNode();
-	    } else if (domComponentOrNode.tagName) {
-	      node = domComponentOrNode;
-	    }
-	
-	    var fakeNativeEvent = new Event();
-	    fakeNativeEvent.target = node;
-	    // We don't use SyntheticEvent.getPooled in order to not have to worry about
-	    // properly destroying any properties assigned from `eventData` upon release
-	    var event = new SyntheticEvent(
-	      ReactBrowserEventEmitter.eventNameDispatchConfigs[eventType],
-	      ReactMount.getID(node),
-	      fakeNativeEvent
-	    );
-	    assign(event, eventData);
-	    EventPropagators.accumulateTwoPhaseDispatches(event);
-	
-	    ReactUpdates.batchedUpdates(function() {
-	      EventPluginHub.enqueueEvents(event);
-	      EventPluginHub.processEventQueue();
-	    });
-	  };
-	}
-	
-	function buildSimulators() {
-	  ReactTestUtils.Simulate = {};
-	
-	  var eventType;
-	  for (eventType in ReactBrowserEventEmitter.eventNameDispatchConfigs) {
-	    /**
-	     * @param {!Element || ReactDOMComponent} domComponentOrNode
-	     * @param {?object} eventData Fake event data to use in SyntheticEvent.
-	     */
-	    ReactTestUtils.Simulate[eventType] = makeSimulator(eventType);
-	  }
-	}
-	
-	// Rebuild ReactTestUtils.Simulate whenever event plugins are injected
-	var oldInjectEventPluginOrder = EventPluginHub.injection.injectEventPluginOrder;
-	EventPluginHub.injection.injectEventPluginOrder = function() {
-	  oldInjectEventPluginOrder.apply(this, arguments);
-	  buildSimulators();
-	};
-	var oldInjectEventPlugins = EventPluginHub.injection.injectEventPluginsByName;
-	EventPluginHub.injection.injectEventPluginsByName = function() {
-	  oldInjectEventPlugins.apply(this, arguments);
-	  buildSimulators();
-	};
-	
-	buildSimulators();
-	
-	/**
-	 * Exports:
-	 *
-	 * - `ReactTestUtils.SimulateNative.click(Element/ReactDOMComponent)`
-	 * - `ReactTestUtils.SimulateNative.mouseMove(Element/ReactDOMComponent)`
-	 * - `ReactTestUtils.SimulateNative.mouseIn/ReactDOMComponent)`
-	 * - `ReactTestUtils.SimulateNative.mouseOut(Element/ReactDOMComponent)`
-	 * - ... (All keys from `EventConstants.topLevelTypes`)
-	 *
-	 * Note: Top level event types are a subset of the entire set of handler types
-	 * (which include a broader set of "synthetic" events). For example, onDragDone
-	 * is a synthetic event. Except when testing an event plugin or React's event
-	 * handling code specifically, you probably want to use ReactTestUtils.Simulate
-	 * to dispatch synthetic events.
-	 */
-	
-	function makeNativeSimulator(eventType) {
-	  return function(domComponentOrNode, nativeEventData) {
-	    var fakeNativeEvent = new Event(eventType);
-	    assign(fakeNativeEvent, nativeEventData);
-	    if (ReactTestUtils.isDOMComponent(domComponentOrNode)) {
-	      ReactTestUtils.simulateNativeEventOnDOMComponent(
-	        eventType,
-	        domComponentOrNode,
-	        fakeNativeEvent
-	      );
-	    } else if (!!domComponentOrNode.tagName) {
-	      // Will allow on actual dom nodes.
-	      ReactTestUtils.simulateNativeEventOnNode(
-	        eventType,
-	        domComponentOrNode,
-	        fakeNativeEvent
-	      );
-	    }
-	  };
-	}
-	
-	var eventType;
-	for (eventType in topLevelTypes) {
-	  // Event type is stored as 'topClick' - we transform that to 'click'
-	  var convenienceName = eventType.indexOf('top') === 0 ?
-	    eventType.charAt(3).toLowerCase() + eventType.substr(4) : eventType;
-	  /**
-	   * @param {!Element || ReactDOMComponent} domComponentOrNode
-	   * @param {?Event} nativeEventData Fake native event to use in SyntheticEvent.
-	   */
-	  ReactTestUtils.SimulateNative[convenienceName] =
-	    makeNativeSimulator(eventType);
-	}
-	
-	module.exports = ReactTestUtils;
-
+	module.exports = PhotoshopPicker;
 
 /***/ },
 /* 236 */
@@ -42591,43 +44524,13 @@
 
 	'use strict';
 	
-	var React = __webpack_require__(57);
-	var _ = __webpack_require__(215);
-	
-	var Ammos = React.createClass({
-	  displayName: 'Ammos',
-	
-	  propTypes: {
-	    gridSize: React.PropTypes.number.isRequired,
-	    ammoPosition: React.PropTypes.array
-	  },
-	
-	  render: function render() {
-	    var _props = this.props;
-	    var gridSize = _props.gridSize;
-	    var ammoPosition = _props.ammoPosition;
-	
-	    var tileSize = 100 / gridSize;
-	
-	    var ammoRender = _.map(ammoPosition, function (ammoPos, ammoIndex) {
-	      return React.createElement('div', { key: ammoIndex, className: 'clash-ammo', style: {
-	          top: tileSize * ammoPos[0] + 'vmin',
-	          left: tileSize * ammoPos[1] + 'vmin',
-	          width: tileSize + 'vmin',
-	          height: tileSize + 'vmin'
-	        } });
-	    });
-	
-	    return React.createElement(
-	      'div',
-	      { className: 'clash-layer animation-glow' },
-	      ammoRender
-	    );
-	  }
-	
-	});
-	
-	module.exports = Ammos;
+	module.exports = {
+	  Alpha: __webpack_require__(237),
+	  Checkboard: __webpack_require__(238),
+	  EditableInput: __webpack_require__(239),
+	  Hue: __webpack_require__(240),
+	  Saturation: __webpack_require__(241)
+	};
 
 /***/ },
 /* 237 */
@@ -42635,91 +44538,143 @@
 
 	'use strict';
 	
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
 	var React = __webpack_require__(57);
-	var _ = __webpack_require__(215);
+	var ReactCSS = __webpack_require__(225);
 	
-	var DIRECTIONS = ['north', 'east', 'south', 'west'];
+	var Checkboard = __webpack_require__(238);
 	
-	var Players = React.createClass({
-	  displayName: 'Players',
+	var Alpha = (function (_ReactCSS$Component) {
+	  _inherits(Alpha, _ReactCSS$Component);
 	
-	  propTypes: {
-	    gridSize: React.PropTypes.number.isRequired,
-	    playerStates: React.PropTypes.array,
-	    playerInstances: React.PropTypes.array
-	  },
+	  function Alpha() {
+	    _classCallCheck(this, Alpha);
 	
-	  getInitialState: function getInitialState() {
-	    var playerStates = this.props.playerStates;
+	    _get(Object.getPrototypeOf(Alpha.prototype), 'constructor', this).call(this);
 	
-	    return {
-	      playerDirections: playerStates.map(function (el) {
-	        return DIRECTIONS.indexOf(el.direction);
-	      })
-	    };
-	  },
+	    this.handleChange = this.handleChange.bind(this);
+	    this.handleMouseDown = this.handleMouseDown.bind(this);
+	    this.handleMouseUp = this.handleMouseUp.bind(this);
+	  }
 	
-	  componentWillReceiveProps: function componentWillReceiveProps(nextProps) {
-	    var playerDirections = this.state.playerDirections;
-	    var newPlayerDirections = nextProps.playerStates.map(function (el) {
-	      return DIRECTIONS.indexOf(el.direction);
-	    });
+	  _createClass(Alpha, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'default': {
+	          alpha: {
+	            Absolute: '0 0 0 0',
+	            borderRadius: this.props.radius
+	          },
+	          checkboard: {
+	            Absolute: '0 0 0 0',
+	            overflow: 'hidden'
+	          },
+	          gradient: {
+	            Absolute: '0 0 0 0',
+	            background: 'linear-gradient(to right, rgba(' + this.props.rgb.r + ', ' + this.props.rgb.g + ', ' + this.props.rgb.b + ', 0) 0%, rgba(' + this.props.rgb.r + ', ' + this.props.rgb.g + ', ' + this.props.rgb.b + ', 1) 100%)',
+	            boxShadow: this.props.shadow,
+	            borderRadius: this.props.radius
+	          },
+	          container: {
+	            position: 'relative',
+	            zIndex: '2',
+	            height: '100%',
+	            margin: '0 3px'
+	          },
+	          pointer: {
+	            zIndex: '2',
+	            position: 'absolute',
+	            left: this.props.rgb.a * 100 + '%'
+	          },
+	          slider: {
+	            width: '4px',
+	            borderRadius: '1px',
+	            height: '8px',
+	            boxShadow: '0 0 2px rgba(0, 0, 0, .6)',
+	            background: '#fff',
+	            marginTop: '1px',
+	            transform: 'translateX(-2px)'
+	          }
+	        }
+	      };
+	    }
+	  }, {
+	    key: 'handleChange',
+	    value: function handleChange(e, skip) {
+	      !skip && e.preventDefault();
+	      var container = React.findDOMNode(this.refs.container);
+	      var containerWidth = container.clientWidth;
+	      var left = e.pageX - (container.getBoundingClientRect().left + window.pageXOffset);
 	
-	    this.setState({
-	      playerDirections: newPlayerDirections.map(function (el, index) {
-	        var diff = (el + 4) % 4 - (playerDirections[index] + 4) % 4;
-	        if (diff === 3) diff = -1;
-	        if (diff === -3) diff = 1;
+	      var a;
+	      if (left < 0) {
+	        a = 0;
+	      } else if (left > containerWidth) {
+	        a = 1;
+	      } else {
+	        a = Math.round(left * 100 / containerWidth) / 100;
+	      }
 	
-	        return playerDirections[index] + diff;
-	      })
-	    });
-	  },
+	      if (this.props.a !== a) {
+	        this.props.onChange({ h: this.props.hsl.h, s: this.props.hsl.s, l: this.props.hsl.l, a: a });
+	      }
+	    }
+	  }, {
+	    key: 'handleMouseDown',
+	    value: function handleMouseDown(e) {
+	      this.handleChange(e, true);
+	      window.addEventListener('mousemove', this.handleChange);
+	      window.addEventListener('mouseup', this.handleMouseUp);
+	    }
+	  }, {
+	    key: 'handleMouseUp',
+	    value: function handleMouseUp() {
+	      window.removeEventListener('mousemove', this.handleChange);
+	      window.removeEventListener('mouseup', this.handleMouseUp);
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      var pointer = React.createElement('div', { style: this.styles().slider });
 	
-	  render: function render() {
-	    var playerDirections = this.state.playerDirections;
-	    var _props = this.props;
-	    var gridSize = _props.gridSize;
-	    var playerStates = _props.playerStates;
-	    var playerInstances = _props.playerInstances;
-	
-	    var tileSize = 100 / gridSize;
-	
-	    var playerRender = _.map(playerStates, function (playerData, playerIndex) {
-	      if (!playerData.isAlive) return null;
-	
-	      var playerInfo = playerInstances[playerIndex].getInfo();
+	      if (this.props.pointer) {
+	        pointer = React.createElement(this.props.pointer, this.props);
+	      }
 	
 	      return React.createElement(
 	        'div',
-	        { key: playerIndex, className: 'clash-player-container', style: {
-	            width: tileSize + 'vmin',
-	            height: tileSize + 'vmin',
-	            transform: 'translateY(' + tileSize * playerData.position[0] + 'vmin) ' + 'translateX(' + tileSize * playerData.position[1] + 'vmin)'
-	          } },
-	        React.createElement('div', { className: 'clash-player', style: {
-	            width: tileSize + 'vmin',
-	            height: tileSize + 'vmin',
-	            backgroundImage: 'url(static/rockets/rocket' + (playerData.style || 0) + '.png)',
-	            transform: 'scale(1.25) ' + 'rotate(' + 90 * playerDirections[playerIndex] + 'deg) ' } }),
+	        { style: this.styles().alpha },
 	        React.createElement(
 	          'div',
-	          { className: 'clash-player-name' },
-	          playerInfo.name
+	          { style: this.styles().checkboard },
+	          React.createElement(Checkboard, null)
+	        ),
+	        React.createElement('div', { style: this.styles().gradient }),
+	        React.createElement(
+	          'div',
+	          { style: this.styles().container, ref: 'container', onMouseDown: this.handleMouseDown },
+	          React.createElement(
+	            'div',
+	            { style: this.styles().pointer, ref: 'pointer' },
+	            pointer
+	          )
 	        )
 	      );
-	    });
+	    }
+	  }]);
 	
-	    return React.createElement(
-	      'div',
-	      { className: 'clash-layer' },
-	      playerRender
-	    );
-	  }
+	  return Alpha;
+	})(ReactCSS.Component);
 	
-	});
-	
-	module.exports = Players;
+	module.exports = Alpha;
 
 /***/ },
 /* 238 */
@@ -42727,112 +44682,107 @@
 
 	'use strict';
 	
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
 	var React = __webpack_require__(57);
-	var _ = __webpack_require__(215);
+	var ReactCSS = __webpack_require__(225);
 	
-	var Stats = React.createClass({
-	  displayName: 'Stats',
+	var Checkboard = (function (_ReactCSS$Component) {
+	  _inherits(Checkboard, _ReactCSS$Component);
 	
-	  propTypes: {
-	    stats: React.PropTypes.object.isRequired,
-	    rounds: React.PropTypes.number.isRequired,
-	    total: React.PropTypes.number.isRequired
-	  },
+	  function Checkboard() {
+	    _classCallCheck(this, Checkboard);
 	
-	  render: function render() {
-	    var _props = this.props;
-	    var stats = _props.stats;
-	    var rounds = _props.rounds;
-	    var total = _props.total;
+	    _get(Object.getPrototypeOf(Checkboard.prototype), 'constructor', this).call(this);
 	
-	    stats = _.map(stats, function (playerStats) {
-	      return playerStats;
-	    });
-	    stats = _.sortBy(stats, function (playerStats) {
-	      return playerStats.wins * -1;
-	    });
-	    return React.createElement(
-	      'div',
-	      { className: 'stats' },
-	      React.createElement(
-	        'div',
-	        { className: 'stats-title' },
-	        'Results on round ',
-	        rounds,
-	        ' of ',
-	        total
-	      ),
-	      React.createElement(
-	        'table',
-	        null,
-	        React.createElement(
-	          'thead',
-	          null,
-	          React.createElement('td', null),
-	          React.createElement('td', null),
-	          React.createElement(
-	            'td',
-	            null,
-	            'Wins'
-	          ),
-	          React.createElement(
-	            'td',
-	            null,
-	            'Rate'
-	          ),
-	          React.createElement(
-	            'td',
-	            null,
-	            'K/D/R'
-	          )
-	        ),
-	        React.createElement(
-	          'tbody',
-	          null,
-	          _.map(stats, function (playerStats, index) {
-	            return React.createElement(
-	              'tr',
-	              { key: index, className: playerStats.isAlive ? '' : 'player-dead' },
-	              React.createElement(
-	                'td',
-	                null,
-	                playerStats.isAlive ? '' : "💀"
-	              ),
-	              React.createElement(
-	                'td',
-	                { className: 'player-name' },
-	                playerStats.name
-	              ),
-	              React.createElement(
-	                'td',
-	                { className: 'stats-results' },
-	                playerStats.wins
-	              ),
-	              React.createElement(
-	                'td',
-	                { className: 'stats-results' },
-	                playerStats.winrate,
-	                '%'
-	              ),
-	              React.createElement(
-	                'td',
-	                { className: 'stats-results' },
-	                playerStats.kills,
-	                '/',
-	                playerStats.deaths,
-	                '/',
-	                playerStats.kdr.toFixed(1)
-	              )
-	            );
-	          })
-	        )
-	      )
-	    );
+	    this.state = {
+	      children: []
+	    };
 	  }
 	
-	});
+	  _createClass(Checkboard, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'default': {
+	          grid: {
+	            Absolute: '0 0 0 0'
+	          },
+	          inside: {
+	            position: 'absolute',
+	            left: '50%',
+	            top: '50%',
+	            transform: 'translate(-50%, -50%)'
+	          },
+	          white: {
+	            width: this.props.size + 'px',
+	            height: this.props.size + 'px',
+	            background: '#fff',
+	            float: 'left'
+	          },
+	          grey: {
+	            width: this.props.size + 'px',
+	            height: this.props.size + 'px',
+	            background: '#e6e6e6',
+	            float: 'left'
+	          }
+	        }
+	      };
+	    }
+	  }, {
+	    key: 'componentDidMount',
+	    value: function componentDidMount() {
+	      var grid = React.findDOMNode(this.refs.grid);
+	      var inside = React.findDOMNode(this.refs.inside);
+	      var rows = Math.ceil(grid.clientHeight / this.props.size);
+	      var columns = Math.ceil(grid.clientWidth / this.props.size);
 	
-	module.exports = Stats;
+	      if (columns % 2 == 0) {
+	        columns++;
+	      }
+	
+	      inside.style.width = columns * this.props.size + 'px';
+	
+	      var children = [];
+	      for (var i = 0; i < rows * columns; i++) {
+	        if (i % 2 == 0) {
+	          children.push(React.createElement('div', { key: i, style: this.styles().white }));
+	        } else {
+	          children.push(React.createElement('div', { key: i, style: this.styles().grey }));
+	        }
+	      }
+	
+	      this.setState({ children: children });
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      return React.createElement(
+	        'div',
+	        { style: this.styles().grid, ref: 'grid' },
+	        React.createElement(
+	          'div',
+	          { style: this.styles().inside, ref: 'inside' },
+	          this.state.children
+	        )
+	      );
+	    }
+	  }]);
+	
+	  return Checkboard;
+	})(ReactCSS.Component);
+	
+	Checkboard.defaultProps = {
+	  size: 8
+	};
+	
+	module.exports = Checkboard;
 
 /***/ },
 /* 239 */
@@ -42840,49 +44790,178 @@
 
 	'use strict';
 	
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
 	var React = __webpack_require__(57);
+	var ReactCSS = __webpack_require__(225);
 	
-	var DIRECTIONS = ['north', 'east', 'south', 'west'];
+	var EditableInput = (function (_ReactCSS$Component) {
+	  _inherits(EditableInput, _ReactCSS$Component);
 	
-	var _ = __webpack_require__(215);
+	  function EditableInput(props) {
+	    _classCallCheck(this, EditableInput);
 	
-	var Shoots = React.createClass({
-	  displayName: 'Shoots',
+	    _get(Object.getPrototypeOf(EditableInput.prototype), 'constructor', this).call(this);
 	
-	  propTypes: {
-	    gridSize: React.PropTypes.number.isRequired,
-	    shoots: React.PropTypes.array
-	  },
-	
-	  shouldComponentUpdate: function shouldComponentUpdate(nextProps) {
-	    return nextProps.shoots.length !== this.props.shoots.length;
-	  },
-	
-	  render: function render() {
-	    var _props = this.props;
-	    var shoots = _props.shoots;
-	    var gridSize = _props.gridSize;
-	
-	    var tileSize = 100 / gridSize;
-	
-	    var shootsRender = _.map(shoots, function (el, index) {
-	      return React.createElement('div', { key: index, className: 'clash-shoot animation-shot', style: {
-	          top: tileSize * el.origin[0] + 'vmin',
-	          left: tileSize * el.origin[1] + 'vmin',
-	          transform: 'translatex(' + tileSize / 2 + 'vmin) ' + 'translatey(' + tileSize / 2 + 'vmin) ' + 'rotate(' + (DIRECTIONS.indexOf(el.direction) - 1) * 90 + 'deg) '
-	        } });
-	    });
-	
-	    return React.createElement(
-	      'div',
-	      { className: 'clash-layer' },
-	      shootsRender
-	    );
+	    this.state = {
+	      value: String(props.value).toUpperCase(),
+	      blurValue: String(props.value).toUpperCase()
+	    }, this.handleChange = this.handleChange.bind(this);
+	    this.handleDrag = this.handleDrag.bind(this);
+	    this.handleBlur = this.handleBlur.bind(this);
+	    this.handleKeyDown = this.handleKeyDown.bind(this);
+	    this.handleMouseDown = this.handleMouseDown.bind(this);
+	    this.handleMouseUp = this.handleMouseUp.bind(this);
 	  }
 	
-	});
+	  _createClass(EditableInput, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'user-override': {
+	          wrap: this.props.style && this.props.style.wrap ? this.props.style.wrap : {},
+	          input: this.props.style && this.props.style.input ? this.props.style.input : {},
+	          label: this.props.style && this.props.style.label ? this.props.style.label : {}
+	        },
+	        'dragLabel-true': {
+	          label: {
+	            cursor: 'ew-resize'
+	          }
+	        }
+	      };
+	    }
+	  }, {
+	    key: 'styles',
+	    value: function styles() {
+	      return this.css({
+	        'user-override': true
+	      });
+	    }
+	  }, {
+	    key: 'componentWillReceiveProps',
+	    value: function componentWillReceiveProps(nextProps) {
+	      var input = React.findDOMNode(this.refs.input);
+	      if (nextProps.value !== this.state.value) {
+	        if (input === document.activeElement) {
+	          this.setState({ blurValue: String(nextProps.value).toUpperCase() });
+	        } else {
+	          this.setState({ value: String(nextProps.value).toUpperCase() });
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'handleBlur',
+	    value: function handleBlur() {
+	      if (this.state.blurValue) {
+	        this.setState({ value: this.state.blurValue, blurValue: null });
+	      }
+	    }
+	  }, {
+	    key: 'handleChange',
+	    value: function handleChange(e) {
+	      if (this.props.label !== null) {
+	        var obj = {};
+	        obj[this.props.label] = e.target.value;
+	        this.props.onChange(obj);
+	      } else {
+	        this.props.onChange(e.target.value);
+	      }
 	
-	module.exports = Shoots;
+	      this.setState({ value: e.target.value });
+	    }
+	  }, {
+	    key: 'handleKeyDown',
+	    value: function handleKeyDown(e) {
+	      var number = Number(e.target.value);
+	      if (number) {
+	        var amount = this.props.arrowOffset || 1;
+	
+	        // Up
+	        if (e.keyCode === 38) {
+	          if (this.props.label !== null) {
+	            var obj = {};
+	            obj[this.props.label] = number + amount;
+	            this.props.onChange(obj);
+	          } else {
+	            this.props.onChange(number + amount);
+	          }
+	
+	          this.setState({ value: number + amount });
+	        }
+	
+	        // Down
+	        if (e.keyCode === 40) {
+	          if (this.props.label !== null) {
+	            var obj = {};
+	            obj[this.props.label] = number - amount;
+	            this.props.onChange(obj);
+	          } else {
+	            this.props.onChange(number - amount);
+	          }
+	
+	          this.setState({ value: number - amount });
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'handleDrag',
+	    value: function handleDrag(e) {
+	      if (this.props.dragLabel) {
+	        var newValue = Math.round(this.props.value + e.movementX);
+	        if (newValue >= 0 && newValue <= this.props.dragMax) {
+	          var obj = {};
+	          obj[this.props.label] = newValue;
+	          this.props.onChange(obj);
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'handleMouseDown',
+	    value: function handleMouseDown(e) {
+	      if (this.props.dragLabel) {
+	        e.preventDefault();
+	        this.handleDrag(e);
+	        window.addEventListener('mousemove', this.handleDrag);
+	        window.addEventListener('mouseup', this.handleMouseUp);
+	      }
+	    }
+	  }, {
+	    key: 'handleMouseUp',
+	    value: function handleMouseUp() {
+	      window.removeEventListener('mousemove', this.handleDrag);
+	      window.removeEventListener('mouseup', this.handleMouseUp);
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      var label;
+	      if (this.props.label) {
+	        label = React.createElement(
+	          'span',
+	          { style: this.styles().label, ref: 'label', onMouseDown: this.handleMouseDown },
+	          this.props.label
+	        );
+	      }
+	
+	      return React.createElement(
+	        'div',
+	        { style: this.styles().wrap, ref: 'container' },
+	        React.createElement('input', { style: this.styles().input, ref: 'input', value: this.state.value, onKeyDown: this.handleKeyDown, onChange: this.handleChange, onBlur: this.handleBlur }),
+	        label
+	      );
+	    }
+	  }]);
+	
+	  return EditableInput;
+	})(ReactCSS.Component);
+	
+	module.exports = EditableInput;
 
 /***/ },
 /* 240 */
@@ -42890,41 +44969,154 @@
 
 	'use strict';
 	
-	var React = __webpack_require__(218);
-	var Notifications = React.createClass({
-	  displayName: 'Notifications',
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 	
-	  propTypes: {
-	    kills: React.PropTypes.array
-	  },
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 	
-	  render: function render() {
-	    var kills = this.props.kills;
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 	
-	    var date = new Date();
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
-	    _.remove(kills, function (k) {
-	      return date - k.date > 3000;
-	    });
-	    kills = _.sortBy(kills, function (k) {
-	      return k.date.valueOf;
-	    });
-	    return React.createElement(
-	      'div',
-	      { className: 'notifications' },
-	      _.map(kills, function (k) {
-	        return React.createElement(
-	          'p',
-	          null,
-	          k.text
-	        );
-	      })
-	    );
+	var React = __webpack_require__(57);
+	var ReactCSS = __webpack_require__(225);
+	
+	var Hue = (function (_ReactCSS$Component) {
+	  _inherits(Hue, _ReactCSS$Component);
+	
+	  function Hue() {
+	    _classCallCheck(this, Hue);
+	
+	    _get(Object.getPrototypeOf(Hue.prototype), 'constructor', this).call(this);
+	
+	    this.handleChange = this.handleChange.bind(this);
+	    this.handleMouseDown = this.handleMouseDown.bind(this);
+	    this.handleMouseUp = this.handleMouseUp.bind(this);
 	  }
 	
-	});
+	  _createClass(Hue, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'default': {
+	          hue: {
+	            Absolute: '0 0 0 0',
+	            background: 'linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)',
+	            borderRadius: this.props.radius,
+	            boxShadow: this.props.shadow
+	          },
+	          container: {
+	            margin: '0 2px',
+	            position: 'relative',
+	            height: '100%'
+	          },
+	          pointer: {
+	            zIndex: '2',
+	            position: 'absolute',
+	            left: this.props.hsl.h * 100 / 360 + '%'
+	          },
+	          slider: {
+	            marginTop: '1px',
+	            width: '4px',
+	            borderRadius: '1px',
+	            height: '8px',
+	            boxShadow: '0 0 2px rgba(0, 0, 0, .6)',
+	            background: '#fff',
+	            transform: 'translateX(-2px)'
+	          }
+	        },
+	        'direction-vertical': {
+	          hue: {
+	            background: 'linear-gradient(to top, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)'
+	          },
+	          pointer: {
+	            left: '0',
+	            top: -(this.props.hsl.h * 100 / 360) + 100 + '%'
+	          }
+	        }
+	      };
+	    }
+	  }, {
+	    key: 'handleChange',
+	    value: function handleChange(e, skip) {
+	      !skip && e.preventDefault();
+	      var container = React.findDOMNode(this.refs.container);
+	      var containerWidth = container.clientWidth;
+	      var containerHeight = container.clientHeight;
+	      var left = e.pageX - (container.getBoundingClientRect().left + window.pageXOffset);
+	      var top = e.pageY - (container.getBoundingClientRect().top + window.pageYOffset);
 	
-	module.exports = Notifications;
+	      if (this.props.direction === 'vertical') {
+	        var h;
+	        if (top < 0) {
+	          h = 359;
+	        } else if (top > containerHeight) {
+	          h = 0;
+	        } else {
+	          var percent = -(top * 100 / containerHeight) + 100;
+	          h = 360 * percent / 100;
+	        }
+	
+	        if (this.props.hsl.h !== h) {
+	          this.props.onChange({ h: h, s: this.props.hsl.s, l: this.props.hsl.l, a: this.props.hsl.a });
+	        }
+	      } else {
+	        var h;
+	        if (left < 0) {
+	          h = 0;
+	        } else if (left > containerWidth) {
+	          h = 359;
+	        } else {
+	          var percent = left * 100 / containerWidth;
+	          h = 360 * percent / 100;
+	        }
+	
+	        if (this.props.hsl.h !== h) {
+	          this.props.onChange({ h: h, s: this.props.hsl.s, l: this.props.hsl.l, a: this.props.hsl.a });
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'handleMouseDown',
+	    value: function handleMouseDown(e) {
+	      this.handleChange(e, true);
+	      window.addEventListener('mousemove', this.handleChange);
+	      window.addEventListener('mouseup', this.handleMouseUp);
+	    }
+	  }, {
+	    key: 'handleMouseUp',
+	    value: function handleMouseUp() {
+	      window.removeEventListener('mousemove', this.handleChange);
+	      window.removeEventListener('mouseup', this.handleMouseUp);
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      var pointer = React.createElement('div', { style: this.styles().slider });
+	
+	      if (this.props.pointer) {
+	        pointer = React.createElement(this.props.pointer, this.props);
+	      }
+	
+	      return React.createElement(
+	        'div',
+	        { style: this.styles().hue },
+	        React.createElement(
+	          'div',
+	          { style: this.styles().container, ref: 'container', onMouseDown: this.handleMouseDown },
+	          React.createElement(
+	            'div',
+	            { style: this.styles().pointer, ref: 'pointer' },
+	            pointer
+	          )
+	        )
+	      );
+	    }
+	  }]);
+	
+	  return Hue;
+	})(ReactCSS.Component);
+	
+	module.exports = Hue;
 
 /***/ },
 /* 241 */
@@ -42932,15 +45124,139 @@
 
 	'use strict';
 	
-	var _ = __webpack_require__(215);
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 	
-	module.exports = {
-	  deepSetState: function deepSetState(value, callback) {
-	    this.state = _.merge(this.state, value, value);
-	    this.forceUpdate();
-	    if (callback) callback(this.state);
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var React = __webpack_require__(57);
+	var ReactCSS = __webpack_require__(225);
+	var _ = __webpack_require__(214);
+	
+	var Saturation = (function (_ReactCSS$Component) {
+	  _inherits(Saturation, _ReactCSS$Component);
+	
+	  function Saturation(props) {
+	    _classCallCheck(this, Saturation);
+	
+	    _get(Object.getPrototypeOf(Saturation.prototype), 'constructor', this).call(this);
+	
+	    this.throttle = _.throttle(function (fn, data) {
+	      fn(data);
+	    }, 50);
+	
+	    this.handleChange = this.handleChange.bind(this);
+	    this.handleMouseDown = this.handleMouseDown.bind(this);
+	    this.handleMouseUp = this.handleMouseUp.bind(this);
 	  }
-	};
+	
+	  _createClass(Saturation, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'default': {
+	          color: {
+	            Absolute: '0 0 0 0',
+	            background: 'hsl(' + this.props.hsl.h + ',100%, 50%)',
+	            borderRadius: this.props.radius
+	          },
+	          white: {
+	            Absolute: '0 0 0 0',
+	            background: 'linear-gradient(to right, #fff, rgba(255,255,255,0))'
+	          },
+	          black: {
+	            Absolute: '0 0 0 0',
+	            background: 'linear-gradient(to top, #000, rgba(0,0,0,0))',
+	            boxShadow: this.props.shadow
+	          },
+	          pointer: {
+	            position: 'absolute',
+	            top: -(this.props.hsv.v * 100) + 100 + '%',
+	            left: this.props.hsv.s * 100 + '%',
+	            cursor: 'default'
+	          },
+	          circle: {
+	            width: '4px',
+	            height: '4px',
+	            boxShadow: '0 0 0 1.5px #fff, inset 0 0 1px 1px rgba(0,0,0,.3), 0 0 1px 2px rgba(0,0,0,.4)',
+	            borderRadius: '50%',
+	            cursor: 'hand',
+	            transform: 'translate(-2px, -2px)'
+	          }
+	        }
+	      };
+	    }
+	  }, {
+	    key: 'handleChange',
+	    value: function handleChange(e, skip) {
+	      !skip && e.preventDefault();
+	      var container = React.findDOMNode(this.refs.container);
+	      var containerWidth = container.clientWidth;
+	      var containerHeight = container.clientHeight;
+	      var left = e.pageX - (container.getBoundingClientRect().left + window.pageXOffset);
+	      var top = e.pageY - (container.getBoundingClientRect().top + window.pageYOffset);
+	
+	      if (left < 0) {
+	        left = 0;
+	      } else if (left > containerWidth) {
+	        left = containerWidth;
+	      } else if (top < 0) {
+	        top = 0;
+	      } else if (top > containerHeight) {
+	        top = containerHeight;
+	      }
+	
+	      var saturation = left * 100 / containerWidth;
+	      var bright = -(top * 100 / containerHeight) + 100;
+	
+	      this.throttle(this.props.onChange, { h: this.props.hsl.h, s: saturation, v: bright, a: this.props.hsl.a });
+	    }
+	  }, {
+	    key: 'handleMouseDown',
+	    value: function handleMouseDown(e) {
+	      this.handleChange(e, true);
+	      window.addEventListener('mousemove', this.handleChange);
+	      window.addEventListener('mouseup', this.handleMouseUp);
+	    }
+	  }, {
+	    key: 'handleMouseUp',
+	    value: function handleMouseUp() {
+	      window.removeEventListener('mousemove', this.handleChange);
+	      window.removeEventListener('mouseup', this.handleMouseUp);
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      var pointer = React.createElement('div', { style: this.styles().circle });
+	
+	      if (this.props.pointer) {
+	        pointer = React.createElement(this.props.pointer, this.props);
+	      }
+	
+	      return React.createElement(
+	        'div',
+	        { style: this.styles().color, ref: 'container', onMouseDown: this.handleMouseDown },
+	        React.createElement(
+	          'div',
+	          { style: this.styles().white },
+	          React.createElement('div', { style: this.styles().black }),
+	          React.createElement(
+	            'div',
+	            { style: this.styles().pointer, ref: 'pointer' },
+	            pointer
+	          )
+	        )
+	      );
+	    }
+	  }]);
+	
+	  return Saturation;
+	})(ReactCSS.Component);
+	
+	module.exports = Saturation;
 
 /***/ },
 /* 242 */
@@ -42948,196 +45264,178 @@
 
 	'use strict';
 	
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+	
 	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 	
-	var music = __webpack_require__(216).music;
-	var PlayerClass = __webpack_require__(243);
-	var executeMovementHelper = __webpack_require__(245);
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
-	var DIRECTIONS = ['north', 'east', 'south', 'west'];
+	var React = __webpack_require__(57);
+	var ReactCSS = __webpack_require__(225);
+	var color = __webpack_require__(233);
 	
-	var ClashJS = (function () {
-	  function ClashJS(playerDefinitionArray, currentStats, evtCallback) {
-	    var _this = this;
+	var _require = __webpack_require__(236);
 	
-	    _classCallCheck(this, ClashJS);
+	var EditableInput = _require.EditableInput;
 	
-	    this._totalRounds = playerDefinitionArray.length * 3;
-	    this._rounds = 0;
-	    this._gameStats = currentStats || {};
-	    this._evtCallback = evtCallback;
-	    this._alivePlayerCount = 0;
-	    this._sudeenDeathCount = 0;
-	    this._playerInstances = playerDefinitionArray.map(function (playerDefinition) {
-	      var player = new PlayerClass(playerDefinition);
-	      _this._gameStats[player.getId()] = {
-	        name: player.getName(),
-	        deaths: 0,
-	        kills: 0,
-	        kdr: 0,
-	        wins: 0,
-	        winrate: 0
-	      };
-	      return player;
-	    });
+	var PhotoshopPicker = (function (_ReactCSS$Component) {
+	  _inherits(PhotoshopPicker, _ReactCSS$Component);
 	
-	    this.setupGame();
+	  function PhotoshopPicker() {
+	    _classCallCheck(this, PhotoshopPicker);
+	
+	    _get(Object.getPrototypeOf(PhotoshopPicker.prototype), 'constructor', this).call(this);
+	
+	    this.handleChange = this.handleChange.bind(this);
 	  }
 	
-	  _createClass(ClashJS, [{
-	    key: 'setupGame',
-	    value: function setupGame() {
-	      var _this2 = this;
-	
-	      this._gameEnvironment = {
-	        gridSize: 13,
-	        ammoPosition: []
-	      };
-	      this._rounds++;
-	      this._sudeenDeathCount = 0;
-	      this._playerInstances = _.shuffle(this._playerInstances);
-	      this._alivePlayerCount = this._playerInstances.length;
-	      this._playerStates = this._playerInstances.map(function (playerInstance) {
-	        var gridSize = _this2._gameEnvironment.gridSize;
-	        return {
-	          style: playerInstance.getInfo().style,
-	          position: [Math.floor(Math.random() * gridSize), Math.floor(Math.random() * gridSize)],
-	          direction: DIRECTIONS[Math.floor(Math.random() * 4)],
-	          ammo: 0,
-	          isAlive: true
-	        };
-	      });
-	
-	      this._currentPlayer = 0;
-	      this._createAmmo();
-	    }
-	  }, {
-	    key: '_createAmmo',
-	    value: function _createAmmo() {
-	      var newAmmoPosition = [Math.floor(Math.random() * this._gameEnvironment.gridSize), Math.floor(Math.random() * this._gameEnvironment.gridSize)];
-	
-	      if (this._gameEnvironment.ammoPosition.some(function (el) {
-	        return el[0] === newAmmoPosition[0] && el[1] === newAmmoPosition[1];
-	      })) {
-	        this._createAmmo();
-	        return;
-	      }
-	
-	      this._gameEnvironment.ammoPosition.push(newAmmoPosition);
-	    }
-	  }, {
-	    key: 'getState',
-	    value: function getState() {
+	  _createClass(PhotoshopPicker, [{
+	    key: 'classes',
+	    value: function classes() {
 	      return {
-	        gameEnvironment: this._gameEnvironment,
-	        gameStats: this._gameStats,
-	        rounds: this._rounds,
-	        totalRounds: this._totalRounds,
-	        playerStates: this._playerStates,
-	        playerInstances: this._playerInstances
+	        'default': {
+	          fields: {
+	            paddingTop: '5px',
+	            paddingBottom: '9px',
+	            width: '80px',
+	            position: 'relative'
+	          },
+	          divider: {
+	            height: '5px'
+	          },
+	          Input: {
+	            style: {
+	              wrap: {
+	                position: 'relative'
+	              },
+	              input: {
+	                marginLeft: '40%',
+	                width: '40%',
+	                height: '18px',
+	                border: '1px solid #888888',
+	                boxShadow: 'inset 0 1px 1px rgba(0,0,0,.1), 0 1px 0 0 #ECECEC',
+	                marginBottom: '5px',
+	                fontSize: '13px',
+	                paddingLeft: '3px',
+	                marginRight: '10px'
+	              },
+	              label: {
+	                left: '0',
+	                width: '34px',
+	                textTransform: 'uppercase',
+	                fontSize: '13px',
+	                height: '18px',
+	                lineHeight: '22px',
+	                position: 'absolute'
+	              }
+	            }
+	          },
+	          Hex: {
+	            style: {
+	              wrap: {
+	                position: 'relative'
+	              },
+	              input: {
+	                marginLeft: '20%',
+	                width: '80%',
+	                height: '18px',
+	                border: '1px solid #888888',
+	                boxShadow: 'inset 0 1px 1px rgba(0,0,0,.1), 0 1px 0 0 #ECECEC',
+	                marginBottom: '6px',
+	                fontSize: '13px',
+	                paddingLeft: '3px'
+	              },
+	              label: {
+	                position: 'absolute',
+	                top: '0',
+	                left: '0',
+	                width: '14px',
+	                textTransform: 'uppercase',
+	                fontSize: '13px',
+	                height: '18px',
+	                lineHeight: '22px'
+	              }
+	            }
+	          },
+	          fieldSymbols: {
+	            position: 'absolute',
+	            top: '5px',
+	            right: '-7px',
+	            fontSize: '13px'
+	          },
+	          symbol: {
+	            height: '20px',
+	            lineHeight: '22px',
+	            paddingBottom: '7px'
+	          }
+	        }
 	      };
 	    }
 	  }, {
-	    key: 'nextPly',
-	    value: function nextPly() {
-	      var _this3 = this;
-	
-	      if (this._sudeenDeathCount > 250) {
-	        this._handleCoreAction('DRAW');
-	        return this._evtCallback('DRAW');
-	        // return this.getState();
-	      }
-	      var clonedStates = _.clone(this._playerStates, true);
-	      if (this._alivePlayerCount <= 2) {
-	        this._sudeenDeathCount++;
-	      }
-	
-	      var otherPlayers = clonedStates.filter(function (currentEnemyFilter, index) {
-	        if (index === _this3._currentPlayer) return false;
-	        return currentEnemyFilter.isAlive;
-	      });
-	
-	      if (this._playerStates[this._currentPlayer].isAlive) {
-	
-	        this._savePlayerAction(this._currentPlayer, this._playerInstances[this._currentPlayer].execute(clonedStates[this._currentPlayer], otherPlayers, _.clone(this._gameEnvironment, true)));
-	      }
-	
-	      this._currentPlayer = (this._currentPlayer + 1) % this._playerInstances.length;
-	
-	      if (this._gameEnvironment.ammoPosition.length < this._playerStates.length / 1.2 && Math.random() > 0.95) this._createAmmo();
-	
-	      return this.getState();
-	    }
-	  }, {
-	    key: '_handleCoreAction',
-	    value: function _handleCoreAction(action, data) {
-	      var _this4 = this;
-	
-	      if (action === 'KILL') {
-	        (function () {
-	          var killer = data.killer;
-	          var killed = data.killed;
-	
-	          _this4._gameStats[killer.getId()].kills++;
-	          _.forEach(_this4._playerInstances, function (player) {
-	            var stats = _this4._gameStats[player.getId()];
-	            if (killed.indexOf(player) > -1) {
-	              _this4._alivePlayerCount--;
-	              stats.deaths++;
-	            }
-	            if (stats.deaths) {
-	              stats.kdr = stats.kills / stats.deaths;
-	            } else {
-	              stats.kdr = stats.kills;
-	            }
-	          });
-	        })();
-	      }
-	      if (action === 'WIN') {
-	        this._gameStats[data.winner.getId()].wins++;
-	        _.forEach(this._gameStats, function (playerStats, key) {
-	          var wins = playerStats.wins;
-	          var winrate = playerStats.winrate;
-	
-	          playerStats.winrate = Math.round(wins * 100 / _this4._rounds);
+	    key: 'handleChange',
+	    value: function handleChange(data) {
+	      if (data['#']) {
+	        color.isValidHex(data['#']) && this.props.onChange(data['#']);
+	      } else if (data.r || data.g || data.b) {
+	        this.props.onChange({
+	          r: data.r || this.props.rgb.r,
+	          g: data.g || this.props.rgb.g,
+	          b: data.b || this.props.rgb.b
 	        });
-	
-	        if (this._rounds >= this._totalRounds) return this._evtCallback('END');
-	      }
-	      if (action === 'DRAW') {
-	        _.forEach(this._gameStats, function (playerStats, key) {
-	          var wins = playerStats.wins;
-	          var winrate = playerStats.winrate;
-	
-	          playerStats.winrate = Math.round(wins * 100 / _this4._rounds);
+	      } else if (data.h || data.s || data.v) {
+	        this.props.onChange({
+	          h: data.h || this.props.hsv.h,
+	          s: data.s || this.props.hsv.s,
+	          v: data.v || this.props.hsv.v
 	        });
-	        console.log(this._playerStates);
-	        if (this._rounds >= this._totalRounds) {
-	          return this._evtCallback('END');
-	        }
 	      }
 	    }
 	  }, {
-	    key: '_savePlayerAction',
-	    value: function _savePlayerAction(playerIndex, playerAction) {
-	      this._playerStates = executeMovementHelper({
-	        playerIndex: playerIndex,
-	        playerAction: playerAction,
-	        playerStates: this._playerStates,
-	        playerInstances: this._playerInstances,
-	        gameEnvironment: this._gameEnvironment,
-	        evtCallback: this._evtCallback,
-	        coreCallback: this._handleCoreAction.bind(this)
-	      });
+	    key: 'render',
+	    value: function render() {
+	      return React.createElement(
+	        'div',
+	        { style: this.styles().fields },
+	        React.createElement(EditableInput, _extends({}, this.styles().Input, { label: 'h', value: Math.round(this.props.hsv.h), onChange: this.handleChange })),
+	        React.createElement(EditableInput, _extends({}, this.styles().Input, { label: 's', value: Math.round(this.props.hsv.s * 100), onChange: this.handleChange })),
+	        React.createElement(EditableInput, _extends({}, this.styles().Input, { label: 'v', value: Math.round(this.props.hsv.v * 100), onChange: this.handleChange })),
+	        React.createElement('div', { style: this.styles().divider }),
+	        React.createElement(EditableInput, _extends({}, this.styles().Input, { label: 'r', value: this.props.rgb.r, onChange: this.handleChange })),
+	        React.createElement(EditableInput, _extends({}, this.styles().Input, { label: 'g', value: this.props.rgb.g, onChange: this.handleChange })),
+	        React.createElement(EditableInput, _extends({}, this.styles().Input, { label: 'b', value: this.props.rgb.b, onChange: this.handleChange })),
+	        React.createElement('div', { style: this.styles().divider }),
+	        React.createElement(EditableInput, _extends({}, this.styles().Hex, { label: '#', value: this.props.hex, onChange: this.handleChange })),
+	        React.createElement(
+	          'div',
+	          { style: this.styles().fieldSymbols },
+	          React.createElement(
+	            'div',
+	            { style: this.styles().symbol },
+	            '°'
+	          ),
+	          React.createElement(
+	            'div',
+	            { style: this.styles().symbol },
+	            '%'
+	          ),
+	          React.createElement(
+	            'div',
+	            { style: this.styles().symbol },
+	            '%'
+	          )
+	        )
+	      );
 	    }
 	  }]);
 	
-	  return ClashJS;
-	})();
+	  return PhotoshopPicker;
+	})(ReactCSS.Component);
 	
-	module.exports = ClashJS;
+	module.exports = PhotoshopPicker;
 
 /***/ },
 /* 243 */
@@ -43147,114 +45445,156 @@
 	
 	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 	
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 	
-	var fx = __webpack_require__(216);
-	var generateId = __webpack_require__(244).generateBase32String;
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
-	var PlayerClass = (function () {
-	  function PlayerClass(options) {
-	    _classCallCheck(this, PlayerClass);
+	var React = __webpack_require__(57);
+	var ReactCSS = __webpack_require__(225);
 	
-	    this._id = generateId(8);
-	    this._playerInfo = options.info;
-	    this._playerAI = options.ai;
+	var PhotoshopPointerCircle = (function (_ReactCSS$Component) {
+	  _inherits(PhotoshopPointerCircle, _ReactCSS$Component);
+	
+	  function PhotoshopPointerCircle() {
+	    _classCallCheck(this, PhotoshopPointerCircle);
+	
+	    _get(Object.getPrototypeOf(PhotoshopPointerCircle.prototype), 'constructor', this).apply(this, arguments);
 	  }
 	
-	  _createClass(PlayerClass, [{
-	    key: 'getId',
-	    value: function getId() {
-	      return this._id;
+	  _createClass(PhotoshopPointerCircle, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'default': {
+	          picker: {
+	            width: '12px',
+	            height: '12px',
+	            borderRadius: '6px',
+	            boxShadow: 'inset 0 0 0 1px #fff',
+	            transform: 'translate(-6px, -6px)'
+	          }
+	        },
+	        'black-outline': {
+	          picker: {
+	            boxShadow: 'inset 0 0 0 1px #000'
+	          }
+	        }
+	      };
 	    }
 	  }, {
-	    key: 'getInfo',
-	    value: function getInfo() {
-	      return this._playerInfo;
+	    key: 'styles',
+	    value: function styles() {
+	      return this.css({
+	        'black-outline': this.props.hsl.l > .5
+	      });
 	    }
 	  }, {
-	    key: 'getName',
-	    value: function getName() {
-	      return this._playerInfo.name;
-	    }
-	  }, {
-	    key: 'playLaser',
-	    value: function playLaser() {
-	      var index = this.getInfo().style % Object.keys(fx.lasers).length;
-	      fx.lasers['laser' + index].play();
-	    }
-	  }, {
-	    key: 'playExplosion',
-	    value: function playExplosion() {
-	      var i = Math.round(Math.random() * 10) % 3;
-	      fx.explosions['explode' + i].play();
-	    }
-	  }, {
-	    key: 'execute',
-	    value: function execute(playerState, enemiesStates, gameEnvironment) {
-	      return this._playerAI(playerState, enemiesStates, gameEnvironment);
+	    key: 'render',
+	    value: function render() {
+	      return React.createElement('div', { style: this.styles().picker });
 	    }
 	  }]);
 	
-	  return PlayerClass;
-	})();
+	  return PhotoshopPointerCircle;
+	})(ReactCSS.Component);
 	
-	module.exports = PlayerClass;
+	module.exports = PhotoshopPointerCircle;
 
 /***/ },
 /* 244 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	"use strict";
+	'use strict';
 	
-	var digits = "0123456789";
-	var lowercase = "abcdefghijklmnoprstuvxuyz";
-	var uppercase = lowercase.toUpperCase();
-	var special = "+/";
-	var base64Chars;
-	var base62Chars;
-	var base32Chars;
-	var generateBaseString;
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 	
-	module.exports = exports = {};
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 	
-	base64Chars = function () {
-	  return [digits, lowercase, uppercase, special].join('');
-	};
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 	
-	base62Chars = function () {
-	  return [digits, lowercase, uppercase].join('');
-	};
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
-	base32Chars = function () {
-	  return [uppercase, digits].join('');
-	};
+	var React = __webpack_require__(57);
+	var ReactCSS = __webpack_require__(225);
 	
-	generateBaseString = function (pool, length) {
-	  var output = '';
-	  var i;
+	var PhotoshopPointerCircle = (function (_ReactCSS$Component) {
+	  _inherits(PhotoshopPointerCircle, _ReactCSS$Component);
 	
-	  for (i = 0; i < length; i += 1) {
-	    output += pool[Math.ceil(Math.random() * 100 % pool.length || 1) - 1];
+	  function PhotoshopPointerCircle() {
+	    _classCallCheck(this, PhotoshopPointerCircle);
+	
+	    _get(Object.getPrototypeOf(PhotoshopPointerCircle.prototype), 'constructor', this).apply(this, arguments);
 	  }
 	
-	  return output;
-	};
+	  _createClass(PhotoshopPointerCircle, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'default': {
+	          triangle: {
+	            width: 0,
+	            height: 0,
+	            borderStyle: 'solid',
+	            borderWidth: '4px 0 4px 6px',
+	            borderColor: 'transparent transparent transparent #fff',
+	            position: 'absolute',
+	            top: '1px',
+	            left: '1px'
+	          },
+	          triangleBorder: {
+	            width: 0,
+	            height: 0,
+	            borderStyle: 'solid',
+	            borderWidth: '5px 0 5px 8px',
+	            borderColor: 'transparent transparent transparent #555'
+	          },
 	
-	exports.generateBase64String = function (length) {
-	  return generateBaseString(base64Chars(), length);
-	};
+	          left: {
+	            Extend: 'triangleBorder',
+	            transform: 'translate(-13px, -4px)'
+	          },
+	          leftInside: {
+	            Extend: 'triangle',
+	            transform: 'translate(-8px, -5px)'
+	          },
 	
-	exports.generateBase62String = function (length) {
-	  return generateBaseString(base62Chars(), length);
-	};
+	          right: {
+	            Extend: 'triangleBorder',
+	            transform: 'translate(20px, -14px) rotate(180deg)'
+	          },
+	          rightInside: {
+	            Extend: 'triangle',
+	            transform: 'translate(-8px, -5px)'
+	          }
+	        }
+	      };
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      return React.createElement(
+	        'div',
+	        { style: this.styles().pointer },
+	        React.createElement(
+	          'div',
+	          { style: this.styles().left },
+	          React.createElement('div', { style: this.styles().leftInside })
+	        ),
+	        React.createElement(
+	          'div',
+	          { style: this.styles().right },
+	          React.createElement('div', { style: this.styles().rightInside })
+	        )
+	      );
+	    }
+	  }]);
 	
-	exports.generateBase32String = function (length) {
-	  return generateBaseString(base32Chars(), length);
-	};
+	  return PhotoshopPointerCircle;
+	})(ReactCSS.Component);
 	
-	exports.generateBase10String = function (length) {
-	  return generateBaseString(digits, length);
-	};
+	module.exports = PhotoshopPointerCircle;
 
 /***/ },
 /* 245 */
@@ -43262,219 +45602,311 @@
 
 	'use strict';
 	
-	var _ = __webpack_require__(215);
-	var utils = __webpack_require__(246);
-	var DIRECTIONS = ['north', 'east', 'south', 'west'];
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 	
-	var safeMovement = function safeMovement(value, size) {
-	  if (value < 0) return 0;
-	  if (value > size - 1) return size - 1;
-	  return value;
-	};
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 	
-	var clashCoreUtils = function clashCoreUtils(data) {
-	  var playerIndex = data.playerIndex;
-	  var playerAction = data.playerAction;
-	  var playerStates = data.playerStates;
-	  var playerInstances = data.playerInstances;
-	  var gameEnvironment = data.gameEnvironment;
-	  var evtCallback = data.evtCallback;
-	  var coreCallback = data.coreCallback;
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 	
-	  var currentPlayerState = playerStates[playerIndex];
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 	
-	  if (DIRECTIONS.indexOf(playerAction) !== -1) {
-	    currentPlayerState.direction = playerAction;
-	    return playerStates;
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var React = __webpack_require__(57);
+	var ReactCSS = __webpack_require__(225);
+	
+	var _require = __webpack_require__(236);
+	
+	var Saturation = _require.Saturation;
+	var Hue = _require.Hue;
+	var Alpha = _require.Alpha;
+	var Checkboard = _require.Checkboard;
+	
+	var SketchFields = __webpack_require__(246);
+	var SketchPresetColors = __webpack_require__(247);
+	
+	var Sketch = (function (_ReactCSS$Component) {
+	  _inherits(Sketch, _ReactCSS$Component);
+	
+	  function Sketch() {
+	    _classCallCheck(this, Sketch);
+	
+	    _get(Object.getPrototypeOf(Sketch.prototype), 'constructor', this).call(this);
+	
+	    this.handleChange = this.handleChange.bind(this);
 	  }
 	
-	  if (playerAction === 'move') {
-	    switch (currentPlayerState.direction) {
-	      case DIRECTIONS[0]:
-	        currentPlayerState.position[0]--;
-	        break;
-	      case DIRECTIONS[1]:
-	        currentPlayerState.position[1]++;
-	        break;
-	      case DIRECTIONS[2]:
-	        currentPlayerState.position[0]++;
-	        break;
-	      case DIRECTIONS[3]:
-	        currentPlayerState.position[1]--;
-	        break;
-	      default:
-	        break;
-	    }
+	  _createClass(Sketch, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'default': {
+	          picker: {
+	            width: '200px',
+	            padding: '10px 10px 0',
+	            background: '#fff',
+	            borderRadius: '4px',
+	            boxShadow: '0 0 0 1px rgba(0,0,0,.15), 0 8px 16px rgba(0,0,0,.15)'
+	          },
+	          saturation: {
+	            width: '100%',
+	            paddingBottom: '75%',
+	            position: 'relative',
+	            overflow: 'hidden'
+	          },
+	          Saturation: {
+	            radius: '3px',
+	            shadow: 'inset 0 0 0 1px rgba(0,0,0,.15), inset 0 0 4px rgba(0,0,0,.25)'
+	          },
+	          controls: {
+	            display: 'flex'
+	          },
+	          sliders: {
+	            padding: '4px 0',
+	            flex: '1'
+	          },
+	          color: {
+	            width: '24px',
+	            height: '24px',
+	            position: 'relative',
+	            marginTop: '4px',
+	            marginLeft: '4px',
+	            borderRadius: '3px'
+	          },
+	          activeColor: {
+	            Absolute: '0 0 0 0',
+	            borderRadius: '2px',
+	            background: 'rgba(' + this.props.rgb.r + ', ' + this.props.rgb.g + ', ' + this.props.rgb.b + ', ' + this.props.rgb.a + ')',
+	            boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.15), inset 0 0 4px rgba(0,0,0,.25)',
+	            zIndex: '2'
+	          },
+	          hue: {
+	            position: 'relative',
+	            height: '10px',
+	            overflow: 'hidden'
+	          },
+	          Hue: {
+	            radius: '2px',
+	            shadow: 'inset 0 0 0 1px rgba(0,0,0,.15), inset 0 0 4px rgba(0,0,0,.25)'
+	          },
 	
-	    // prevent the player to go over the world
-	    currentPlayerState.position[0] = safeMovement(currentPlayerState.position[0], gameEnvironment.gridSize);
-	    currentPlayerState.position[1] = safeMovement(currentPlayerState.position[1], gameEnvironment.gridSize);
-	
-	    // check if the player collected ammo
-	    gameEnvironment.ammoPosition.forEach(function (el, index) {
-	      if (el[0] === currentPlayerState.position[0] && el[1] === currentPlayerState.position[1]) {
-	        gameEnvironment.ammoPosition.splice(index, 1);
-	        currentPlayerState.ammo += 1;
-	      }
-	    });
-	  }
-	
-	  if (playerAction === 'shoot' && currentPlayerState.ammo > 0) {
-	    (function () {
-	      currentPlayerState.ammo -= 1;
-	
-	      var kills = [];
-	      var survivors = [];
-	      evtCallback('SHOOT', {
-	        shooter: playerIndex,
-	        origin: currentPlayerState.position,
-	        direction: currentPlayerState.direction
-	      });
-	
-	      playerStates.forEach(function (enemyObject, enemyIndex) {
-	        if (enemyObject.isAlive && utils.isVisible(currentPlayerState.position, enemyObject.position, currentPlayerState.direction)) {
-	          kills.push(enemyIndex);
-	          enemyObject.isAlive = false;
+	          alpha: {
+	            position: 'relative',
+	            height: '10px',
+	            marginTop: '4px',
+	            overflow: 'hidden'
+	          },
+	          Alpha: {
+	            radius: '2px',
+	            shadow: 'inset 0 0 0 1px rgba(0,0,0,.15), inset 0 0 4px rgba(0,0,0,.25)'
+	          }
 	        }
-	      });
+	      };
+	    }
+	  }, {
+	    key: 'handleChange',
+	    value: function handleChange(data) {
+	      this.props.onChange(data);
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      return React.createElement(
+	        'div',
+	        { style: this.styles().picker },
+	        React.createElement(
+	          'div',
+	          { style: this.styles().saturation },
+	          React.createElement(Saturation, _extends({}, this.styles().Saturation, this.props, { onChange: this.handleChange }))
+	        ),
+	        React.createElement(
+	          'div',
+	          { style: this.styles().controls, className: 'flexbox-fix' },
+	          React.createElement(
+	            'div',
+	            { style: this.styles().sliders },
+	            React.createElement(
+	              'div',
+	              { style: this.styles().hue },
+	              React.createElement(Hue, _extends({}, this.styles().Hue, this.props, { onChange: this.handleChange }))
+	            ),
+	            React.createElement(
+	              'div',
+	              { style: this.styles().alpha },
+	              React.createElement(Alpha, _extends({}, this.styles().Alpha, this.props, { onChange: this.handleChange }))
+	            )
+	          ),
+	          React.createElement(
+	            'div',
+	            { style: this.styles().color },
+	            React.createElement('div', { style: this.styles().activeColor }),
+	            React.createElement(Checkboard, null)
+	          )
+	        ),
+	        React.createElement(
+	          'div',
+	          { style: this.styles().fields },
+	          React.createElement(SketchFields, _extends({}, this.props, { onChange: this.handleChange }))
+	        ),
+	        React.createElement(
+	          'div',
+	          { style: this.styles().presets },
+	          React.createElement(SketchPresetColors, { colors: this.props.presetColors, onClick: this.handleChange })
+	        )
+	      );
+	    }
+	  }]);
 	
-	      if (kills.length) {
-	        survivors = _.filter(playerStates, function (player) {
-	          return player.isAlive;
-	        });
-	        setTimeout(coreCallback('KILL', {
-	          killer: playerInstances[playerIndex],
-	          killed: _.map(kills, function (index) {
-	            return playerInstances[index];
-	          })
-	        }), 0);
-	        setTimeout(evtCallback('KILL', {
-	          killer: playerIndex,
-	          killed: kills
-	        }), 0);
-	      }
+	  return Sketch;
+	})(ReactCSS.Component);
 	
-	      if (!survivors.length) {
-	        setTimeout(coreCallback('DRAW'), 0);
-	        setTimeout(evtCallback('DRAW'), 0);
-	      }
-	      if (survivors.length === 1) {
-	        setTimeout(coreCallback('WIN', {
-	          winner: playerInstances[playerIndex]
-	        }), 0);
-	        setTimeout(evtCallback('WIN', {
-	          winner: playerInstances[playerIndex]
-	        }), 0);
-	      }
-	    })();
-	  }
-	
-	  return playerStates;
+	Sketch.defaultProps = {
+	  presetColors: ['#D0021B', '#F5A623', '#F8E71C', '#8B572A', '#7ED321', '#417505', '#BD10E0', '#9013FE', '#4A90E2', '#50E3C2', '#B8E986', '#000000', '#4A4A4A', '#9B9B9B', '#FFFFFF']
 	};
 	
-	module.exports = clashCoreUtils;
+	module.exports = Sketch;
 
 /***/ },
 /* 246 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 	
-	var DIRECTIONS = ['north', 'east', 'south', 'west'];
-	var movements = ['north', 'east', 'south', 'west', 'shoot'];
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 	
-	var randomMove = function randomMove() {
-	  return Math.random() > 0.33 ? 'move' : movements[Math.floor(Math.random() * movements.length)];
-	};
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 	
-	var safeRandomMove = function safeRandomMove() {
-	  return Math.random() > 0.33 ? 'move' : DIRECTIONS[Math.floor(Math.random() * DIRECTIONS.length)];
-	};
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 	
-	var turn = function turn(currentPosition, howMuchTurn) {
-	  if (currentPosition === undefined) currentPosition = [];
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 	
-	  var currentPositionIndex = DIRECTIONS.indexOf(currentPosition);
-	  return DIRECTIONS[(currentPositionIndex + howMuchTurn) % 4];
-	};
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
-	var getDirection = function getDirection() {
-	  var start = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
-	  var end = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
+	var React = __webpack_require__(57);
+	var ReactCSS = __webpack_require__(225);
+	var color = __webpack_require__(233);
 	
-	  start = start || [];
-	  end = end || [];
+	var _require = __webpack_require__(236);
 	
-	  var diffVertical = Math.abs(start[0] - end[0]);
-	  var diffHorizontal = Math.abs(start[1] - end[1]);
+	var EditableInput = _require.EditableInput;
 	
-	  if (diffVertical > diffHorizontal) {
-	    return start[0] - end[0] > 0 ? 'north' : 'south';
+	var ShetchFields = (function (_ReactCSS$Component) {
+	  _inherits(ShetchFields, _ReactCSS$Component);
+	
+	  function ShetchFields() {
+	    _classCallCheck(this, ShetchFields);
+	
+	    _get(Object.getPrototypeOf(ShetchFields.prototype), 'constructor', this).call(this);
+	
+	    this.handleChange = this.handleChange.bind(this);
 	  }
-	  return start[1] - end[1] > 0 ? 'west' : 'east';
-	};
 	
-	var getDistance = function getDistance() {
-	  var start = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
-	  var end = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
+	  _createClass(ShetchFields, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'default': {
+	          fields: {
+	            display: 'flex',
+	            paddingTop: '4px'
+	          },
+	          single: {
+	            flex: '1',
+	            paddingLeft: '6px'
+	          },
+	          double: {
+	            flex: '2'
+	          },
+	          Input: {
+	            style: {
+	              input: {
+	                width: '80%',
+	                padding: '4px 10% 3px',
+	                border: 'none',
+	                boxShadow: 'inset 0 0 0 1px #ccc',
+	                fontSize: '11px'
+	              },
+	              label: {
+	                display: 'block',
+	                textAlign: 'center',
+	                fontSize: '11px',
+	                color: '#222',
+	                paddingTop: '3px',
+	                paddingBottom: '4px',
+	                textTransform: 'capitalize'
+	              }
+	            }
+	          }
+	        }
+	      };
+	    }
+	  }, {
+	    key: 'handleChange',
+	    value: function handleChange(data) {
+	      if (data.hex) {
+	        color.isValidHex(data.hex) && this.props.onChange(data.hex);
+	      } else if (data.r || data.g || data.b) {
+	        this.props.onChange({
+	          r: data.r || this.props.rgb.r,
+	          g: data.g || this.props.rgb.g,
+	          b: data.b || this.props.rgb.b,
+	          a: this.props.rgb.a
+	        });
+	      } else if (data.a) {
+	        if (data.a < 0) {
+	          data.a = 0;
+	        } else if (data.a > 100) {
+	          data.a = 100;
+	        }
 	
-	  var diffVertical = Math.abs(start[0] - end[0]);
-	  var diffHorizontal = Math.abs(start[1] - end[1]);
+	        data.a = data.a / 100;
+	        this.props.onChange({
+	          h: this.props.hsl.h,
+	          s: this.props.hsl.s,
+	          l: this.props.hsl.l,
+	          a: data.a
+	        });
+	      }
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      return React.createElement(
+	        'div',
+	        { style: this.styles().fields, className: 'flexbox-fix' },
+	        React.createElement(
+	          'div',
+	          { style: this.styles().double },
+	          React.createElement(EditableInput, _extends({}, this.styles().Input, { label: 'hex', value: this.props.hex.replace('#', ''), onChange: this.handleChange }))
+	        ),
+	        React.createElement(
+	          'div',
+	          { style: this.styles().single },
+	          React.createElement(EditableInput, _extends({}, this.styles().Input, { label: 'r', value: this.props.rgb.r, onChange: this.handleChange, dragLabel: 'true', dragMax: '255' }))
+	        ),
+	        React.createElement(
+	          'div',
+	          { style: this.styles().single },
+	          React.createElement(EditableInput, _extends({}, this.styles().Input, { label: 'g', value: this.props.rgb.g, onChange: this.handleChange, dragLabel: 'true', dragMax: '255' }))
+	        ),
+	        React.createElement(
+	          'div',
+	          { style: this.styles().single },
+	          React.createElement(EditableInput, _extends({}, this.styles().Input, { label: 'b', value: this.props.rgb.b, onChange: this.handleChange, dragLabel: 'true', dragMax: '255' }))
+	        ),
+	        React.createElement(
+	          'div',
+	          { style: this.styles().single },
+	          React.createElement(EditableInput, _extends({}, this.styles().Input, { label: 'a', value: Math.round(this.props.rgb.a * 100), onChange: this.handleChange, dragLabel: 'true', dragMax: '100' }))
+	        )
+	      );
+	    }
+	  }]);
 	
-	  return diffHorizontal + diffVertical;
-	};
+	  return ShetchFields;
+	})(ReactCSS.Component);
 	
-	var fastGetDirection = function fastGetDirection() {
-	  var start = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
-	  var end = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
-	
-	  var diffVertical = Math.abs(start[0] - end[0]);
-	  // var diffHorizontal = Math.abs(start[1] - end[1]);
-	
-	  if (diffVertical) {
-	    return start[0] - end[0] > 0 ? 'north' : 'south';
-	  }
-	  return start[1] - end[1] > 0 ? 'west' : 'east';
-	};
-	
-	var isVisible = function isVisible() {
-	  var originalPosition = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
-	  var finalPosition = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
-	  var direction = arguments.length <= 2 || arguments[2] === undefined ? [] : arguments[2];
-	
-	  switch (direction) {
-	    case DIRECTIONS[0]:
-	      return originalPosition[1] === finalPosition[1] && originalPosition[0] > finalPosition[0];
-	    case DIRECTIONS[1]:
-	      return originalPosition[0] === finalPosition[0] && originalPosition[1] < finalPosition[1];
-	    case DIRECTIONS[2]:
-	      return originalPosition[1] === finalPosition[1] && originalPosition[0] < finalPosition[0];
-	    case DIRECTIONS[3]:
-	      return originalPosition[0] === finalPosition[0] && originalPosition[1] > finalPosition[1];
-	    default:
-	      break;
-	  }
-	};
-	
-	var canKill = function canKill() {
-	  var currentPlayerState = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-	  var enemiesStates = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
-	
-	  return enemiesStates.some(function (enemyObject) {
-	    return enemyObject.isAlive && isVisible(currentPlayerState.position, enemyObject.position, currentPlayerState.direction);
-	  });
-	};
-	
-	module.exports = {
-	  randomMove: randomMove,
-	  getDirection: getDirection,
-	  isVisible: isVisible,
-	  canKill: canKill,
-	  safeRandomMove: safeRandomMove,
-	  fastGetDirection: fastGetDirection,
-	  turn: turn,
-	  getDistance: getDistance
-	};
+	module.exports = ShetchFields;
 
 /***/ },
 /* 247 */
@@ -43482,18 +45914,108 @@
 
 	'use strict';
 	
-	module.exports = {
-	  // javierbyte: require('./players/javierbyte.js'),
-	  codingpains: __webpack_require__(248),
-	  manuelmhtr: __webpack_require__(250),
-	  // ericku: require('./players/ericku.js'),
-	  // siegfried: require('./players/siegfried.js'),
-	  // horror: require('./players/horror.js'),
-	  elperron: __webpack_require__(251),
-	  yuno: __webpack_require__(252),
-	  xmontoya: __webpack_require__(253),
-	  margeux: __webpack_require__(254)
-	};
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var React = __webpack_require__(57);
+	var ReactCSS = __webpack_require__(225);
+	
+	var SketchPresetColors = (function (_ReactCSS$Component) {
+	  _inherits(SketchPresetColors, _ReactCSS$Component);
+	
+	  function SketchPresetColors() {
+	    _classCallCheck(this, SketchPresetColors);
+	
+	    _get(Object.getPrototypeOf(SketchPresetColors.prototype), 'constructor', this).call(this);
+	
+	    this.handleClick = this.handleClick.bind(this);
+	  }
+	
+	  _createClass(SketchPresetColors, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'default': {
+	          colors: {
+	            marginRight: '-10px',
+	            marginLeft: '-10px',
+	            paddingLeft: '10px',
+	            paddingTop: '10px',
+	            borderTop: '1px solid #eee'
+	          },
+	          li: {
+	            borderRadius: '3px',
+	            overflow: 'hidden',
+	            position: 'relative',
+	            display: 'inline-block',
+	            margin: '0 10px 10px 0',
+	            verticalAlign: 'top',
+	            cursor: 'pointer'
+	          },
+	          square: {
+	            borderRadius: '3px',
+	            width: '16px',
+	            height: '16px',
+	            boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.15)'
+	          }
+	        },
+	        'no-presets': {
+	          colors: {
+	            display: 'none'
+	          }
+	        }
+	      };
+	    }
+	  }, {
+	    key: 'styles',
+	    value: function styles() {
+	      return this.css({
+	        'no-presets': !this.props.colors || !this.props.colors.length
+	      });
+	    }
+	  }, {
+	    key: 'handleClick',
+	    value: function handleClick(hex) {
+	      this.props.onClick(hex);
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      var colors = [];
+	      if (this.props.colors) {
+	        for (var i = 0; i < this.props.colors.length; i++) {
+	          var color = this.props.colors[i];
+	          colors.push(React.createElement(
+	            'div',
+	            { key: color, style: this.styles().li, onClick: this.handleClick.bind(null, color) },
+	            React.createElement(
+	              'div',
+	              { style: { background: color } },
+	              ' ',
+	              React.createElement('div', { style: this.styles().square }),
+	              ' '
+	            )
+	          ));
+	        }
+	      }
+	
+	      return React.createElement(
+	        'div',
+	        { style: this.styles().colors },
+	        colors
+	      );
+	    }
+	  }]);
+	
+	  return SketchPresetColors;
+	})(ReactCSS.Component);
+	
+	module.exports = SketchPresetColors;
 
 /***/ },
 /* 248 */
@@ -43501,118 +46023,165 @@
 
 	'use strict';
 	
-	var utils = __webpack_require__(246);
-	var logic = __webpack_require__(249);
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 	
-	var codingpains = {
-	  info: {
-	    name: 'HGE-7',
-	    style: 8
-	  },
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 	
-	  ai: function ai(player, enemies, map) {
-	    var armedEnemies = _.filter(enemies, function (enemy) {
-	      return enemy.ammo > 0;
-	    });
-	    if (logic.inDanger(player, armedEnemies)) return codingpains._eluder(player, armedEnemies, map);
-	    if (player.ammo) return codingpains._hunter(player, enemies, map);
-	    return codingpains._gatherer(player, enemies, map);
-	  },
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 	
-	  _gatherer: function _gatherer(player, enemies, map) {
-	    var ammoMove;
-	    var safestMove;
-	    var centerMove;
-	    codingpains.info.mode = 'g';
-	    if (!map.ammoPosition.length) {
-	      centerMove = logic.goToCenter(player, map);
-	      if (logic.isMovementSafe(centerMove, player, enemies, map)) return centerMove;
-	    } else {
-	      ammoMove = logic.shouldMoveForAmmo(player, enemies, map);
-	      if (ammoMove && logic.isMovementSafe(ammoMove, player, enemies, map)) return ammoMove;
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 	
-	      centerMove = logic.goToCenter(player, map);
-	      if (logic.isMovementSafe(centerMove, player, enemies, map)) return centerMove;
-	    }
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
-	    safestMove = logic.getSafestMove(player, enemies, map);
-	    if (safestMove && isMovementSafe(safestMove, player, enemies, map)) return safestMove;
+	var React = __webpack_require__(57);
+	var ReactCSS = __webpack_require__(225);
 	
-	    return utils.safeRandomMove();
-	  },
+	var _require = __webpack_require__(236);
 	
-	  _hunter: function _hunter(player, enemies, map) {
-	    var turnMove;
-	    var ammoMove;
-	    var chaseMove;
-	    var safestMove;
+	var Saturation = _require.Saturation;
+	var Hue = _require.Hue;
+	var Alpha = _require.Alpha;
+	var Checkboard = _require.Checkboard;
 	
-	    codingpains.info.mode = 'h';
+	var ChromeFields = __webpack_require__(249);
+	var ChromePointer = __webpack_require__(250);
+	var ChromePointerCircle = __webpack_require__(251);
 	
-	    enemies = logic.getDangerousEnemies(enemies);
+	var Chrome = (function (_ReactCSS$Component) {
+	  _inherits(Chrome, _ReactCSS$Component);
 	
-	    if (utils.canKill(player, enemies)) return 'shoot';
+	  function Chrome() {
+	    _classCallCheck(this, Chrome);
 	
-	    turnMove = logic.turnToAmbush(player, enemies);
-	    if (turnMove) return turnMove;
+	    _get(Object.getPrototypeOf(Chrome.prototype), 'constructor', this).call(this);
 	
-	    turnMove = logic.turnToKill(player, enemies);
-	    if (turnMove && logic.isMovementSafe(turnMove, player, enemies, map)) return turnMove;
-	
-	    chaseMove = logic.chaseEnemy(player, enemies, map);
-	    if (chaseMove && logic.isMovementSafe(chaseMove, player, enemies, map)) return chaseMove;
-	
-	    safestMove = logic.getSafestMove(player, enemies, map);
-	    if (safestMove) return safestMove;
-	
-	    return false;
-	  },
-	
-	  _eluder: function _eluder(player, enemies, map) {
-	    console.log('In danger!');
-	    var killers = logic.getImmediateThreats(player, enemies);
-	    var closeThreats = { y: [], x: [] };
-	    codingpains.info.mode = 'e';
-	    if (killers.length) {
-	      if (logic.canKillAll(player, killers)) {
-	        return 'shoot';
-	      } else if (logic.isMovementSafe('move', player, killers, map)) {
-	        return 'move';
-	      } else {
-	        // Here I would activate a shield!, for now just die :(
-	        return false;
-	      }
-	    }
-	
-	    if (player.ammo) return this._hunter(player, enemies, map);
-	    _.forEach(enemies, function (e) {
-	      if (logic.sameY(player.position, e.position)) {
-	        closeThreats.y.push(e);
-	      }
-	      if (logic.sameX(player.position, e.position)) {
-	        closeThreats.x.push(e);
-	      }
-	    });
-	
-	    if (closeThreats.x.length) {
-	      if (player.ammo && utils.canKill(player, closeThreats.x)) return 'shoot';
-	      if (logic.isHorizontal(player.direction) && logic.canMoveTowards(player.direction, player, map)) {
-	        return 'move';
-	      } else {
-	        return logic.opositeDirection(closeThreats.x[0].direction);
-	      }
-	    } else {
-	      if (player.ammo && utils.canKill(player, closeThreats.y)) return 'shoot';
-	      if (logic.isVertical(player.direction) && logic.canMoveTowards(player.direction, player, map)) {
-	        return 'move';
-	      } else {
-	        return logic.opositeDirection(closeThreats.y[0].direction);
-	      }
-	    }
+	    this.handleChange = this.handleChange.bind(this);
 	  }
-	};
 	
-	module.exports = codingpains;
+	  _createClass(Chrome, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'default': {
+	          picker: {
+	            background: '#fff',
+	            borderRadius: '2px',
+	            boxShadow: '0 0 2px rgba(0,0,0,.3), 0 4px 8px rgba(0,0,0,.3)',
+	            width: '225px',
+	            fontFamily: 'Menlo'
+	          },
+	          saturation: {
+	            width: '100%',
+	            paddingBottom: '55%',
+	            position: 'relative',
+	            borderRadius: '2px 2px 0 0',
+	            overflow: 'hidden'
+	          },
+	          Saturation: {
+	            radius: '2px 2px 0 0'
+	          },
+	          body: {
+	            padding: '16px 16px 12px'
+	          },
+	          controls: {
+	            display: 'flex'
+	          },
+	          color: {
+	            width: '32px'
+	          },
+	          swatch: {
+	            marginTop: '6px',
+	            width: '16px',
+	            height: '16px',
+	            borderRadius: '8px',
+	            position: 'relative',
+	            overflow: 'hidden'
+	          },
+	          active: {
+	            Absolute: '0 0 0 0',
+	            zIndex: 2,
+	            borderRadius: '8px',
+	            boxShadow: 'inset 0 0 0 1px rgba(0,0,0,.1)',
+	            background: 'rgba(' + this.props.rgb.r + ', ' + this.props.rgb.g + ', ' + this.props.rgb.b + ', ' + this.props.rgb.a + ')'
+	          },
+	          toggles: {
+	            flex: '1'
+	          },
+	          hue: {
+	            height: '10px',
+	            position: 'relative',
+	            marginBottom: '8px'
+	          },
+	          Hue: {
+	            radius: '2px'
+	          },
+	          alpha: {
+	            height: '10px',
+	            position: 'relative'
+	          },
+	          Alpha: {
+	            radius: '2px'
+	          }
+	        }
+	      };
+	    }
+	  }, {
+	    key: 'handleChange',
+	    value: function handleChange(data) {
+	      this.props.onChange(data);
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      return React.createElement(
+	        'div',
+	        { style: this.styles().picker },
+	        React.createElement(
+	          'div',
+	          { style: this.styles().saturation },
+	          React.createElement(Saturation, _extends({}, this.styles().Saturation, this.props, { pointer: ChromePointerCircle, onChange: this.handleChange }))
+	        ),
+	        React.createElement(
+	          'div',
+	          { style: this.styles().body },
+	          React.createElement(
+	            'div',
+	            { style: this.styles().controls, className: 'flexbox-fix' },
+	            React.createElement(
+	              'div',
+	              { style: this.styles().color },
+	              React.createElement(
+	                'div',
+	                { style: this.styles().swatch },
+	                React.createElement('div', { style: this.styles().active }),
+	                React.createElement(Checkboard, null)
+	              )
+	            ),
+	            React.createElement(
+	              'div',
+	              { style: this.styles().toggles },
+	              React.createElement(
+	                'div',
+	                { style: this.styles().hue },
+	                React.createElement(Hue, _extends({}, this.styles().Hue, this.props, { pointer: ChromePointer, onChange: this.handleChange }))
+	              ),
+	              React.createElement(
+	                'div',
+	                { style: this.styles().alpha },
+	                React.createElement(Alpha, _extends({}, this.styles().Alpha, this.props, { pointer: ChromePointer, onChange: this.handleChange }))
+	              )
+	            )
+	          ),
+	          React.createElement(ChromeFields, _extends({}, this.props, { onChange: this.handleChange }))
+	        )
+	      );
+	    }
+	  }]);
+	
+	  return Chrome;
+	})(ReactCSS.Component);
+	
+	module.exports = Chrome;
 
 /***/ },
 /* 249 */
@@ -43620,382 +46189,280 @@
 
 	'use strict';
 	
-	var utils = __webpack_require__(246);
-	var DIRECTIONS = ['north', 'east', 'south', 'west'];
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 	
-	var inDanger = function inDanger(player, enemies) {
-	  if (!enemies.length) return false;
-	  var pos = player.position;
-	  return _.some(enemies, function (e) {
-	    return sameY(pos, e.position) || sameX(pos, e.position);
-	  });
-	};
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 	
-	var sameY = function sameY(start, end) {
-	  return start[0] === end[0];
-	};
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 	
-	var sameX = function sameX(start, end) {
-	  return start[1] === end[1];
-	};
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 	
-	var canMoveTowards = function canMoveTowards(direction, player, map) {
-	  var canDo = false;
-	  switch (direction) {
-	    case 'north':
-	      canDo = player.position[0] > 0;
-	      break;
-	    case 'east':
-	      canDo = player.position[1] < map.gridSize;
-	      break;
-	    case 'south':
-	      canDo = player.position[0] < map.gridSize - 1;
-	      break;
-	    case 'west':
-	      canDo = player.position[1] > 0;
-	      break;
-	  }
-	  return canDo;
-	};
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
-	var canDie = function canDie(player, enemies) {
-	  return enemies.map(function (enemy) {
-	    return enemy.ammo > 0 && utils.isVisible(enemy.position, player.position, enemy.direction);
-	  }).filter(function (result) {
-	    return result === true;
-	  }).length > 0;
-	};
+	var React = __webpack_require__(57);
+	var ReactCSS = __webpack_require__(225);
+	var color = __webpack_require__(233);
 	
-	var getClosestAmmo = function getClosestAmmo(player, ammoPosition) {
-	  var closest;
+	var _require = __webpack_require__(236);
 	
-	  if (!ammoPosition.length) return;
+	var EditableInput = _require.EditableInput;
 	
-	  closest = ammoPosition[0];
+	var ChromeFields = (function (_ReactCSS$Component) {
+	  _inherits(ChromeFields, _ReactCSS$Component);
 	
-	  ammoPosition.forEach(function (ammo) {
-	    var isCloser = utils.getDistance(player.position, ammo) < utils.getDistance(player.position, closest);
-	    if (isCloser) {
-	      closest = ammo;
-	    }
-	  });
+	  function ChromeFields(props) {
+	    _classCallCheck(this, ChromeFields);
 	
-	  return closest;
-	};
+	    _get(Object.getPrototypeOf(ChromeFields.prototype), 'constructor', this).call(this);
 	
-	var getReachableAmmo = function getReachableAmmo(player, enemies, map) {
-	  var reachable = map.ammoPosition.filter(function (ammo) {
-	    var distance = utils.getDistance(player.position, ammo);
+	    this.state = {
+	      view: ''
+	    };
 	
-	    return !enemies.some(function (enemy) {
-	      return utils.getDistance(enemy.position, ammo) < distance;
-	    });
-	  });
-	
-	  return reachable;
-	};
-	
-	var shouldMoveForAmmo = function shouldMoveForAmmo(player, enemies, map) {
-	  var ammo = getReachableAmmo(player, enemies, map);
-	  var closest;
-	  var direction;
-	
-	  if (!ammo.length) return false;
-	
-	  closest = getClosestAmmo(player, ammo);
-	  direction = utils.fastGetDirection(player.position, closest);
-	
-	  if (direction !== player.direction) {
-	    return direction;
+	    this.handleChange = this.handleChange.bind(this);
+	    this.toggleViews = this.toggleViews.bind(this);
+	    this.handleChange = this.handleChange.bind(this);
+	    this.hideHighlight = this.hideHighlight.bind(this);
+	    this.showHighlight = this.showHighlight.bind(this);
 	  }
 	
-	  return 'move';
-	};
-	
-	var isMovementSafe = function isMovementSafe(action, player, enemies, map) {
-	  var futureState = JSON.parse(JSON.stringify(player));
-	
-	  if (action === 'move') {
-	    switch (player.direction) {
-	      case DIRECTIONS[0]:
-	        if (futureState.position[0] > 0) {
-	          futureState.position[0]--;
+	  _createClass(ChromeFields, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'default': {
+	          wrap: {
+	            paddingTop: '16px',
+	            display: 'flex'
+	          },
+	          fields: {
+	            flex: '1',
+	            display: 'flex',
+	            marginLeft: '-6px'
+	          },
+	          field: {
+	            paddingLeft: '6px',
+	            width: '100%'
+	          },
+	          toggle: {
+	            width: '32px',
+	            textAlign: 'right',
+	            position: 'relative'
+	          },
+	          icon: {
+	            marginRight: '-4px',
+	            marginTop: '12px',
+	            cursor: 'pointer',
+	            position: 'relative',
+	            zIndex: '2'
+	          },
+	          iconHighlight: {
+	            position: 'absolute',
+	            width: '24px',
+	            height: '28px',
+	            background: '#eee',
+	            borderRadius: '4px',
+	            top: '10px',
+	            left: '12px',
+	            display: 'none'
+	          },
+	          Input: {
+	            style: {
+	              input: {
+	                fontSize: '11px',
+	                color: '#333',
+	                width: '100%',
+	                borderRadius: '2px',
+	                border: 'none',
+	                boxShadow: 'inset 0 0 0 1px #dadada',
+	                height: '21px',
+	                textAlign: 'center'
+	              },
+	              label: {
+	                textTransform: 'uppercase',
+	                fontSize: '11px',
+	                lineHeight: '11px',
+	                color: '#969696',
+	                textAlign: 'center',
+	                display: 'block',
+	                marginTop: '12px'
+	              }
+	            }
+	          }
 	        }
-	        break;
-	      case DIRECTIONS[1]:
-	        if (futureState.position[1] < map.gridSize) {
-	          futureState.position[1]++;
+	      };
+	    }
+	  }, {
+	    key: 'handleChange',
+	    value: function handleChange(data) {
+	      this.props.onChange(data);
+	    }
+	  }, {
+	    key: 'componentDidMount',
+	    value: function componentDidMount() {
+	      if (this.props.hsl.a === 1 && this.state.view !== 'hex') {
+	        this.setState({ view: 'hex' });
+	      } else if (this.state.view !== 'rgb' && this.state.view !== 'hsl') {
+	        this.setState({ view: 'rgb' });
+	      }
+	    }
+	  }, {
+	    key: 'toggleViews',
+	    value: function toggleViews() {
+	      if (this.state.view === 'hex') {
+	        this.setState({ view: 'rgb' });
+	      } else if (this.state.view === 'rgb') {
+	        this.setState({ view: 'hsl' });
+	      } else if (this.state.view === 'hsl') {
+	        if (this.props.hsl.a === 1) {
+	          this.setState({ view: 'hex' });
+	        } else {
+	          this.setState({ view: 'rgb' });
 	        }
-	        break;
-	      case DIRECTIONS[2]:
-	        if (futureState.position[0] < map.gridSize) {
-	          futureState.position[0]++;
+	      }
+	    }
+	  }, {
+	    key: 'componentWillReceiveProps',
+	    value: function componentWillReceiveProps(nextProps) {
+	      if (nextProps.hsl.a !== 1 && this.state.view === 'hex') {
+	        this.setState({ view: 'rgb' });
+	      }
+	    }
+	  }, {
+	    key: 'handleChange',
+	    value: function handleChange(data) {
+	      if (data.hex) {
+	        color.isValidHex(data.hex) && this.props.onChange(data.hex);
+	      } else if (data.r || data.g || data.b) {
+	        this.props.onChange({
+	          r: data.r || this.props.rgb.r,
+	          g: data.g || this.props.rgb.g,
+	          b: data.b || this.props.rgb.b
+	        });
+	      } else if (data.a) {
+	        if (data.a < 0) {
+	          data.a = 0;
+	        } else if (data.a > 1) {
+	          data.a = 1;
 	        }
-	        break;
-	      case DIRECTIONS[3]:
-	        if (futureState.position[1] > 0) {
-	          futureState.position[1]--;
-	        }
-	        break;
-	      default:
-	        break;
+	
+	        this.props.onChange({
+	          h: this.props.hsl.h,
+	          s: this.props.hsl.s,
+	          l: this.props.hsl.l,
+	          a: Math.round(data.a * 100) / 100
+	        });
+	      } else if (data.h || data.s || data.l) {
+	
+	        this.props.onChange({
+	          h: data.h || this.props.hsl.h,
+	          s: data.s && data.s.replace('%', '') || this.props.hsl.s,
+	          l: data.l && data.l.replace('%', '') || this.props.hsl.l
+	        });
+	      }
 	    }
-	  }
-	
-	  if (canDie(futureState, enemies)) {
-	    return false;
-	  } else {
-	    return true;
-	  }
-	};
-	
-	var getSafestMove = function getSafestMove(player, enemies, map) {
-	  var safest;
-	  var isSafeHere = isMovementSafe('north', player, enemies, map);
-	  var isSafeToMove = isMovementSafe('move', player, enemies, map);
-	
-	  if (isSafeHere) {
-	    if (player.ammo) {
-	      return turnToKill(player, enemies) || chaseEnemy(player, enemies, map);
+	  }, {
+	    key: 'showHighlight',
+	    value: function showHighlight() {
+	      React.findDOMNode(this.refs.iconHighlight).style.display = 'block';
 	    }
-	  }
-	  if (isSafeToMove) {
-	    return 'move';
-	  }
-	
-	  return;
-	};
-	
-	var goToCenter = function goToCenter(player, map) {
-	  var center = [map.gridSize, map.gridSize].map(function (coord) {
-	    return Math.floor(coord / 2);
-	  });
-	  var movement = utils.fastGetDirection(player.position, center);
-	
-	  if (movement === player.direction) {
-	    movement = 'move';
-	  }
-	
-	  return movement;
-	};
-	
-	var getClosestEnemy = function getClosestEnemy(player, enemies) {
-	  var clonedStates = enemies.slice(0, enemies.length);
-	  var closest;
-	
-	  clonedStates = clonedStates.filter(function (enemy) {
-	    return enemy.isAlive;
-	  });
-	
-	  closest = clonedStates[0];
-	
-	  clonedStates.forEach(function (enemy) {
-	    if (utils.getDistance(player, enemy) < utils.getDistance(player, closest)) {
-	      closest = enemy;
+	  }, {
+	    key: 'hideHighlight',
+	    value: function hideHighlight() {
+	      React.findDOMNode(this.refs.iconHighlight).style.display = 'none';
 	    }
-	  });
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      var fields;
+	      if (this.state.view === 'hex') {
+	        fields = React.createElement(
+	          'div',
+	          { style: this.styles().fields, className: 'flexbox-fix' },
+	          React.createElement(
+	            'div',
+	            { style: this.styles().field },
+	            React.createElement(EditableInput, _extends({}, this.styles().Input, { label: 'hex', value: '#' + this.props.hex, onChange: this.handleChange }))
+	          )
+	        );
+	      } else if (this.state.view === 'rgb') {
+	        fields = React.createElement(
+	          'div',
+	          { style: this.styles().fields, className: 'flexbox-fix' },
+	          React.createElement(
+	            'div',
+	            { style: this.styles().field },
+	            React.createElement(EditableInput, _extends({}, this.styles().Input, { label: 'r', value: this.props.rgb.r, onChange: this.handleChange }))
+	          ),
+	          React.createElement(
+	            'div',
+	            { style: this.styles().field },
+	            React.createElement(EditableInput, _extends({}, this.styles().Input, { label: 'g', value: this.props.rgb.g, onChange: this.handleChange }))
+	          ),
+	          React.createElement(
+	            'div',
+	            { style: this.styles().field },
+	            React.createElement(EditableInput, _extends({}, this.styles().Input, { label: 'b', value: this.props.rgb.b, onChange: this.handleChange }))
+	          ),
+	          React.createElement(
+	            'div',
+	            { style: this.styles().field },
+	            React.createElement(EditableInput, _extends({}, this.styles().Input, { label: 'a', value: this.props.rgb.a, arrowOffset: .01, onChange: this.handleChange }))
+	          )
+	        );
+	      } else if (this.state.view === 'hsl') {
+	        fields = React.createElement(
+	          'div',
+	          { style: this.styles().fields, className: 'flexbox-fix' },
+	          React.createElement(
+	            'div',
+	            { style: this.styles().field },
+	            React.createElement(EditableInput, _extends({}, this.styles().Input, { label: 'h', value: Math.round(this.props.hsl.h), onChange: this.handleChange }))
+	          ),
+	          React.createElement(
+	            'div',
+	            { style: this.styles().field },
+	            React.createElement(EditableInput, _extends({}, this.styles().Input, { label: 's', value: Math.round(this.props.hsl.s * 100) + '%', onChange: this.handleChange }))
+	          ),
+	          React.createElement(
+	            'div',
+	            { style: this.styles().field },
+	            React.createElement(EditableInput, _extends({}, this.styles().Input, { label: 'l', value: Math.round(this.props.hsl.l * 100) + '%', onChange: this.handleChange }))
+	          ),
+	          React.createElement(
+	            'div',
+	            { style: this.styles().field },
+	            React.createElement(EditableInput, _extends({}, this.styles().Input, { label: 'a', value: this.props.hsl.a, arrowOffset: .01, onChange: this.handleChange }))
+	          )
+	        );
+	      }
 	
-	  return closest;
-	};
-	
-	var getBackPosition = function getBackPosition(enemy) {
-	  var back = enemy.position.slice(0, 2);
-	  switch (enemy.direction) {
-	    case 'north':
-	      back[0]++;
-	      break;
-	    case 'south':
-	      back[0]--;
-	      break;
-	    case 'west':
-	      back[1]++;
-	      break;
-	    case 'east':
-	      back[1]--;
-	      break;
-	  }
-	
-	  return back;
-	};
-	
-	var sneakyGetDirection = function sneakyGetDirection(player, enemy) {
-	  var diffVertical = Math.abs(player.position[0] - player.position[0]);
-	
-	  if (diffVertical && enemy.position !== 'north' && enemy.position !== 'south') {
-	    return player.position[0] - enemy.position[0] > 0 ? 'north' : 'south';
-	  }
-	  return player.position[1] - enemy.position[1] > 0 ? 'west' : 'east';
-	};
-	
-	var verticalDelta = function verticalDelta(start, end) {
-	  return start[0] - end[0];
-	};
-	
-	var absVerticalDelta = function absVerticalDelta(start, end) {
-	  return Math.abs(verticalDelta(start, end));
-	};
-	
-	var horizontalDelta = function horizontalDelta(start, end) {
-	  return start[1] - end[1];
-	};
-	
-	var absHorizontalDelta = function absHorizontalDelta(start, end) {
-	  return Math.abs(horizontalDelta(start, end));
-	};
-	
-	var isVertical = function isVertical(direction) {
-	  return ['north', 'south'].indexOf(direction) > -1;
-	};
-	
-	var isHorizontal = function isHorizontal(direction) {
-	  return ['west', 'east'].indexOf(direction) > -1;
-	};
-	
-	var opositeDirection = function opositeDirection(direction) {
-	  var ret;
-	  switch (direction) {
-	    case 'north':
-	      ret = 'south';
-	      break;
-	    case 'south':
-	      ret = 'north';
-	      break;
-	    case 'west':
-	      ret = 'east';
-	      break;
-	    case 'east':
-	      ret = 'west';
-	      break;
-	  }
-	  return ret;
-	};
-	
-	var chaseEnemy = function chaseEnemy(player, enemies, map) {
-	  var closest = getClosestEnemy(player, enemies);
-	  var back = getBackPosition(closest);
-	  var direction = sneakyGetDirection(player, closest);
-	
-	  if (direction !== player.direction) {
-	    return direction;
-	  }
-	
-	  if (!isMovementSafe('move', player, [closest], map)) {
-	    if (isVertical(player.direction) && absHorizontalDelta(player.position, closest.position) === 1) return 'hold';
-	    if (isHorizontal(player.direction) && absVerticalDelta(player.position, closest.position) === 1) return 'hold';
-	    return opositeDirection(closest.direction);
-	  }
-	
-	  return 'move';
-	};
-	
-	var turnToKill = function turnToKill(player, enemies) {
-	  var turn = false;
-	  var mockState = JSON.parse(JSON.stringify(player));
-	
-	  DIRECTIONS.forEach(function (direction) {
-	    mockState.direction = direction;
-	
-	    if (utils.canKill(mockState, enemies)) {
-	      turn = direction;
+	      return React.createElement(
+	        'div',
+	        { style: this.styles().wrap, className: 'flexbox-fix' },
+	        fields,
+	        React.createElement(
+	          'div',
+	          { style: this.styles().toggle },
+	          React.createElement(
+	            'div',
+	            { style: this.styles().icon, onClick: this.toggleViews },
+	            React.createElement(
+	              'svg',
+	              { style: { width: '24px', height: '24px' }, viewBox: '0 0 24 24', onMouseOver: this.showHighlight, onMouseEnter: this.showHighlight, onMouseOut: this.hideHighlight },
+	              React.createElement('path', { fill: '#333', d: 'M12,18.17L8.83,15L7.42,16.41L12,21L16.59,16.41L15.17,15M12,5.83L15.17,9L16.58,7.59L12,3L7.41,7.59L8.83,9L12,5.83Z' })
+	            )
+	          ),
+	          React.createElement('div', { style: this.styles().iconHighlight, ref: 'iconHighlight' })
+	        )
+	      );
 	    }
-	  });
+	  }]);
 	
-	  return turn;
-	};
+	  return ChromeFields;
+	})(ReactCSS.Component);
 	
-	var turnToAmbush = function turnToAmbush(player, enemies) {
-	  var killables = enemies.filter(function (enemy) {
-	    switch (enemy.direction) {
-	      case 'north':
-	        return verticalDelta(player.position, enemy.position) === -1;
-	        break;
-	      case 'east':
-	        return verticalDelta(player.position, enemy.position) === 1;
-	        break;
-	      case 'south':
-	        return verticalDelta(player.position, enemy.position) === 1;
-	        break;
-	      case 'west':
-	        return verticalDelta(player.position, enemy.position) === -1;
-	        break;
-	      default:
-	        return false;
-	    }
-	  });
-	  var enemy;
-	
-	  if (!killables.length) return;
-	  enemy = killables[0];
-	  if (isVertical(enemy.direction)) {
-	    if (horizontalDelta(player.position, enemy.position) < 0) return 'east';
-	    return 'west';
-	  }
-	
-	  if (verticalDelta(player.position, enemy.position) < 0) return 'south';
-	  return 'north';
-	};
-	
-	var canKillMany = function canKillMany(player, enemies) {
-	  var position = player.position;
-	  var direction = player.direction;
-	
-	  var targets = _.filter(enemies, function (enemy) {
-	    return utils.isVisible(position, enemy.position, direction);
-	  });
-	  return targets.length > 2;
-	};
-	
-	var canKillAll = function canKillAll(player, enemies) {
-	  if (!player.ammo) return false;
-	  var killable = enemies.filter(function (enemy) {
-	    return utils.canKill(player, [enemy]);
-	  });
-	
-	  return enemies.length === killable.length;
-	};
-	
-	var getImmediateThreats = function getImmediateThreats(player, enemies) {
-	  return enemies.filter(function (enemy) {
-	    return enemy.ammo > 0 && utils.isVisible(enemy.position, player.position, enemy.direction);
-	  });
-	};
-	
-	var getDangerousEnemies = function getDangerousEnemies(enemies) {
-	  var dangerous = enemies.filter(function (enemy) {
-	    return enemy.ammo;
-	  });
-	  if (dangerous.length) return dangerous;
-	  return enemies;
-	};
-	
-	module.exports = {
-	  inDanger: inDanger,
-	  sameY: sameY,
-	  sameX: sameX,
-	  canDie: canDie,
-	  canMoveTowards: canMoveTowards,
-	  canKillMany: canKillMany,
-	  getClosestAmmo: getClosestAmmo,
-	  getReachableAmmo: getReachableAmmo,
-	  shouldMoveForAmmo: shouldMoveForAmmo,
-	  isMovementSafe: isMovementSafe,
-	  getSafestMove: getSafestMove,
-	  goToCenter: goToCenter,
-	  getClosestEnemy: getClosestEnemy,
-	  getBackPosition: getBackPosition,
-	  sneakyGetDirection: sneakyGetDirection,
-	  isHorizontal: isHorizontal,
-	  isVertical: isVertical,
-	  absVerticalDelta: absVerticalDelta,
-	  absHorizontalDelta: absHorizontalDelta,
-	  opositeDirection: opositeDirection,
-	  chaseEnemy: chaseEnemy,
-	  turnToKill: turnToKill,
-	  turnToAmbush: turnToAmbush,
-	  canKillAll: canKillAll,
-	  getImmediateThreats: getImmediateThreats,
-	  getDangerousEnemies: getDangerousEnemies
-	};
+	module.exports = ChromeFields;
 
 /***/ },
 /* 250 */
@@ -44003,440 +46470,106 @@
 
 	'use strict';
 	
-	var utils = __webpack_require__(246);
-	var ORIENTATION = { north: 'vertical', east: 'horizontal', south: 'vertical', west: 'horizontal' };
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 	
-	var manuelmhtr = {
-	  info: {
-	    name: 'Manuelmhtr',
-	    style: 3
-	  },
-	  ai: function ai(playerState, enemiesStates, gameEnvironment) {
-	    var response;
-	    var enemies = [];
-	    var params = {
-	      vulnerabilityLevel: null,
-	      canKill: null,
-	      nearestAmmo: null,
-	      nearestEnemy: null,
-	      canMove: null
-	    };
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 	
-	    // Parse enemies
-	    enemiesStates.forEach(function (enemy) {
-	      if (enemy.isAlive === true) {
-	        enemy.nearestAmmoDistance = calculateDistanceToNearestAmmo(enemy.position);
-	        enemies.push(enemy);
-	      }
-	    });
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 	
-	    // Process parameters
-	    params.vulnerabilityLevel = calculateVulnerabilityLevel(playerState.position);
-	    params.canKill = playerState.ammo > 0 && utils.canKill(playerState, enemiesStates);
-	    params.nearestAmmo = getNearestAmmo(playerState.position);
-	    params.nearestEnemy = getNearestEnemy(playerState.position);
-	    params.canMove = canMove(playerState.position, playerState.direction);
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
-	    function calculateVulnerabilityLevel(targetPosition) {
-	      var vulnerabilityLevel = 0.0;
-	      enemies.forEach(function (enemy) {
-	        if (utils.isVisible(enemy.position, targetPosition, enemy.direction) && enemy.ammo > 0) {
-	          vulnerabilityLevel = Math.max(vulnerabilityLevel, 1.0);
-	        } else if (isAligned(enemy.position, targetPosition) && (enemy.ammo > 0 || enemy.nearestAmmoDistance === 1)) {
-	          vulnerabilityLevel = Math.max(vulnerabilityLevel, 0.5);
-	        }
-	      });
+	var React = __webpack_require__(57);
+	var ReactCSS = __webpack_require__(225);
 	
-	      if (vulnerabilityLevel === 0.0) {
-	        // Check if other enemies are near
-	        var northEast = [targetPosition[0] + 1, targetPosition[1] + 1];
-	        var southWest = [targetPosition[0] - 1, targetPosition[1] - 1];
-	        enemies.forEach(function (enemy) {
-	          if (enemy.ammo > 0) {
-	            if (isAligned(enemy.position, northEast) || isAligned(enemy.position, southWest)) {
-	              vulnerabilityLevel = Math.max(vulnerabilityLevel, 0.25);
-	            }
-	          }
-	        });
-	      }
+	var ChromePointer = (function (_ReactCSS$Component) {
+	  _inherits(ChromePointer, _ReactCSS$Component);
 	
-	      return vulnerabilityLevel;
-	    }
+	  function ChromePointer() {
+	    _classCallCheck(this, ChromePointer);
 	
-	    function isAligned(originalPosition, finalPosition) {
-	      var aligned = false;
-	      aligned = aligned || originalPosition[1] === finalPosition[1] && originalPosition[0] > finalPosition[0];
-	      aligned = aligned || originalPosition[0] === finalPosition[0] && originalPosition[1] < finalPosition[1];
-	      aligned = aligned || originalPosition[1] === finalPosition[1] && originalPosition[0] < finalPosition[0];
-	      aligned = aligned || originalPosition[0] === finalPosition[0] && originalPosition[1] > finalPosition[1];
-	      return aligned;
-	    }
-	
-	    function getNearestAmmo(position) {
-	      var nearestAmmo = null;
-	      var nearestDistance = null;
-	      gameEnvironment.ammoPosition.forEach(function (ammo) {
-	        var distance = utils.getDistance(position, ammo);
-	        if (nearestDistance === null || distance < nearestDistance) {
-	          nearestDistance = distance;
-	          nearestAmmo = {
-	            position: ammo,
-	            distance: nearestDistance
-	          };
-	        }
-	      });
-	      return nearestAmmo;
-	    }
-	
-	    function calculateDistanceToNearestAmmo(position) {
-	      var nearestDistance = null;
-	      gameEnvironment.ammoPosition.forEach(function (ammo) {
-	        var distance = utils.getDistance(position, ammo);
-	        if (nearestDistance === null || distance < nearestDistance) {
-	          nearestDistance = distance;
-	        }
-	      });
-	      return nearestDistance;
-	    }
-	
-	    function getNearestEnemy(position) {
-	      var nearestEnemy = null;
-	      var nearestDistance = null;
-	      enemies.forEach(function (enemy) {
-	        var distance = calculateEnemyDistance(position, enemy);
-	
-	        if (nearestDistance === null || distance < nearestDistance) {
-	          nearestDistance = distance;
-	          nearestEnemy = {
-	            instance: enemy,
-	            distance: nearestDistance
-	          };
-	        }
-	      });
-	      return nearestEnemy;
-	    }
-	
-	    function calculateEnemyDistance(position, enemy) {
-	      var diffVertical = Math.abs(position[0] - enemy.position[0]);
-	      var diffHorizontal = Math.abs(position[1] - enemy.position[1]);
-	      return Math.min(diffHorizontal, diffVertical);
-	    }
-	
-	    function defend() {
-	      if (params.vulnerabilityLevel === 1.0) {
-	        var canRun = params.canMove;
-	        var attacker;
-	
-	        // Find attacker
-	        enemies.forEach(function (enemy) {
-	          if (enemy.ammo > 0 && utils.isVisible(enemy.position, playerState.position, enemy.direction)) {
-	            attacker = enemy;
-	          }
-	        });
-	
-	        // Check if can run
-	        if (attacker && ORIENTATION[attacker.direction] === ORIENTATION[playerState.direction]) {
-	          canRun = false;
-	        }
-	
-	        if (canRun) {
-	          return 'move';
-	        } else if (attacker && playerState.ammo > 0) {
-	          // Counterattack
-	          return huntEnemy(attacker);
-	        } else {
-	          return getSafestDirection();
-	        }
-	      } else {
-	        return getSafestDirection();
-	      }
-	    }
-	
-	    function getSafestDirection() {
-	      var safestDirection = playerState.direction;
-	      var lowestVulnerability = params.vulnerabilityLevel;
-	      var maxDistanceLeft = 0;
-	
-	      var options = [{
-	        direction: 'north',
-	        position: [playerState.position[0] - 1, playerState.position[1]]
-	      }, {
-	        direction: 'east',
-	        position: [playerState.position[0], playerState.position[1] + 1]
-	      }, {
-	        direction: 'south',
-	        position: [playerState.position[0] + 1, playerState.position[1]]
-	      }, {
-	        direction: 'west',
-	        position: [playerState.position[0], playerState.position[1] - 1]
-	      }];
-	
-	      // Process options
-	      options.forEach(function (option) {
-	        option.vulnerability = calculateVulnerabilityLevel(option.position);
-	        option.distanceLeft = calculateDistanceLeft(option.direction);
-	        option.canMove = canMove(playerState.position, option.direction);
-	        var isBetterOption = option.vulnerability < lowestVulnerability || option.vulnerability === lowestVulnerability && option.distanceLeft > maxDistanceLeft;
-	        if (option.canMove && isBetterOption) {
-	          safestDirection = option.direction;
-	          lowestVulnerability = option.vulnerability;
-	          maxDistanceLeft = option.distanceLeft;
-	        }
-	      });
-	
-	      if (safestDirection === playerState.direction) {
-	        return moveSafely();
-	      } else {
-	        return safestDirection;
-	      }
-	
-	      function calculateDistanceLeft(direction) {
-	        if (direction === 'north') {
-	          return playerState.position[0];
-	        } else if (direction === 'east') {
-	          return gameEnvironment.gridSize - playerState.position[1];
-	        } else if (direction === 'south') {
-	          return gameEnvironment.gridSize - playerState.position[0];
-	        } else if (direction === 'west') {
-	          return playerState.position[1];
-	        }
-	      }
-	    }
-	
-	    function canMove(position, direction) {
-	      if (direction === 'north') {
-	        return position[0] > 0;
-	      } else if (direction === 'east') {
-	        return position[1] < gameEnvironment.gridSize;
-	      } else if (direction === 'south') {
-	        return position[0] < gameEnvironment.gridSize;
-	      } else if (direction === 'west') {
-	        return position[1] > 0;
-	      }
-	    }
-	
-	    function attack() {
-	      return 'shoot';
-	    }
-	
-	    function moveWisely() {
-	      if (playerState.ammo === 0 && params.nearestAmmo) {
-	        return getAmmo(params.nearestAmmo.position);
-	      } else if (playerState.ammo > 0 && params.nearestEnemy) {
-	        if (params.nearestAmmo && params.nearestAmmo.distance < params.nearestEnemy.distance) {
-	          return getAmmo(params.nearestAmmo.position);
-	        } else {
-	          return huntEnemy(params.nearestEnemy.instance);
-	        }
-	      } else {
-	        return getSafestDirection();
-	      }
-	    }
-	
-	    function huntEnemy(enemy) {
-	      if (utils.isVisible(playerState.position, enemy.position, playerState.direction)) {
-	        return attack();
-	      } else {
-	        var attackDirection = getAttackDirection();
-	        var enemyDistance = calculateEnemyDistance(playerState.position, enemy);
-	
-	        if (attackDirection === playerState.direction && (enemyDistance > 1 || enemy.ammo === 0)) {
-	          return 'move';
-	        } else {
-	          return attackDirection;
-	        }
-	      }
-	
-	      function getAttackDirection() {
-	        var isEnemyAligned = isAligned(playerState.position, enemy.position);
-	        var enemyOrientation = ORIENTATION[enemy.direction];
-	
-	        if (isEnemyAligned) {
-	          return utils.fastGetDirection(playerState.position, enemy.position);
-	        } else {
-	          if (enemyOrientation === 'vertical') {
-	            return enemy.position[1] > playerState.position[1] ? 'east' : 'west';
-	          } else {
-	            return enemy.position[0] > playerState.position[0] ? 'south' : 'north';
-	          }
-	        }
-	      }
-	    }
-	
-	    function moveSafely() {
-	      var destination;
-	      var vulnerabilityOnMove;
-	
-	      if (playerState.direction === 'north') {
-	        destination = [playerState.position[0] - 1, playerState.position[1]];
-	      } else if (playerState.direction === 'east') {
-	        destination = [playerState.position[0], playerState.position[1] + 1];
-	      } else if (playerState.direction === 'south') {
-	        destination = [playerState.position[0] + 1, playerState.position[1]];
-	      } else if (playerState.direction === 'west') {
-	        destination = [playerState.position[0], playerState.position[1] - 1];
-	      }
-	
-	      vulnerabilityOnMove = calculateVulnerabilityLevel(destination);
-	
-	      if (vulnerabilityOnMove === 1.0) {
-	        return null;
-	      } else {
-	        return 'move';
-	      }
-	    }
-	
-	    function getAmmo(ammoPosition) {
-	      // Get direction to turn
-	      var goToDirection = utils.fastGetDirection(playerState.position, ammoPosition);
-	
-	      // If same direction, move
-	      if (goToDirection === playerState.direction) {
-	        return moveSafely();
-	      } else {
-	        return goToDirection;
-	      }
-	    }
-	
-	    // Decide movement
-	    if (params.vulnerabilityLevel === 1.0 || params.vulnerabilityLevel >= 0.5 && params.canKill !== true) {
-	      response = defend();
-	    } else if (params.canKill === true) {
-	      response = attack();
-	    } else {
-	      response = moveWisely();
-	    }
-	    return response;
+	    _get(Object.getPrototypeOf(ChromePointer.prototype), 'constructor', this).apply(this, arguments);
 	  }
-	};
 	
-	module.exports = manuelmhtr;
+	  _createClass(ChromePointer, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'default': {
+	          picker: {
+	            width: '12px',
+	            height: '12px',
+	            borderRadius: '6px',
+	            transform: 'translate(-6px, -1px)',
+	            backgroundColor: 'rgb(248, 248, 248)',
+	            boxShadow: '0 1px 4px 0 rgba(0, 0, 0, 0.37)'
+	          }
+	        }
+	      };
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      return React.createElement('div', { style: this.styles().picker });
+	    }
+	  }]);
+	
+	  return ChromePointer;
+	})(ReactCSS.Component);
+	
+	module.exports = ChromePointer;
 
 /***/ },
 /* 251 */
 /***/ function(module, exports, __webpack_require__) {
 
-	/**
-	 * Created by Roberto Alvarez on 7/29/2015.
-	 */'use strict';
+	'use strict';
 	
-	var utils = __webpack_require__(246),
-	    currentDirection = 0,
-	    oldBestAmo = null,
-	    directions = {
-	    1: 'north',
-	    2: 'east',
-	    3: 'south',
-	    4: 'west'
-	},
-	    turnsComplete = 0,
-	    ElPerron = {
-	    info: {
-	        name: 'ElPerron',
-	        style: 7
-	    },
-	    ai: function ai(playerState, enemiesStates, gameEnvironment) {
-	        var directionToTarget,
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 	
-	        /**
-	         * Devuelve la direcci�n del amo mas cercano en base a la posici�n actual de la
-	         * nave
-	         * @returns {*}
-	         */
-	        getBestAmmo = function getBestAmmo() {
-	            var myPosition = playerState.position,
-	                distanceMin = 22,
-	                ammoMin = null;
-	            for (var amIndex in gameEnvironment.ammoPosition) {
-	                var ammo = gameEnvironment.ammoPosition[amIndex];
-	                var difXbyMe = Math.abs(myPosition[1] - ammo[1]),
-	                    difYbyMe = Math.abs(myPosition[0] - ammo[0]),
-	                    distanceByMe = difXbyMe + difYbyMe;
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 	
-	                if (distanceByMe < distanceMin) {
-	                    distanceMin = distanceByMe;
-	                    ammoMin = ammo;
-	                }
-	            }
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 	
-	            return ammoMin;
-	        },
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
-	        /**
-	         * Devuelve n�mero de enemigos vivos
-	         * @returns {number}
-	         */
-	        getCountEnemiesAlive = function getCountEnemiesAlive() {
-	            var countEnemies = 0;
+	var React = __webpack_require__(57);
+	var ReactCSS = __webpack_require__(225);
 	
-	            for (var enIndex in enemiesStates) {
-	                var enemy = enemiesStates[enIndex];
+	var ChromePointerCircle = (function (_ReactCSS$Component) {
+	  _inherits(ChromePointerCircle, _ReactCSS$Component);
 	
-	                if (enemy.isAlive) {
-	                    countEnemies++;
-	                }
-	            }
+	  function ChromePointerCircle() {
+	    _classCallCheck(this, ChromePointerCircle);
 	
-	            return countEnemies;
-	        },
+	    _get(Object.getPrototypeOf(ChromePointerCircle.prototype), 'constructor', this).apply(this, arguments);
+	  }
 	
-	        /**
-	         * Devuelve si la nave esta posicionada en el mismo lugar que el ammo
-	         * @param ammo
-	         * @returns {boolean}
-	         */
-	        isOnAmmo = function isOnAmmo(ammo) {
-	            if (ammo == null) {
-	                return false;
-	            }
-	            return ammo[0] == playerState.position[0] && ammo[1] == playerState.position[1];
-	        };
-	
-	        // Hasta la vista baby !!!
-	        if (utils.canKill(playerState, enemiesStates) && playerState.ammo) {
-	            return 'shoot';
+	  _createClass(ChromePointerCircle, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'default': {
+	          picker: {
+	            width: '12px',
+	            height: '12px',
+	            borderRadius: '6px',
+	            boxShadow: 'inset 0 0 0 1px #fff',
+	            transform: 'translate(-6px, -6px)'
+	          }
 	        }
-	
-	        if (playerState.ammo == 0 || turnsComplete == 1) {
-	            var toPosition = getBestAmmo();
-	
-	            // Si tengo los suficientes disparos para eliminar a todos los enemigos
-	            // me dirijo hacia ellos
-	            if (playerState.ammo >= getCountEnemiesAlive()) {
-	                toPosition = enemiesStates[0].position;
-	            }
-	
-	            directionToTarget = utils.getDirection(playerState.position, toPosition);
-	
-	            if (isOnAmmo(oldBestAmo)) {
-	                turnsComplete = 0;
-	            }
-	
-	            // Guardo referencia de la posicion a la que me dirigi anteriormente
-	            oldBestAmo = toPosition;
-	
-	            // Si ya se movio, cambio mi direcci�n
-	            if (directionToTarget !== playerState.direction) {
-	                return directionToTarget;
-	            }
-	
-	            return 'move';
-	        } else {
-	            // Si tiene armas lo hago girar
-	            currentDirection++;
-	            if (currentDirection > 4) {
-	                currentDirection = 1;
-	                turnsComplete++;
-	            }
-	
-	            return directions[currentDirection];
-	        }
-	
-	        return utils.randomMove();
+	      };
 	    }
-	};
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      return React.createElement('div', { style: this.styles().picker });
+	    }
+	  }]);
 	
-	module.exports = ElPerron;
+	  return ChromePointerCircle;
+	})(ReactCSS.Component);
+	
+	module.exports = ChromePointerCircle;
 
 /***/ },
 /* 252 */
@@ -44444,166 +46577,1762 @@
 
 	'use strict';
 	
-	var utils = __webpack_require__(246);
-	var DIRECTIONS = ['north', 'east', 'south', 'west'];
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 	
-	var getShortestDirection = function getShortestDirection(start, endArray) {
-	  var reducedArray = endArray.reduce(function (reduced, currentPosition) {
-	    if (reduced[0] === -1 || utils.getDistance(start, currentPosition) < reduced[0]) {
-	      reduced[0] = utils.getDistance(start, currentPosition);
-	      reduced[1] = currentPosition;
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var React = __webpack_require__(57);
+	var ReactCSS = __webpack_require__(225);
+	var color = __webpack_require__(233);
+	var material = __webpack_require__(253);
+	
+	var _require = __webpack_require__(254);
+	
+	var Raised = _require.Raised;
+	
+	var SwatchesGroup = __webpack_require__(260);
+	
+	var Swatches = (function (_ReactCSS$Component) {
+	  _inherits(Swatches, _ReactCSS$Component);
+	
+	  function Swatches() {
+	    _classCallCheck(this, Swatches);
+	
+	    _get(Object.getPrototypeOf(Swatches.prototype), 'constructor', this).call(this);
+	
+	    this.handleChange = this.handleChange.bind(this);
+	  }
+	
+	  _createClass(Swatches, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'default': {
+	          picker: {
+	            width: '320px',
+	            height: '240px'
+	          },
+	          overflow: {
+	            height: '240px',
+	            overflowY: 'scroll'
+	          },
+	          body: {
+	            padding: '16px 0 6px 16px'
+	          },
+	
+	          clear: {
+	            clear: 'both'
+	          }
+	        }
+	      };
 	    }
-	
-	    return reduced;
-	  }, [-1, 0]);
-	
-	  return utils.fastGetDirection(start, reducedArray[1]);
-	};
-	
-	var turnToKill = function turnToKill(originalPosition, positionArray) {
-	  return DIRECTIONS.reduce(function (result, currentDirection) {
-	    if (result) return result;
-	    return positionArray.reduce(function (resultPositions, currentEnemyPosition) {
-	      if (resultPositions) return resultPositions;
-	      return utils.isVisible(originalPosition, currentEnemyPosition, currentDirection) ? currentDirection : null;
-	    }, null);
-	  }, null);
-	};
-	
-	var HITLER = {
-	  info: {
-	    name: 'Yuno',
-	    style: 6
-	  },
-	  ai: function ai(playerState, enemiesStates, gameEnvironment) {
-	    var directionToAmmo;
-	    var directionToPlayer;
-	
-	    if (utils.canKill(playerState, enemiesStates) && playerState.ammo) return 'shoot';
-	
-	    if (playerState.ammo) {
-	      directionToPlayer = turnToKill(playerState.position, enemiesStates.map(function (el) {
-	        return el.position;
-	      }));
-	      if (directionToPlayer) {
-	        return directionToPlayer;
+	  }, {
+	    key: 'handleChange',
+	    value: function handleChange(data) {
+	      color.isValidHex(data) && this.props.onChange(data);
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      var groups = [];
+	      if (this.props.colors) {
+	        for (var i = 0; i < this.props.colors.length; i++) {
+	          var group = this.props.colors[i];
+	          groups.push(React.createElement(SwatchesGroup, { key: group.toString(), group: group, active: this.props.hex, onClick: this.handleChange }));
+	        }
 	      }
 	
-	      directionToPlayer = getShortestDirection(playerState.position, enemiesStates.map(function (el) {
-	        return el.position;
-	      }));
-	      if (directionToPlayer !== playerState.direction) return directionToPlayer;
-	      return 'move';
+	      return React.createElement(
+	        'div',
+	        { style: this.styles().picker },
+	        React.createElement(
+	          Raised,
+	          null,
+	          React.createElement(
+	            'div',
+	            { style: this.styles().overflow },
+	            React.createElement(
+	              'div',
+	              { style: this.styles().body },
+	              groups,
+	              React.createElement('div', { style: this.styles().clear })
+	            )
+	          )
+	        )
+	      );
 	    }
+	  }]);
 	
-	    if (gameEnvironment.ammoPosition.length) {
-	      directionToAmmo = getShortestDirection(playerState.position, gameEnvironment.ammoPosition);
+	  return Swatches;
+	})(ReactCSS.Component);
 	
-	      if (directionToAmmo !== playerState.direction) return directionToAmmo;
-	      return 'move';
-	    }
-	
-	    return utils.safeRandomMove();
-	  }
+	Swatches.defaultProps = {
+	  colors: [[material.red['900'], material.red['700'], material.red['500'], material.red['300'], material.red['100']], [material.pink['900'], material.pink['700'], material.pink['500'], material.pink['300'], material.pink['100']], [material.purple['900'], material.purple['700'], material.purple['500'], material.purple['300'], material.purple['100']], [material.deepPurple['900'], material.deepPurple['700'], material.deepPurple['500'], material.deepPurple['300'], material.deepPurple['100']], [material.indigo['900'], material.indigo['700'], material.indigo['500'], material.indigo['300'], material.indigo['100']], [material.blue['900'], material.blue['700'], material.blue['500'], material.blue['300'], material.blue['100']], [material.lightBlue['900'], material.lightBlue['700'], material.lightBlue['500'], material.lightBlue['300'], material.lightBlue['100']], [material.cyan['900'], material.cyan['700'], material.cyan['500'], material.cyan['300'], material.cyan['100']], [material.teal['900'], material.teal['700'], material.teal['500'], material.teal['300'], material.teal['100']], ['#194D33', material.green['700'], material.green['500'], material.green['300'], material.green['100']], [material.lightGreen['900'], material.lightGreen['700'], material.lightGreen['500'], material.lightGreen['300'], material.lightGreen['100']], [material.lime['900'], material.lime['700'], material.lime['500'], material.lime['300'], material.lime['100']], [material.yellow['900'], material.yellow['700'], material.yellow['500'], material.yellow['300'], material.yellow['100']], [material.amber['900'], material.amber['700'], material.amber['500'], material.amber['300'], material.amber['100']], [material.orange['900'], material.orange['700'], material.orange['500'], material.orange['300'], material.orange['100']], [material.deepOrange['900'], material.deepOrange['700'], material.deepOrange['500'], material.deepOrange['300'], material.deepOrange['100']], [material.brown['900'], material.brown['700'], material.brown['500'], material.brown['300'], material.brown['100']], [material.blueGrey['900'], material.blueGrey['700'], material.blueGrey['500'], material.blueGrey['300'], material.blueGrey['100']]]
 	};
 	
-	module.exports = HITLER;
+	module.exports = Swatches;
 
 /***/ },
 /* 253 */
 /***/ function(module, exports, __webpack_require__) {
 
-	'use strict';
-	
-	var utils = __webpack_require__(246);
-	
-	var xmontoya = {
-	  info: {
-	    name: 'Xmontoya89',
-	    style: 1
-	  },
-	  ai: function ai(playerState, enemiesStates, gameEnvironment) {
-	    var directionToAmmo;
-	
-	    if (utils.canKill(playerState, enemiesStates) && playerState.ammo) {
-	      return 'shoot';
-	    }
-	
-	    if (gameEnvironment.ammoPosition.length) {
-	      directionToAmmo = utils.fastGetDirection(playerState.position, gameEnvironment.ammoPosition[0]);
-	
-	      if (directionToAmmo !== playerState.direction) return directionToAmmo;
-	      return utils.safeRandomMove();
-	    }
-	
-	    return 'move';
+	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function(root, factory) {
+	  if (true) {
+	    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	  } else if (typeof exports === 'object') {
+	    module.exports = factory();
+	  } else {
+	    root.materialColors = factory();
 	  }
-	};
-	
-	module.exports = xmontoya;
+	})(this, function() {
+	  return {"red":{"50":"#ffebee","100":"#ffcdd2","200":"#ef9a9a","300":"#e57373","400":"#ef5350","500":"#f44336","600":"#e53935","700":"#d32f2f","800":"#c62828","900":"#b71c1c","a100":"#ff8a80","a200":"#ff5252","a400":"#ff1744","a700":"#d50000"},"pink":{"50":"#fce4ec","100":"#f8bbd0","200":"#f48fb1","300":"#f06292","400":"#ec407a","500":"#e91e63","600":"#d81b60","700":"#c2185b","800":"#ad1457","900":"#880e4f","a100":"#ff80ab","a200":"#ff4081","a400":"#f50057","a700":"#c51162"},"purple":{"50":"#f3e5f5","100":"#e1bee7","200":"#ce93d8","300":"#ba68c8","400":"#ab47bc","500":"#9c27b0","600":"#8e24aa","700":"#7b1fa2","800":"#6a1b9a","900":"#4a148c","a100":"#ea80fc","a200":"#e040fb","a400":"#d500f9","a700":"#aa00ff"},"deepPurple":{"50":"#ede7f6","100":"#d1c4e9","200":"#b39ddb","300":"#9575cd","400":"#7e57c2","500":"#673ab7","600":"#5e35b1","700":"#512da8","800":"#4527a0","900":"#311b92","a100":"#b388ff","a200":"#7c4dff","a400":"#651fff","a700":"#6200ea"},"indigo":{"50":"#e8eaf6","100":"#c5cae9","200":"#9fa8da","300":"#7986cb","400":"#5c6bc0","500":"#3f51b5","600":"#3949ab","700":"#303f9f","800":"#283593","900":"#1a237e","a100":"#8c9eff","a200":"#536dfe","a400":"#3d5afe","a700":"#304ffe"},"blue":{"50":"#e3f2fd","100":"#bbdefb","200":"#90caf9","300":"#64b5f6","400":"#42a5f5","500":"#2196f3","600":"#1e88e5","700":"#1976d2","800":"#1565c0","900":"#0d47a1","a100":"#82b1ff","a200":"#448aff","a400":"#2979ff","a700":"#2962ff"},"lightBlue":{"50":"#e1f5fe","100":"#b3e5fc","200":"#81d4fa","300":"#4fc3f7","400":"#29b6f6","500":"#03a9f4","600":"#039be5","700":"#0288d1","800":"#0277bd","900":"#01579b","a100":"#80d8ff","a200":"#40c4ff","a400":"#00b0ff","a700":"#0091ea"},"cyan":{"50":"#e0f7fa","100":"#b2ebf2","200":"#80deea","300":"#4dd0e1","400":"#26c6da","500":"#00bcd4","600":"#00acc1","700":"#0097a7","800":"#00838f","900":"#006064","a100":"#84ffff","a200":"#18ffff","a400":"#00e5ff","a700":"#00b8d4"},"teal":{"50":"#e0f2f1","100":"#b2dfdb","200":"#80cbc4","300":"#4db6ac","400":"#26a69a","500":"#009688","600":"#00897b","700":"#00796b","800":"#00695c","900":"#004d40","a100":"#a7ffeb","a200":"#64ffda","a400":"#1de9b6","a700":"#00bfa5"},"green":{"50":"#e8f5e9","100":"#c8e6c9","200":"#a5d6a7","300":"#81c784","400":"#66bb6a","500":"#4caf50","600":"#43a047","700":"#388e3c","800":"#2e7d32","900":"#1b5e20","a100":"#b9f6ca","a200":"#69f0ae","a400":"#00e676","a700":"#00c853"},"lightGreen":{"50":"#f1f8e9","100":"#dcedc8","200":"#c5e1a5","300":"#aed581","400":"#9ccc65","500":"#8bc34a","600":"#7cb342","700":"#689f38","800":"#558b2f","900":"#33691e","a100":"#ccff90","a200":"#b2ff59","a400":"#76ff03","a700":"#64dd17"},"lime":{"50":"#f9fbe7","100":"#f0f4c3","200":"#e6ee9c","300":"#dce775","400":"#d4e157","500":"#cddc39","600":"#c0ca33","700":"#afb42b","800":"#9e9d24","900":"#827717","a100":"#f4ff81","a200":"#eeff41","a400":"#c6ff00","a700":"#aeea00"},"yellow":{"50":"#fffde7","100":"#fff9c4","200":"#fff59d","300":"#fff176","400":"#ffee58","500":"#ffeb3b","600":"#fdd835","700":"#fbc02d","800":"#f9a825","900":"#f57f17","a100":"#ffff8d","a200":"#ffff00","a400":"#ffea00","a700":"#ffd600"},"amber":{"50":"#fff8e1","100":"#ffecb3","200":"#ffe082","300":"#ffd54f","400":"#ffca28","500":"#ffc107","600":"#ffb300","700":"#ffa000","800":"#ff8f00","900":"#ff6f00","a100":"#ffe57f","a200":"#ffd740","a400":"#ffc400","a700":"#ffab00"},"orange":{"50":"#fff3e0","100":"#ffe0b2","200":"#ffcc80","300":"#ffb74d","400":"#ffa726","500":"#ff9800","600":"#fb8c00","700":"#f57c00","800":"#ef6c00","900":"#e65100","a100":"#ffd180","a200":"#ffab40","a400":"#ff9100","a700":"#ff6d00"},"deepOrange":{"50":"#fbe9e7","100":"#ffccbc","200":"#ffab91","300":"#ff8a65","400":"#ff7043","500":"#ff5722","600":"#f4511e","700":"#e64a19","800":"#d84315","900":"#bf360c","a100":"#ff9e80","a200":"#ff6e40","a400":"#ff3d00","a700":"#dd2c00"},"brown":{"50":"#efebe9","100":"#d7ccc8","200":"#bcaaa4","300":"#a1887f","400":"#8d6e63","500":"#795548","600":"#6d4c41","700":"#5d4037","800":"#4e342e","900":"#3e2723"},"grey":{"50":"#fafafa","100":"#f5f5f5","200":"#eeeeee","300":"#e0e0e0","400":"#bdbdbd","500":"#9e9e9e","600":"#757575","700":"#616161","800":"#424242","900":"#212121"},"blueGrey":{"50":"#eceff1","100":"#cfd8dc","200":"#b0bec5","300":"#90a4ae","400":"#78909c","500":"#607d8b","600":"#546e7a","700":"#455a64","800":"#37474f","900":"#263238"},"white":"#ffffff","black":"#000000"};
+	});
+
 
 /***/ },
 /* 254 */
 /***/ function(module, exports, __webpack_require__) {
 
-	'use strict';
 	
-	var utils = __webpack_require__(246);
-	var noAmmo = true;
-	var margeux = {
-	  info: {
-	    name: 'margeux',
-	    style: 5
-	  },
-	  ai: function ai(playerState, enemiesStates, gameEnvironment) {
-	    var directionToAmmo;
-	    var directionToEnemy;
-	    if (playerState.ammo > 0) {
-	      noAmmo = false;
-	    }
-	    if (playerState.ammo == 0) {
-	      noAmmo = true;
-	    }
+	module.exports = {
+	  Raised: __webpack_require__(255),
+	  Tile: __webpack_require__(256),
 	
-	    if (gameEnvironment.ammoPosition.length && noAmmo) {
-	      directionToAmmo = utils.fastGetDirection(playerState.position, gameEnvironment.ammoPosition[0]);
+	  Tabs: __webpack_require__(257),
+	};
+
+
+/***/ },
+/* 255 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* jshint node: true, esnext: true */
+	"use strict";
 	
-	      if (directionToAmmo !== playerState.direction) return directionToAmmo;
-	      return 'move';
-	    }
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 	
-	    //LOOK for an enemy
-	    if (!noAmmo) {
-	      directionToEnemy = utils.fastGetDirection(playerState.position, enemiesStates[0].position);
-	      if (directionToEnemy !== playerState.direction) {
-	        var directionToMargeus = utils.fastGetDirection(enemiesStates[0].position, playerState.position);
-	        if (directionToMargeus !== enemiesStates[0].position) {
-	          return directionToEnemy;
-	        } else {
-	          return utils.safeRandomMove();
-	        }
-	      }
-	      if (utils.canKill(playerState, enemiesStates) && playerState.ammo) {
-	        return 'shoot';
-	      } else {
-	        return utils.safeRandomMove();
-	      }
-	    }
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 	
-	    if (utils.canKill(playerState, enemiesStates) && playerState.ammo) {
-	      return 'shoot';
-	    }
-	    if (gameEnvironment.ammoPosition.length) {
-	      directionToAmmo = utils.fastGetDirection(playerState.position, gameEnvironment.ammoPosition[0]);
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 	
-	      if (directionToAmmo !== playerState.direction) return directionToAmmo;
-	      return 'move';
-	    }
-	    return utils.safeRandomMove();
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var React = __webpack_require__(57);
+	var ReactCSS = __webpack_require__(225);
+	
+	var Raised = (function (_ReactCSS$Component) {
+	  _inherits(Raised, _ReactCSS$Component);
+	
+	  function Raised() {
+	    _classCallCheck(this, Raised);
+	
+	    _get(Object.getPrototypeOf(Raised.prototype), 'constructor', this).apply(this, arguments);
 	  }
+	
+	  _createClass(Raised, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'default': {
+	          wrap: {
+	            position: 'relative'
+	          },
+	          content: {
+	            position: 'relative'
+	          },
+	          bg: {
+	            Absolute: '0 0 0 0',
+	            boxShadow: '0 ${ this.props.zDepth }px ${ this.props.zDepth * 4 }px rgba(0,0,0,.24)',
+	            borderRadius: this.props.radius,
+	            background: this.props.background
+	          }
+	        },
+	        'zDepth-0': {
+	          bg: {
+	            boxShadow: 'none'
+	          }
+	        },
+	
+	        'zDepth-1': {
+	          bg: {
+	            boxShadow: '0 2px 10px rgba(0,0,0,.12), 0 2px 5px rgba(0,0,0,.16)'
+	          }
+	        },
+	        'zDepth-2': {
+	          bg: {
+	            boxShadow: '0 6px 20px rgba(0,0,0,.19), 0 8px 17px rgba(0,0,0,.2)'
+	          }
+	        },
+	        'zDepth-3': {
+	          bg: {
+	            boxShadow: '0 17px 50px rgba(0,0,0,.19), 0 12px 15px rgba(0,0,0,.24)'
+	          }
+	        },
+	        'zDepth-4': {
+	          bg: {
+	            boxShadow: '0 25px 55px rgba(0,0,0,.21), 0 16px 28px rgba(0,0,0,.22)'
+	          }
+	        },
+	        'zDepth-5': {
+	          bg: {
+	            boxShadow: '0 40px 77px rgba(0,0,0,.22), 0 27px 24px rgba(0,0,0,.2)'
+	          }
+	        },
+	        'square': {
+	          bg: {
+	            borderRadius: '0'
+	          }
+	        },
+	        'circle': {
+	          bg: {
+	            borderRadius: '50%'
+	          }
+	        }
+	      };
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      return React.createElement(
+	        'div',
+	        { style: this.styles().wrap },
+	        React.createElement('div', { style: this.styles().bg }),
+	        React.createElement(
+	          'div',
+	          { style: this.styles().content },
+	          this.props.children
+	        )
+	      );
+	    }
+	  }]);
+	
+	  return Raised;
+	})(ReactCSS.Component);
+	
+	Raised.propTypes = {
+	  background: React.PropTypes.string,
+	  zDepth: React.PropTypes.oneOf(['0', '1', '2', '3', '4', '5', 0, 1, 2, 3, 4, 5]),
+	  radius: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.number])
 	};
 	
-	module.exports = margeux;
+	Raised.defaultProps = {
+	  background: '#fff',
+	  zDepth: '1',
+	  radius: '2px'
+	};
+	
+	module.exports = Raised;
+
+/***/ },
+/* 256 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* jshint node: true, esnext: true */
+	"use strict";
+	
+	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
+	
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var React = __webpack_require__(57);
+	var ReactCSS = __webpack_require__(225);
+	
+	module.exports = (function (_ReactCSS$Component) {
+	  _inherits(Tile, _ReactCSS$Component);
+	
+	  function Tile() {
+	    _classCallCheck(this, Tile);
+	
+	    _get(Object.getPrototypeOf(Tile.prototype), 'constructor', this).apply(this, arguments);
+	  }
+	
+	  _createClass(Tile, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'default': {
+	          tile: {
+	            fontSize: '16px',
+	            padding: '16px',
+	            display: 'flex',
+	            justifyContent: 'space-between',
+	            color: this.props.color
+	          },
+	          primary: {
+	            display: 'flex',
+	            width: '100%'
+	          },
+	          sidebar: {
+	            minWidth: '56px',
+	            maxWidth: '56px',
+	            flexBasis: '56' },
+	          // 72 minus 16
+	          content: {
+	            background: 'none',
+	            flex: '1',
+	            maxWidth: '95%'
+	          },
+	          secondary: {
+	            flexBasis: '42',
+	            textAlign: 'center'
+	          },
+	          sidebarIcon: {
+	            marginTop: '-12px',
+	            marginLeft: '-12px',
+	            marginBottom: '-12px'
+	          }
+	        },
+	        'divider': {
+	          tile: {
+	            boxShadow: 'inset 0 -1px 0 rgba(0,0,0,.12)'
+	          }
+	        },
+	        'condensed': {
+	          tile: {
+	            paddingBottom: '0',
+	            paddingTop: '0'
+	          },
+	          sidebar: {
+	            minWidth: '28px',
+	            maxWidth: '28px',
+	            flexBasis: '28'
+	          }
+	        }
+	      };
+	    }
+	  }, {
+	    key: 'styles',
+	    value: function styles() {
+	      return this.css({
+	        'clickable': this.props.onClick
+	      });
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      var _props$children = _slicedToArray(this.props.children, 2);
+	
+	      var sidebar = _props$children[0];
+	      var content = _props$children[1];
+	
+	      return React.createElement(
+	        'div',
+	        { style: this.styles().tile, className: 'flexbox-fix' },
+	        React.createElement(
+	          'div',
+	          { style: this.styles().primary, className: 'flexbox-fix' },
+	          React.createElement(
+	            'div',
+	            { style: this.styles().sidebar, key: "sidebar-#{ sidebar }" },
+	            sidebar
+	          ),
+	          React.createElement(
+	            'div',
+	            { style: this.styles().content, key: "content-#{ content }" },
+	            content
+	          )
+	        )
+	      );
+	    }
+	  }]);
+	
+	  return Tile;
+	})(ReactCSS.Component);
+
+/***/ },
+/* 257 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+	
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var React = __webpack_require__(57);
+	var ReactCSS = __webpack_require__(225);
+	var _ = __webpack_require__(214);
+	
+	var Tab = __webpack_require__(258);
+	var Link = __webpack_require__(259);
+	
+	// var Ink = require('./Ink');
+	
+	// var context = {
+	//   primaryColor: '#2196F3',
+	//   accentColor: '#E91E63',
+	//   theme: 'light'
+	// }
+	
+	var Tabs = (function (_ReactCSS$Component) {
+	  _inherits(Tabs, _ReactCSS$Component);
+	
+	  function Tabs(props) {
+	    _classCallCheck(this, Tabs);
+	
+	    _get(Object.getPrototypeOf(Tabs.prototype), 'constructor', this).call(this);
+	
+	    var selectedTab;
+	    if (props.selectedTab < (props.tabs && props.tabs.length)) {
+	      selectedTab = props.selectedTab;
+	    } else {
+	      selectedTab = 0;
+	    }
+	
+	    this.state = {
+	      selectedTab: selectedTab
+	    };
+	
+	    this.handleClick = this.handleClick.bind(this);
+	    this.slide = this.slide.bind(this);
+	  }
+	
+	  _createClass(Tabs, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'default': {
+	          tabs: {
+	            position: 'relative',
+	            background: this.props.background
+	          },
+	          tabWrap: {
+	            display: 'flex'
+	          },
+	          tab: {
+	            justifyContent: 'flex-start',
+	            minWidth: '68px',
+	            maxWidth: '240px'
+	          },
+	          Tab: {
+	            color: this.props.color,
+	            inactive: this.props.inactive,
+	            capitalize: this.props.capitalize
+	          },
+	          indicator: {
+	            height: '0',
+	            position: 'absolute',
+	            bottom: '0',
+	            left: '0',
+	            background: this.props.color,
+	            transition: 'all 200ms linear'
+	          }
+	        },
+	        'scrollable': {
+	          tabs: {
+	            overflowX: 'scroll'
+	          },
+	          tabWrap: {
+	            paddingLeft: '60px',
+	            justifyContent: 'flex-start',
+	            width: '400%'
+	          },
+	          tab: {
+	            width: 'auto'
+	          }
+	        },
+	        'align-justify': {
+	          tabWrap: {
+	            justifyContent: 'space-between'
+	          },
+	          tab: {
+	            width: 100 / this.props.tabs.length + '%'
+	          }
+	        },
+	        'align-left': {
+	          tabWrap: {
+	            paddingLeft: '60px',
+	            justifyContent: 'flex-start'
+	          },
+	          tab: {
+	            width: 'auto'
+	          }
+	        },
+	        'align-center': {
+	          tabWrap: {
+	            justifyContent: 'center'
+	          },
+	          tab: {
+	            width: 'auto'
+	          }
+	        }
+	      };
+	    }
+	  }, {
+	    key: 'styles',
+	    value: function styles() {
+	      return this.css({
+	        'scrollable': this.props.width / this.props.tabs.length < 72
+	      });
+	    }
+	  }, {
+	    key: 'handleClick',
+	    value: function handleClick(tab) {
+	      if (this.props.onChange) {
+	        this.props.onChange(tab);
+	      }
+	
+	      this.setState({
+	        selectedTab: tab
+	      });
+	    }
+	  }, {
+	    key: 'slide',
+	    value: function slide() {
+	      if (this.props.tabs.length) {
+	        var containerNode = this.refs.tabs.getDOMNode();
+	        var containerLeft = containerNode.scrollLeft;
+	        var containerRight = containerNode.offsetWidth + containerNode.scrollLeft;
+	
+	        var selectedNode = this.refs['tab-' + this.state.selectedTab] && this.refs['tab-' + this.state.selectedTab].getDOMNode();
+	        var selectedLeft = selectedNode && selectedNode.getBoundingClientRect().left - containerNode.getBoundingClientRect().left + containerNode.scrollLeft;
+	        var selectedRight = selectedNode && selectedLeft + selectedNode.offsetWidth;
+	
+	        // scroll right if tab is off screen
+	        if (selectedRight > containerRight) {
+	          containerNode.scrollLeft += selectedRight - containerRight;
+	        }
+	
+	        // scroll left if tab is off screen
+	        if (selectedLeft < containerLeft) {
+	          containerNode.scrollLeft -= containerLeft - selectedLeft;
+	        }
+	
+	        // slide the indicator
+	        var indicator = React.findDOMNode(this.refs.indicator);
+	        indicator.style.left = selectedLeft + 'px';
+	        indicator.style.width = selectedNode.offsetWidth + 'px';
+	        indicator.style.height = '2px';
+	      }
+	    }
+	  }, {
+	    key: 'componentDidMount',
+	    value: function componentDidMount() {
+	      this.slide();
+	    }
+	  }, {
+	    key: 'componentWillReceiveProps',
+	    value: function componentWillReceiveProps(nextProps) {
+	      if (nextProps.selectedTab !== this.state.selectedTab) {
+	        this.setState({ selectedTab: nextProps.selectedTab });
+	      }
+	    }
+	  }, {
+	    key: 'componentWillUpdate',
+	    value: function componentWillUpdate(nextProps, nextState) {
+	      if (nextState.selectedTab >= (nextProps.tabs && nextProps.tabs.length)) {
+	        nextState.selectedTab = nextProps.tabs.length - 1;
+	      }
+	    }
+	  }, {
+	    key: 'componentDidUpdate',
+	    value: function componentDidUpdate() {
+	      this.slide();
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      var tabs = [];
+	      for (var i = 0; i < this.props.tabs.length; i++) {
+	        var tab = this.props.tabs[i];
+	
+	        var label;
+	        var callback;
+	        var callbackValue;
+	        var newTab;
+	        if (_.isString(tab)) {
+	          label = tab;
+	          callback = null;
+	        } else {
+	          label = tab.label;
+	          callback = tab.onClick;
+	          callbackValue = tab.callbackValue;
+	          newTab = tab.newTab;
+	        }
+	
+	        tabs.push(React.createElement(
+	          'div',
+	          { style: this.styles().tab, ref: 'tab-' + i, key: i },
+	          React.createElement(
+	            Link,
+	            { onClick: callback, callbackValue: callbackValue, newTab: newTab },
+	            React.createElement(
+	              Tab,
+	              _extends({}, this.styles().Tab, { tab: i, selected: this.state.selectedTab === i, selectable: tab.selectable, onClick: this.handleClick }),
+	              label
+	            )
+	          )
+	        ));
+	      }
+	
+	      return React.createElement(
+	        'div',
+	        { style: this.styles().tabs, ref: 'tabs' },
+	        React.createElement(
+	          'div',
+	          { style: this.styles().tabWrap, className: 'flexbox-fix' },
+	          tabs
+	        ),
+	        React.createElement('div', { style: this.styles().indicator, ref: 'indicator' })
+	      );
+	    }
+	  }]);
+	
+	  return Tabs;
+	})(ReactCSS.Component);
+	
+	Tabs.defaultProps = {
+	  selectedTab: 0,
+	  background: 'transparent',
+	  color: '#fff'
+	};
+	
+	module.exports = Tabs;
+
+/***/ },
+/* 258 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var React = __webpack_require__(57);
+	var ReactCSS = __webpack_require__(225);
+	
+	var Tab = (function (_ReactCSS$Component) {
+	  _inherits(Tab, _ReactCSS$Component);
+	
+	  function Tab() {
+	    _classCallCheck(this, Tab);
+	
+	    _get(Object.getPrototypeOf(Tab.prototype), 'constructor', this).call(this);
+	
+	    this.handleClick = this.handleClick.bind(this);
+	  }
+	
+	  _createClass(Tab, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'default': {
+	          tab: {
+	            color: this.props.inactive || this.props.color,
+	            cursor: 'pointer',
+	            paddingLeft: '12px',
+	            paddingRight: '12px',
+	            height: '48px',
+	            lineHeight: '48px',
+	            textAlign: 'center',
+	            fontSize: '14px',
+	            textTransform: this.props.capitalize === false ? '' : 'uppercase',
+	            fontWeight: '500',
+	            whiteSpace: 'nowrap',
+	            opacity: '.47',
+	            transition: 'opacity 100ms linear'
+	          }
+	        },
+	        'selected': {
+	          tab: {
+	            color: this.props.color,
+	            opacity: '.87'
+	          }
+	        }
+	      };
+	    }
+	  }, {
+	    key: 'handleClick',
+	    value: function handleClick() {
+	      if (this.props.selectable !== false) {
+	        this.props.onClick(this.props.tab);
+	      }
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      return React.createElement(
+	        'div',
+	        { style: this.styles().tab, onClick: this.handleClick },
+	        this.props.children
+	      );
+	    }
+	  }]);
+	
+	  return Tab;
+	})(ReactCSS.Component);
+	
+	Tab.propTypes = {
+	  selected: React.PropTypes.bool
+	};
+	
+	Tab.defaultProps = {
+	  selected: false,
+	  color: '#fff'
+	};
+	
+	module.exports = Tab;
+
+/***/ },
+/* 259 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var React = __webpack_require__(57);
+	var _ = __webpack_require__(214);
+	
+	var Link = (function (_React$Component) {
+	  _inherits(Link, _React$Component);
+	
+	  function Link() {
+	    _classCallCheck(this, Link);
+	
+	    _get(Object.getPrototypeOf(Link.prototype), 'constructor', this).call(this);
+	    this.handleClick = this.handleClick.bind(this);
+	  }
+	
+	  // Link.propTypes =
+	  //   onClick: React.PropTypes.oneOfType(
+	  //     React.PropTypes.string,
+	  //     React.PropTypes.func
+	  //   );
+	
+	  _createClass(Link, [{
+	    key: 'handleClick',
+	    value: function handleClick(e) {
+	      if (this.props.onClick) {
+	        this.props.onClick(e, this.props.callbackValue);
+	      }
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	
+	      var a;
+	      if (_.isString(this.props.onClick)) {
+	        a = React.createElement(
+	          'a',
+	          { style: { textDecoration: 'none' }, href: this.props.onClick, target: this.props.newTab && '_blank' },
+	          this.props.children
+	        );
+	      } else {
+	        a = React.createElement(
+	          'a',
+	          { style: { textDecoration: 'none' }, onClick: this.handleClick },
+	          this.props.children
+	        );
+	      }
+	
+	      return a;
+	    }
+	  }]);
+	
+	  return Link;
+	})(React.Component);
+	
+	Link.defaultProps = {
+	  newTab: false
+	};
+	
+	module.exports = Link;
+
+/***/ },
+/* 260 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var React = __webpack_require__(57);
+	var ReactCSS = __webpack_require__(225);
+	
+	var SwatchesColor = __webpack_require__(261);
+	
+	var SwatchesGroup = (function (_ReactCSS$Component) {
+	  _inherits(SwatchesGroup, _ReactCSS$Component);
+	
+	  function SwatchesGroup() {
+	    _classCallCheck(this, SwatchesGroup);
+	
+	    _get(Object.getPrototypeOf(SwatchesGroup.prototype), 'constructor', this).call(this);
+	
+	    this.handleClick = this.handleClick.bind(this);
+	  }
+	
+	  _createClass(SwatchesGroup, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'default': {
+	          group: {
+	            paddingBottom: '10px',
+	            width: '40px',
+	            float: 'left',
+	            marginRight: '10px'
+	          }
+	        }
+	      };
+	    }
+	  }, {
+	    key: 'handleClick',
+	    value: function handleClick(data) {
+	      this.props.onClick(data);
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      var colors = [];
+	      for (var i = 0; i < this.props.group.length; i++) {
+	        var color = this.props.group[i];
+	
+	        colors.push(React.createElement(SwatchesColor, { key: color, color: color, active: color.replace('#', '').toLowerCase() === this.props.active, first: i === 0, last: i === this.props.group.length - 1, onClick: this.handleClick }));
+	      }
+	
+	      return React.createElement(
+	        'div',
+	        { style: this.styles().group },
+	        colors
+	      );
+	    }
+	  }]);
+	
+	  return SwatchesGroup;
+	})(ReactCSS.Component);
+	
+	module.exports = SwatchesGroup;
+
+/***/ },
+/* 261 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var React = __webpack_require__(57);
+	var ReactCSS = __webpack_require__(225);
+	
+	var SwatchesColor = (function (_ReactCSS$Component) {
+	  _inherits(SwatchesColor, _ReactCSS$Component);
+	
+	  function SwatchesColor() {
+	    _classCallCheck(this, SwatchesColor);
+	
+	    _get(Object.getPrototypeOf(SwatchesColor.prototype), 'constructor', this).call(this);
+	
+	    this.handleClick = this.handleClick.bind(this);
+	  }
+	
+	  _createClass(SwatchesColor, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'default': {
+	          color: {
+	            width: '40px',
+	            height: '24px',
+	            cursor: 'pointer',
+	            background: this.props.color,
+	            marginBottom: '1px'
+	          },
+	          check: {
+	            fill: '#fff',
+	            marginLeft: '8px',
+	            display: 'none'
+	          }
+	        },
+	        'first': {
+	          color: {
+	            overflow: 'hidden',
+	            borderRadius: '2px 2px 0 0'
+	          }
+	        },
+	        'last': {
+	          color: {
+	            overflow: 'hidden',
+	            borderRadius: '0 0 2px 2px'
+	          }
+	        },
+	        active: {
+	          check: {
+	            display: 'block'
+	          }
+	        }
+	      };
+	    }
+	  }, {
+	    key: 'handleClick',
+	    value: function handleClick() {
+	      this.props.onClick(this.props.color);
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      return React.createElement(
+	        'div',
+	        { style: this.styles().color, onClick: this.handleClick },
+	        React.createElement(
+	          'div',
+	          { style: this.styles().check },
+	          React.createElement(
+	            'svg',
+	            { style: { width: '24px', height: '24px' }, viewBox: '0 0 24 24' },
+	            React.createElement('path', { d: 'M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z' })
+	          )
+	        )
+	      );
+	    }
+	  }]);
+	
+	  return SwatchesColor;
+	})(ReactCSS.Component);
+	
+	module.exports = SwatchesColor;
+
+/***/ },
+/* 262 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+	
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var React = __webpack_require__(57);
+	var ReactCSS = __webpack_require__(225);
+	
+	var _require = __webpack_require__(236);
+	
+	var Hue = _require.Hue;
+	
+	var SliderSwatches = __webpack_require__(263);
+	var SliderPointer = __webpack_require__(265);
+	
+	var Swatches = (function (_ReactCSS$Component) {
+	  _inherits(Swatches, _ReactCSS$Component);
+	
+	  function Swatches() {
+	    _classCallCheck(this, Swatches);
+	
+	    _get(Object.getPrototypeOf(Swatches.prototype), 'constructor', this).call(this);
+	
+	    this.handleChange = this.handleChange.bind(this);
+	  }
+	
+	  _createClass(Swatches, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'default': {
+	          slider: {},
+	          hue: {
+	            height: '12px',
+	            position: 'relative'
+	          },
+	          Hue: {
+	            radius: '2px'
+	          }
+	        }
+	      };
+	    }
+	  }, {
+	    key: 'handleChange',
+	    value: function handleChange(data) {
+	      this.props.onChange(data);
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      return React.createElement(
+	        'div',
+	        { style: this.styles().slider },
+	        React.createElement(
+	          'div',
+	          { style: this.styles().hue },
+	          React.createElement(Hue, _extends({}, this.styles().Hue, this.props, { pointer: SliderPointer, onChange: this.handleChange }))
+	        ),
+	        React.createElement(
+	          'div',
+	          { style: this.styles().swatches },
+	          React.createElement(SliderSwatches, _extends({}, this.props, { onClick: this.handleChange }))
+	        )
+	      );
+	    }
+	  }]);
+	
+	  return Swatches;
+	})(ReactCSS.Component);
+	
+	module.exports = Swatches;
+
+/***/ },
+/* 263 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+	
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var React = __webpack_require__(57);
+	var ReactCSS = __webpack_require__(225);
+	
+	var SliderSwatch = __webpack_require__(264);
+	
+	var SliderSwatches = (function (_ReactCSS$Component) {
+	  _inherits(SliderSwatches, _ReactCSS$Component);
+	
+	  function SliderSwatches() {
+	    _classCallCheck(this, SliderSwatches);
+	
+	    _get(Object.getPrototypeOf(SliderSwatches.prototype), 'constructor', this).call(this);
+	
+	    this.handleClick = this.handleClick.bind(this);
+	  }
+	
+	  _createClass(SliderSwatches, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'default': {
+	          swatches: {
+	            marginRight: '-4px',
+	            marginTop: '20px'
+	          },
+	          swatch: {
+	            width: '19.65%',
+	            marginRight: '1px',
+	            float: 'left'
+	          },
+	          clear: {
+	            clear: 'both'
+	          }
+	        }
+	      };
+	    }
+	  }, {
+	    key: 'handleClick',
+	    value: function handleClick(data) {
+	      this.props.onClick(data);
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      return React.createElement(
+	        'div',
+	        { style: this.styles().swatches },
+	        React.createElement(
+	          'div',
+	          { style: this.styles().swatch },
+	          React.createElement(SliderSwatch, _extends({}, this.props, { offset: '.80', active: Math.round(this.props.hsl.l * 100) / 100 == .80 && Math.round(this.props.hsl.s * 100) / 100 == .50, onClick: this.handleClick, first: true }))
+	        ),
+	        React.createElement(
+	          'div',
+	          { style: this.styles().swatch },
+	          React.createElement(SliderSwatch, _extends({}, this.props, { offset: '.65', active: Math.round(this.props.hsl.l * 100) / 100 == .65 && Math.round(this.props.hsl.s * 100) / 100 == .50, onClick: this.handleClick }))
+	        ),
+	        React.createElement(
+	          'div',
+	          { style: this.styles().swatch },
+	          React.createElement(SliderSwatch, _extends({}, this.props, { offset: '.50', active: Math.round(this.props.hsl.l * 100) / 100 == .50 && Math.round(this.props.hsl.s * 100) / 100 == .50, onClick: this.handleClick }))
+	        ),
+	        React.createElement(
+	          'div',
+	          { style: this.styles().swatch },
+	          React.createElement(SliderSwatch, _extends({}, this.props, { offset: '.35', active: Math.round(this.props.hsl.l * 100) / 100 == .35 && Math.round(this.props.hsl.s * 100) / 100 == .50, onClick: this.handleClick }))
+	        ),
+	        React.createElement(
+	          'div',
+	          { style: this.styles().swatch },
+	          React.createElement(SliderSwatch, _extends({}, this.props, { offset: '.20', active: Math.round(this.props.hsl.l * 100) / 100 == .20 && Math.round(this.props.hsl.s * 100) / 100 == .50, onClick: this.handleClick, last: true }))
+	        ),
+	        React.createElement('div', { style: this.styles().clear })
+	      );
+	    }
+	  }]);
+	
+	  return SliderSwatches;
+	})(ReactCSS.Component);
+	
+	module.exports = SliderSwatches;
+
+/***/ },
+/* 264 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var React = __webpack_require__(57);
+	var ReactCSS = __webpack_require__(225);
+	
+	var SliderSwatch = (function (_ReactCSS$Component) {
+	  _inherits(SliderSwatch, _ReactCSS$Component);
+	
+	  function SliderSwatch() {
+	    _classCallCheck(this, SliderSwatch);
+	
+	    _get(Object.getPrototypeOf(SliderSwatch.prototype), 'constructor', this).call(this);
+	
+	    this.handleClick = this.handleClick.bind(this);
+	  }
+	
+	  _createClass(SliderSwatch, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'default': {
+	          swatch: {
+	            height: '12px',
+	            background: 'hsl(' + this.props.hsl.h + ', 50%, ' + this.props.offset * 100 + '%)',
+	            cursor: 'pointer'
+	          }
+	        },
+	        'first': {
+	          swatch: {
+	            borderRadius: '2px 0 0 2px'
+	          }
+	        },
+	        'last': {
+	          swatch: {
+	            borderRadius: '0 2px 2px 0'
+	          }
+	        },
+	        active: {
+	          swatch: {
+	            transform: 'scaleY(1.8)',
+	            borderRadius: '3.6px/2px'
+	          }
+	        }
+	      };
+	    }
+	  }, {
+	    key: 'handleClick',
+	    value: function handleClick() {
+	      this.props.onClick({ h: this.props.hsl.h, s: .5, l: this.props.offset });
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      return React.createElement('div', { style: this.styles().swatch, onClick: this.handleClick });
+	    }
+	  }]);
+	
+	  return SliderSwatch;
+	})(ReactCSS.Component);
+	
+	module.exports = SliderSwatch;
+
+/***/ },
+/* 265 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var React = __webpack_require__(57);
+	var ReactCSS = __webpack_require__(225);
+	
+	var SliderPointer = (function (_ReactCSS$Component) {
+	  _inherits(SliderPointer, _ReactCSS$Component);
+	
+	  function SliderPointer() {
+	    _classCallCheck(this, SliderPointer);
+	
+	    _get(Object.getPrototypeOf(SliderPointer.prototype), 'constructor', this).apply(this, arguments);
+	  }
+	
+	  _createClass(SliderPointer, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'default': {
+	          picker: {
+	            width: '14px',
+	            height: '14px',
+	            borderRadius: '6px',
+	            transform: 'translate(-7px, -1px)',
+	            backgroundColor: 'rgb(248, 248, 248)',
+	            boxShadow: '0 1px 4px 0 rgba(0, 0, 0, 0.37)'
+	          }
+	        }
+	      };
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      return React.createElement('div', { style: this.styles().picker });
+	    }
+	  }]);
+	
+	  return SliderPointer;
+	})(ReactCSS.Component);
+	
+	module.exports = SliderPointer;
+
+/***/ },
+/* 266 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+	
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var React = __webpack_require__(57);
+	var ReactCSS = __webpack_require__(225);
+	var color = __webpack_require__(233);
+	
+	var _require = __webpack_require__(254);
+	
+	var Raised = _require.Raised;
+	
+	var _require2 = __webpack_require__(236);
+	
+	var EditableInput = _require2.EditableInput;
+	
+	var Material = (function (_ReactCSS$Component) {
+	  _inherits(Material, _ReactCSS$Component);
+	
+	  function Material() {
+	    _classCallCheck(this, Material);
+	
+	    _get(Object.getPrototypeOf(Material.prototype), 'constructor', this).call(this);
+	
+	    this.handleChange = this.handleChange.bind(this);
+	  }
+	
+	  _createClass(Material, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'default': {
+	          material: {
+	            width: '98px',
+	            height: '98px',
+	            padding: '16px',
+	            fontFamily: 'Roboto'
+	          },
+	          Hex: {
+	            style: {
+	              wrap: {
+	                position: 'relative'
+	              },
+	              input: {
+	                width: '100%',
+	                marginTop: '12px',
+	                fontSize: '15px',
+	                color: '#333',
+	                padding: '0',
+	                border: '0',
+	                borderBottom: '2px solid #' + this.props.hex,
+	                outline: 'none',
+	                height: '30px'
+	              },
+	              label: {
+	                position: 'absolute',
+	                top: '0',
+	                left: '0',
+	                fontSize: '11px',
+	                color: '#999999',
+	                textTransform: 'capitalize'
+	              }
+	            }
+	          },
+	          Input: {
+	            style: {
+	              wrap: {
+	                position: 'relative'
+	              },
+	              input: {
+	                width: '100%',
+	                marginTop: '12px',
+	                fontSize: '15px',
+	                color: '#333',
+	                padding: '0',
+	                border: '0',
+	                borderBottom: '1px solid #eee',
+	                outline: 'none',
+	                height: '30px'
+	              },
+	              label: {
+	                position: 'absolute',
+	                top: '0',
+	                left: '0',
+	                fontSize: '11px',
+	                color: '#999999',
+	                textTransform: 'capitalize'
+	              }
+	            }
+	          },
+	          split: {
+	            display: 'flex',
+	            marginRight: '-10px',
+	            paddingTop: '11px'
+	          },
+	          third: {
+	            flex: '1',
+	            paddingRight: '10px'
+	          }
+	        }
+	      };
+	    }
+	  }, {
+	    key: 'handleChange',
+	    value: function handleChange(data) {
+	      if (data.hex) {
+	        color.isValidHex(data.hex) && this.props.onChange(data.hex);
+	      } else if (data.r || data.g || data.b) {
+	        this.props.onChange({
+	          r: data.r || this.props.rgb.r,
+	          g: data.g || this.props.rgb.g,
+	          b: data.b || this.props.rgb.b
+	        });
+	      }
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      return React.createElement(
+	        Raised,
+	        null,
+	        React.createElement(
+	          'div',
+	          { style: this.styles().material },
+	          React.createElement(EditableInput, _extends({}, this.styles().Hex, { label: 'hex', value: '#' + this.props.hex, onChange: this.handleChange })),
+	          React.createElement(
+	            'div',
+	            { style: this.styles().split, className: 'flexbox-fix' },
+	            React.createElement(
+	              'div',
+	              { style: this.styles().third },
+	              React.createElement(EditableInput, _extends({}, this.styles().Input, { label: 'r', value: this.props.rgb.r, onChange: this.handleChange }))
+	            ),
+	            React.createElement(
+	              'div',
+	              { style: this.styles().third },
+	              React.createElement(EditableInput, _extends({}, this.styles().Input, { label: 'g', value: this.props.rgb.g, onChange: this.handleChange }))
+	            ),
+	            React.createElement(
+	              'div',
+	              { style: this.styles().third },
+	              React.createElement(EditableInput, _extends({}, this.styles().Input, { label: 'b', value: this.props.rgb.b, onChange: this.handleChange }))
+	            )
+	          )
+	        )
+	      );
+	    }
+	  }]);
+	
+	  return Material;
+	})(ReactCSS.Component);
+	
+	module.exports = Material;
+
+/***/ },
+/* 267 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+	
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var React = __webpack_require__(57);
+	var ReactCSS = __webpack_require__(225);
+	var color = __webpack_require__(233);
+	
+	var _require = __webpack_require__(254);
+	
+	var Raised = _require.Raised;
+	
+	var CompactColor = __webpack_require__(268);
+	var CompactFields = __webpack_require__(269);
+	
+	var Compact = (function (_ReactCSS$Component) {
+	  _inherits(Compact, _ReactCSS$Component);
+	
+	  function Compact() {
+	    _classCallCheck(this, Compact);
+	
+	    _get(Object.getPrototypeOf(Compact.prototype), 'constructor', this).call(this);
+	
+	    this.handleChange = this.handleChange.bind(this);
+	  }
+	
+	  _createClass(Compact, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'default': {
+	          Compact: {
+	            background: '#f6f6f6',
+	            radius: '4px'
+	          },
+	          compact: {
+	            paddingTop: '5px',
+	            paddingLeft: '5px',
+	            width: '240px'
+	          },
+	
+	          clear: {
+	            clear: 'both'
+	          }
+	        }
+	      };
+	    }
+	  }, {
+	    key: 'handleChange',
+	    value: function handleChange(data) {
+	      if (data.hex) {
+	        color.isValidHex(data.hex) && this.props.onChange(data.hex);
+	      } else {
+	        this.props.onChange(data);
+	      }
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      var colors = [];
+	      if (this.props.colors) {
+	        for (var i = 0; i < this.props.colors.length; i++) {
+	          var color = this.props.colors[i];
+	          colors.push(React.createElement(CompactColor, { key: color, color: color, active: color.replace('#', '').toLowerCase() == this.props.hex, onClick: this.handleChange }));
+	        }
+	      }
+	
+	      return React.createElement(
+	        Raised,
+	        this.styles().Compact,
+	        React.createElement(
+	          'div',
+	          { style: this.styles().compact },
+	          colors,
+	          React.createElement('div', { style: this.styles().clear }),
+	          React.createElement(CompactFields, _extends({}, this.props, { onChange: this.handleChange }))
+	        )
+	      );
+	    }
+	  }]);
+	
+	  return Compact;
+	})(ReactCSS.Component);
+	
+	Compact.defaultProps = {
+	  colors: ['#4D4D4D', '#999999', '#FFFFFF', '#F44E3B', '#FE9200', '#FCDC00', '#DBDF00', '#A4DD00', '#68CCCA', '#73D8FF', '#AEA1FF', '#FDA1FF', '#333333', '#808080', '#cccccc', '#D33115', '#E27300', '#FCC400', '#B0BC00', '#68BC00', '#16A5A5', '#009CE0', '#7B64FF', '#FA28FF', '#000000', '#666666', '#B3B3B3', '#9F0500', '#C45100', '#FB9E00', '#808900', '#194D33', '#0C797D', '#0062B1', '#653294', '#AB149E']
+	};
+	
+	module.exports = Compact;
+
+/***/ },
+/* 268 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var React = __webpack_require__(57);
+	var ReactCSS = __webpack_require__(225);
+	
+	var CompactColor = (function (_ReactCSS$Component) {
+	  _inherits(CompactColor, _ReactCSS$Component);
+	
+	  function CompactColor() {
+	    _classCallCheck(this, CompactColor);
+	
+	    _get(Object.getPrototypeOf(CompactColor.prototype), 'constructor', this).call(this);
+	
+	    this.handleClick = this.handleClick.bind(this);
+	  }
+	
+	  _createClass(CompactColor, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'default': {
+	          color: {
+	            background: this.props.color,
+	            width: '15px',
+	            height: '15px',
+	            float: 'left',
+	            marginRight: '5px',
+	            marginBottom: '5px',
+	            position: 'relative',
+	            cursor: 'pointer'
+	          },
+	          dot: {
+	            Absolute: '5px 5px 5px 5px',
+	            background: '#fff',
+	            borderRadius: '50%',
+	            opacity: '0'
+	          }
+	        },
+	        'active': {
+	          dot: {
+	            opacity: '1'
+	          }
+	        },
+	        'color-#FFFFFF': {
+	          color: {
+	            boxShadow: 'inset 0 0 0 1px #ddd'
+	          },
+	          dot: {
+	            background: '#000'
+	          }
+	        }
+	      };
+	    }
+	  }, {
+	    key: 'handleClick',
+	    value: function handleClick() {
+	      this.props.onClick({ hex: this.props.color });
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      return React.createElement(
+	        'div',
+	        { style: this.styles().color, onClick: this.handleClick },
+	        React.createElement('div', { style: this.styles().dot })
+	      );
+	    }
+	  }]);
+	
+	  return CompactColor;
+	})(ReactCSS.Component);
+	
+	module.exports = CompactColor;
+
+/***/ },
+/* 269 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+	
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var React = __webpack_require__(57);
+	var ReactCSS = __webpack_require__(225);
+	
+	var _require = __webpack_require__(236);
+	
+	var EditableInput = _require.EditableInput;
+	
+	var CompactColor = (function (_ReactCSS$Component) {
+	  _inherits(CompactColor, _ReactCSS$Component);
+	
+	  function CompactColor() {
+	    _classCallCheck(this, CompactColor);
+	
+	    _get(Object.getPrototypeOf(CompactColor.prototype), 'constructor', this).call(this);
+	
+	    this.handleChange = this.handleChange.bind(this);
+	  }
+	
+	  _createClass(CompactColor, [{
+	    key: 'classes',
+	    value: function classes() {
+	      return {
+	        'default': {
+	          fields: {
+	            display: 'flex',
+	            paddingBottom: '6px',
+	            paddingRight: '5px',
+	            position: 'relative'
+	          },
+	          active: {
+	            position: 'absolute',
+	            top: '6px',
+	            left: '5px',
+	            height: '9px',
+	            width: '9px',
+	            background: '#' + this.props.hex
+	          },
+	          Hex: {
+	            style: {
+	              wrap: {
+	                flex: '6',
+	                position: 'relative'
+	              },
+	              input: {
+	                width: '80%',
+	                padding: '0',
+	                paddingLeft: '20%',
+	                border: 'none',
+	                outline: 'none',
+	                background: 'none',
+	                fontSize: '12px',
+	                color: '#333',
+	                height: '16px'
+	              },
+	              label: {
+	                display: 'none'
+	              }
+	            }
+	          },
+	          RGB: {
+	            style: {
+	              wrap: {
+	                flex: '3',
+	                position: 'relative'
+	              },
+	              input: {
+	                width: '70%',
+	                padding: '0',
+	                paddingLeft: '30%',
+	                border: 'none',
+	                outline: 'none',
+	                background: 'none',
+	                fontSize: '12px',
+	                color: '#333',
+	                height: '16px'
+	              },
+	              label: {
+	                position: 'absolute',
+	                top: '3px',
+	                left: '0',
+	                lineHeight: '16px',
+	                textTransform: 'uppercase',
+	                fontSize: '12px',
+	                color: '#999'
+	              }
+	            }
+	          }
+	        }
+	      };
+	    }
+	  }, {
+	    key: 'handleChange',
+	    value: function handleChange(data) {
+	      if (data.r || data.g || data.b) {
+	        this.props.onChange({
+	          r: data.r || this.props.rgb.r,
+	          g: data.g || this.props.rgb.g,
+	          b: data.b || this.props.rgb.b
+	        });
+	      } else {
+	        this.props.onChange(data);
+	      }
+	    }
+	  }, {
+	    key: 'render',
+	    value: function render() {
+	      return React.createElement(
+	        'div',
+	        { style: this.styles().fields, className: 'flexbox-fix' },
+	        React.createElement('div', { style: this.styles().active }),
+	        React.createElement(EditableInput, _extends({}, this.styles().Hex, { label: 'hex', value: '#' + this.props.hex, onChange: this.handleChange })),
+	        React.createElement(EditableInput, _extends({}, this.styles().RGB, { label: 'r', value: this.props.rgb.r, onChange: this.handleChange })),
+	        React.createElement(EditableInput, _extends({}, this.styles().RGB, { label: 'g', value: this.props.rgb.g, onChange: this.handleChange })),
+	        React.createElement(EditableInput, _extends({}, this.styles().RGB, { label: 'b', value: this.props.rgb.b, onChange: this.handleChange }))
+	      );
+	    }
+	  }]);
+	
+	  return CompactColor;
+	})(ReactCSS.Component);
+	
+	module.exports = CompactColor;
 
 /***/ }
 /******/ ]);
