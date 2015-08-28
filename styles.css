@@ -9,7 +9,7 @@ body {
   text-align: center;
 }
 h2 {
-  font-size: 1.25em;
+  font-size: 1.618em;
 }
 
 button {
@@ -34,13 +34,14 @@ button {
   line-height: 1;
   display: inline-block;
   text-transform: uppercase;
-  color: rgba(0, 0, 0, .8);
   font-weight: 700;
   transition: background .3s;
   cursor: pointer;
+  color: transparent;
 }
 .colorbar-element:hover {
   top: -1px;
+  color: #000;
 }
 .colorbar-element:first-child {
   border-top-left-radius: 1.5em;
