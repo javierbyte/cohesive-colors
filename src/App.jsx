@@ -115,6 +115,15 @@ var App = React.createClass({
       <div className='content'>
 
         <div className='content-block'>
+          <div>
+            This is a tool that may help you to create more cohesive color schemes.
+          </div>
+          <div>
+            Based on <a href='https://dribbble.com/shots/166246-My-Secret-for-Color-Schemes'>this idea</a> by <a href='https://dribbble.com/_erica'>Erica Schoonmaker</a>.
+          </div>
+        </div>
+
+        <div className='content-block'>
           <h2>Before:</h2>
           <ColorBar colors={colorScheme} onChange={this.handleChangeColor} />
           <button onClick={this.randomize}>
@@ -138,6 +147,10 @@ var App = React.createClass({
         <div className='content-block'>
           <h2>After:</h2>
           <ColorBar colors={fixMyColors(colorScheme, overlayColor, overlayIntensity)} />
+        </div>
+
+        <div className='content-block text-block'>
+          Made by <a href='http://javierbyte.com/'>javierbyte</a>.
         </div>
       </div>
     )

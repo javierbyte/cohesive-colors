@@ -27887,6 +27887,32 @@
 	        'div',
 	        { className: 'content-block' },
 	        React.createElement(
+	          'div',
+	          null,
+	          'This is a tool that may help you to create more cohesive color schemes.'
+	        ),
+	        React.createElement(
+	          'div',
+	          null,
+	          'Based on ',
+	          React.createElement(
+	            'a',
+	            { href: 'https://dribbble.com/shots/166246-My-Secret-for-Color-Schemes' },
+	            'this idea'
+	          ),
+	          ' by ',
+	          React.createElement(
+	            'a',
+	            { href: 'https://dribbble.com/_erica' },
+	            'Erica Schoonmaker'
+	          ),
+	          '.'
+	        )
+	      ),
+	      React.createElement(
+	        'div',
+	        { className: 'content-block' },
+	        React.createElement(
 	          'h2',
 	          null,
 	          'Before:'
@@ -27929,6 +27955,17 @@
 	          'After:'
 	        ),
 	        React.createElement(ColorBar, { colors: fixMyColors(colorScheme, overlayColor, overlayIntensity) })
+	      ),
+	      React.createElement(
+	        'div',
+	        { className: 'content-block text-block' },
+	        'Made by ',
+	        React.createElement(
+	          'a',
+	          { href: 'http://javierbyte.com/' },
+	          'javierbyte'
+	        ),
+	        '.'
 	      )
 	    );
 	  }
