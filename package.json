@@ -4,7 +4,9 @@
   "description": "A tool for creating more cohesive color schemes.",
   "scripts": {
     "build": "webpack --progress --profile --colors",
-    "dev": "webpack-dev-server --progress --profile --colors --hot"
+    "dev": "webpack-dev-server --progress --profile --colors --hot",
+
+    "pages": "npm run build && git push -f origin master:gh-pages"
   },
   "repository": {
     "type": "git",
