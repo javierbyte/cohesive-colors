@@ -4,8 +4,11 @@
   position: relative;
 }
 
+/*
+//cdn.jsdelivr.net/font-hack/2.010/css/hack.min.css
+*/
 body {
-  font: 16px/1.8 Monaco, sans-serif;
+  font: 16px/1.8 Roboto Mono, monaco, sans-serif;
   text-align: center;
 }
 h2 {
@@ -20,7 +23,7 @@ button {
   padding: 2vh 1em;
 }
 .content-block {
-  padding: 2vh 1em;
+  padding: 1vh 1em;
 }
 
 .colorbar {
@@ -28,7 +31,7 @@ button {
   margin: 1em auto;
 }
 .colorbar-element {
-  font-size: .9em;
+  font-size: .85em;
   text-align: center;
   padding: 1em;
   line-height: 1;
