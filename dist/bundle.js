@@ -28028,7 +28028,7 @@
 	          ' by ',
 	          React.createElement(
 	            'a',
-	            { href: 'https://dribbble.com/_erica' },
+	            { href: 'https://twitter.com/_erica' },
 	            'Erica Schoonmaker'
 	          ),
 	          '.'
