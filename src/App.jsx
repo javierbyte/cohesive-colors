@@ -150,7 +150,7 @@ var App = React.createClass({
         </div>
 
         <div className='content-block text-block'>
-          Made by <a href='http://javierbyte.com/'>javierbyte</a>.
+          Made by <a href='http://javierbyte.com/' target='_blank'>javierbyte</a>.
         </div>
       </div>
     )
