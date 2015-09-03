@@ -28022,13 +28022,13 @@
 	          'Based on ',
 	          React.createElement(
 	            'a',
-	            { href: 'https://dribbble.com/shots/166246-My-Secret-for-Color-Schemes' },
+	            { target: '_blank', href: 'https://dribbble.com/shots/166246-My-Secret-for-Color-Schemes' },
 	            'this idea'
 	          ),
 	          ' by ',
 	          React.createElement(
 	            'a',
-	            { href: 'https://twitter.com/_erica' },
+	            { target: '_blank', href: 'https://twitter.com/_erica' },
 	            'Erica Schoonmaker'
 	          ),
 	          '.'
