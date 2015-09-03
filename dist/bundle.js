@@ -28087,7 +28087,7 @@
 	        'Made by ',
 	        React.createElement(
 	          'a',
-	          { href: 'http://javierbyte.com/' },
+	          { href: 'http://javierbyte.com/', target: '_blank' },
 	          'javierbyte'
 	        ),
 	        '.'
