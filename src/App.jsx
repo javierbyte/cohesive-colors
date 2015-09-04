@@ -118,9 +118,6 @@ var App = React.createClass({
           <div>
             This is a tool that may help you to create cohesive color schemes.
           </div>
-          <div>
-            Based on <a href='https://dribbble.com/shots/166246-My-Secret-for-Color-Schemes'>this idea</a> by <a href='https://dribbble.com/_erica'>Erica Schoonmaker</a>.
-          </div>
         </div>
 
         <div className='content-block'>
@@ -150,7 +147,12 @@ var App = React.createClass({
         </div>
 
         <div className='content-block text-block'>
-          Made by <a href='http://javierbyte.com/'>javierbyte</a>.
+          <div>
+            Based on <a target='_blank' href='https://dribbble.com/shots/166246-My-Secret-for-Color-Schemes'>this idea</a> by <a target='_blank' href='https://twitter.com/_erica'>Erica Schoonmaker</a>.
+          </div>
+          <div>
+            Made by <a href='http://javierbyte.com/' target='_blank'>javierbyte</a>.
+          </div>
         </div>
       </div>
     )

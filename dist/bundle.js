@@ -27890,23 +27890,6 @@
 	          'div',
 	          null,
 	          'This is a tool that may help you to create cohesive color schemes.'
-	        ),
-	        React.createElement(
-	          'div',
-	          null,
-	          'Based on ',
-	          React.createElement(
-	            'a',
-	            { href: 'https://dribbble.com/shots/166246-My-Secret-for-Color-Schemes' },
-	            'this idea'
-	          ),
-	          ' by ',
-	          React.createElement(
-	            'a',
-	            { href: 'https://dribbble.com/_erica' },
-	            'Erica Schoonmaker'
-	          ),
-	          '.'
 	        )
 	      ),
 	      React.createElement(
@@ -27959,13 +27942,34 @@
 	      React.createElement(
 	        'div',
 	        { className: 'content-block text-block' },
-	        'Made by ',
 	        React.createElement(
-	          'a',
-	          { href: 'http://javierbyte.com/' },
-	          'javierbyte'
+	          'div',
+	          null,
+	          'Based on ',
+	          React.createElement(
+	            'a',
+	            { target: '_blank', href: 'https://dribbble.com/shots/166246-My-Secret-for-Color-Schemes' },
+	            'this idea'
+	          ),
+	          ' by ',
+	          React.createElement(
+	            'a',
+	            { target: '_blank', href: 'https://twitter.com/_erica' },
+	            'Erica Schoonmaker'
+	          ),
+	          '.'
 	        ),
-	        '.'
+	        React.createElement(
+	          'div',
+	          null,
+	          'Made by ',
+	          React.createElement(
+	            'a',
+	            { href: 'http://javierbyte.com/', target: '_blank' },
+	            'javierbyte'
+	          ),
+	          '.'
+	        )
 	      )
 	    );
 	  }
