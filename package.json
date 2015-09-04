@@ -6,7 +6,7 @@
     "build": "webpack --progress --profile --colors",
     "dev": "webpack-dev-server --progress --profile --colors --hot",
 
-    "pages": "npm run build && git add -A && git commit -m 'Update pages' && git push origin master && git push -f origin master:gh-pages"
+    "pages": "npm run build && git add -A && git commit -m 'Update pages' && git push origin master && git push -f origin gh-pages"
   },
   "repository": {
     "type": "git",
