@@ -29,7 +29,7 @@ var fixMyColors = (colorScheme, overlayColor, overlayIntensity) => {
 }
 
 var getPalleteFromColorLovers = (callback) => {
-  jsonp('http://www.colourlovers.com/api/palettes/random?format=json&jsonCallback=callback', {
+  jsonp('https://www.colourlovers.com/api/palettes/random?format=json&jsonCallback=callback', {
     param: 'jsonCallback'
   }, callback)
 }
