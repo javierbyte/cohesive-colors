@@ -148,10 +148,10 @@ var App = React.createClass({
 
         <div className='content-block text-block'>
           <div>
-            Based on <a target='_blank' href='https://dribbble.com/shots/166246-My-Secret-for-Color-Schemes'>this idea</a> by <a target='_blank' href='https://twitter.com/_erica'>Erica Schoonmaker</a>.
+            Based on <a target='_blank' href='https://dribbble.com/shots/166246-My-Secret-for-Color-Schemes'>this idea</a> by <a target='_blank' href='https://twitter.com/_erica'>_erica</a>.
           </div>
           <div>
-            Made by <a href='http://javierbyte.com/' target='_blank'>javierbyte</a>.
+            Made by <a href='http://javier.xyz/' target='_blank'>javierbyte</a>.
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
-# [cohesive-colors](http://javierbyte.github.io/cohesive-colors)
+# [cohesive-colors](http://javier.xyz/cohesive-colors)
 
 A tool for creating more cohesive color schemes.
 
-[![cohesive-colors](readme_assets/screenshot.png)](http://javierbyte.github.io/cohesive-colors/)
+[![cohesive-colors](readme_assets/screenshot.png)](http://javier.xyz/cohesive-colors/)
 
-Thanks [Erica Schoonmaker (_erica)](https://twitter.com/_erica) for the idea.
+Thanks [_erica](https://twitter.com/_erica) for the idea.
