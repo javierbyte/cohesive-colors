@@ -4,9 +4,6 @@
   position: relative;
 }
 
-/*
-//cdn.jsdelivr.net/font-hack/2.010/css/hack.min.css
-*/
 body {
   font: 16px/1.8 Roboto Mono, monaco, sans-serif;
   text-align: center;
@@ -39,12 +36,16 @@ button {
   text-transform: uppercase;
   font-weight: 700;
   transition: background .3s;
-  cursor: pointer;
   color: transparent;
 }
 .colorbar-element:hover {
-  top: -1px;
   color: #000;
+}
+.colorbar-element.-editable {
+  cursor: pointer;
+}
+.colorbar-element.-editable:hover {
+  top: -1px;
 }
 .colorbar-element:first-child {
   border-top-left-radius: 1.5em;

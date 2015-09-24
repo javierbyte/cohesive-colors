@@ -35,7 +35,6 @@ var getPalleteFromColorLovers = (callback) => {
 }
 
 var App = React.createClass({
-
   getInitialState () {
     return {
       colorScheme: ['555e7b', 'b7d968', 'b576ad', 'e04644', 'fde47f', '7ccce5'],
@@ -112,7 +111,7 @@ var App = React.createClass({
     var {colorScheme, overlayColor, overlayIntensity} = this.state
 
     return (
-      <div className='content'>
+    <div className='content'>
 
         <div className='content-block'>
           <div>
