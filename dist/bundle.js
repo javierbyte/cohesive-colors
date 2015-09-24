@@ -27955,7 +27955,7 @@
 	          React.createElement(
 	            'a',
 	            { target: '_blank', href: 'https://twitter.com/_erica' },
-	            'Erica Schoonmaker'
+	            '_erica'
 	          ),
 	          '.'
 	        ),
@@ -27965,7 +27965,7 @@
 	          'Made by ',
 	          React.createElement(
 	            'a',
-	            { href: 'http://javierbyte.com/', target: '_blank' },
+	            { href: 'http://javier.xyz/', target: '_blank' },
 	            'javierbyte'
 	          ),
 	          '.'
@@ -42607,9 +42607,14 @@
 	    var popupPosition = _state.popupPosition;
 	
 	    var colorRender = _.map(colors, function (color, index) {
+	      var colorClasses = 'colorbar-element';
+	      if (onChange) {
+	        colorClasses += ' -editable';
+	      }
+	
 	      return React.createElement(
 	        'div',
-	        { className: 'colorbar-element', key: index, onClick: _this.onEdit.bind(null, index), style: {
+	        { className: colorClasses, key: index, onClick: _this.onEdit.bind(null, index), style: {
 	            backgroundColor: '#' + color
 	          } },
 	        '#',
