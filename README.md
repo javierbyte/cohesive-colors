@@ -3,7 +3,7 @@
 A tool for creating more cohesive color schemes.
 Pick a bunch of random colors that you like and add a touch of magic.
 
-[![cohesive-colors](readme_assets/screenshot.png)](http://javier.xyz/cohesive-colors/)
+[![cohesive-colors](docs-assets/screenshot.png)](http://javier.xyz/cohesive-colors/)
 
 For programatic use see [colorblendjs](https://github.com/javierbyte/colorblendjs).
 
