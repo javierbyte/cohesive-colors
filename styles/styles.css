@@ -16,11 +16,26 @@ button {
   font-size: 13px;
 }
 
+.github-corner {
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .content {
   padding: 2vh 1em;
 }
 .content-block {
   padding: 1vh 1em;
+}
+.content-block.-credits {
+  font-size: 0.9em;
 }
 
 .colorbar {
@@ -35,17 +50,17 @@ button {
   display: inline-block;
   text-transform: uppercase;
   font-weight: 700;
-  transition: background .3s;
   color: transparent;
+  user-select: none;
+  cursor: pointer;
+  transition: background-color 0.1s;
 }
 .colorbar-element:hover {
+  top: -1px;
   color: #000;
 }
-.colorbar-element.-editable {
-  cursor: pointer;
-}
-.colorbar-element.-editable:hover {
-  top: -1px;
+.colorbar-element:active {
+  top: 1px;
 }
 .colorbar-element:first-child {
   border-top-left-radius: 1.5em;
@@ -56,4 +71,11 @@ button {
   border-top-right-radius: 1.5em;
   border-bottom-right-radius: 1.5em;
   padding-right: 1.57em;
+}
+
+.input-slider {
+  top: 0.1rem;
+}
+.margin-right-Hx {
+  margin-right: 0.5rem;
 }

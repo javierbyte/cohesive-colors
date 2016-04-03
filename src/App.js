@@ -1,14 +1,14 @@
-var React = require('react')
-var _ = require('lodash')
-var tinycolor = require('tinycolor2')
-var colorblend = require('./lib/colorblend')
-var randomcolor = require('randomcolor')
+const React = require('react')
+const _ = require('lodash')
+const tinycolor = require('tinycolor2')
+const colorblend = require('./lib/colorblend')
+const randomcolor = require('randomcolor')
 
-var jsonp = require('jsonp')
+const jsonp = require('jsonp')
 
-var ColorBar = require('./components/ColorBar.jsx')
+const ColorBar = require('./components/ColorBar')
 
-var colorToRgbArray = (color) => {
+function colorToRgbArray(color) {
   var rgbColor = tinycolor(color).toRgb()
   return [rgbColor.r, rgbColor.g, rgbColor.b]
 }
@@ -22,7 +22,7 @@ var rgbArrayToHex = (color) => {
 }
 
 var fixMyColors = (colorScheme, overlayColor, overlayIntensity) => {
-  return _.map(colorScheme, color => {
+  return _.map(colorScheme, (color) => {
     var newColor = colorblend.overlay(colorToRgbArray(color), colorToRgbArray(overlayColor), overlayIntensity)
     return rgbArrayToHex(newColor)
   })
@@ -111,17 +111,17 @@ var App = React.createClass({
     var {colorScheme, overlayColor, overlayIntensity} = this.state
 
     return (
-    <div className='content'>
-
+      <div className='content'>
         <div className='content-block'>
+          <h1>Cohesive Colors.</h1>
           <div>
             This is a tool that may help you to create cohesive color schemes.
           </div>
         </div>
 
         <div className='content-block'>
-          <h2>Before:</h2>
-          <ColorBar colors={colorScheme} onChange={this.handleChangeColor} />
+          <h2>Original colors:</h2>
+          <ColorBar colors={colorScheme} onChange={this.handleChangeColor} action='edit' />
           <button onClick={this.randomize}>
             Ger random from ColourLovers
           </button>
@@ -136,20 +136,25 @@ var App = React.createClass({
 
         <div className='content-block'>
           <h2>OverlayColor</h2>
-          <ColorBar colors={[overlayColor]} onChange={this.handleOverlayChange} />
-          <input type='range' min='0' max='1' step='.01' onChange={this.handleOverlayIntensityChange} value={overlayIntensity} />
+          <ColorBar colors={[overlayColor]} onChange={this.handleOverlayChange} action='edit' />
+          <div className='flex-center'>
+            <div className='margin-right-Hx'>Intensity</div>
+            <input className='input-slider' type='range' min='0' max='1' step='.01' onChange={this.handleOverlayIntensityChange} value={overlayIntensity} />
+          </div>
         </div>
 
         <div className='content-block'>
-          <h2>After:</h2>
-          <ColorBar colors={fixMyColors(colorScheme, overlayColor, overlayIntensity)} />
+          <h2>Result:</h2>
+          <ColorBar key={colorScheme.join('')} colors={fixMyColors(colorScheme, overlayColor, overlayIntensity)} action='copy' />
         </div>
 
         <div className='content-block text-block'>
-          <div>
+          {!!window.ClipboardEvent && (
+            <div>Click on any color to copy.</div>
+          )}
+          <br />
+          <div className='content-block -credits'>
             Based on <a target='_blank' href='https://dribbble.com/shots/166246-My-Secret-for-Color-Schemes'>this idea</a> by <a target='_blank' href='https://twitter.com/_erica'>_erica</a>.
-          </div>
-          <div>
             Made by <a href='http://javier.xyz/' target='_blank'>javierbyte</a>.
           </div>
         </div>

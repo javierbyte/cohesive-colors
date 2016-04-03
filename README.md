@@ -1,10 +1,17 @@
-# [cohesive-colors](http://javier.xyz/cohesive-colors)
+# React Minimal Starter
 
-A tool for creating more cohesive color schemes.
-Pick a bunch of random colors that you like and add a touch of magic.
+* React.
+* React-Transform (hot reload).
+* Uglify.
 
-[![cohesive-colors](docs-assets/screenshot.png)](http://javier.xyz/cohesive-colors/)
+## Getting started.
 
-For programatic use see [colorblendjs](https://github.com/javierbyte/colorblendjs).
+### Development.
+```
+npm start
+```
 
-Thanks [_erica](https://twitter.com/_erica) for the idea.
+### Production.
+```
+npm run build
+```
