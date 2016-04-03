@@ -33,6 +33,7 @@
     "webpack-hot-middleware": "^2.9.1"
   },
   "dependencies": {
+    "colorblendjs": "^0.1.2",
     "jsonp": "^0.2.0",
     "lodash": "^4.7.0",
     "randomcolor": "^0.4.3",

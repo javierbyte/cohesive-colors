@@ -1,7 +1,7 @@
 const React = require('react')
 const _ = require('lodash')
 const tinycolor = require('tinycolor2')
-const colorblend = require('./lib/colorblend')
+const colorblend = require('colorblendjs')
 const randomcolor = require('randomcolor')
 
 const jsonp = require('jsonp')
