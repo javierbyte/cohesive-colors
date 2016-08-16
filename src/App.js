@@ -123,11 +123,11 @@ var App = React.createClass({
           <h2>Original colors:</h2>
           <ColorBar colors={colorScheme} onChange={this.handleChangeColor} action='edit' />
           <button onClick={this.randomize}>
-            Ger random from ColourLovers
+            Get random from ColourLovers
           </button>
           {' - '}
           <button onClick={this.handleResizePallete.bind(null, -1)} disabled={colorScheme.length < 2}>
-            Less colors
+            Fewer colors
           </button>
           <button onClick={this.handleResizePallete.bind(null, 1)}>
             More colors
