@@ -173,17 +173,18 @@ var App = React.createClass({
         <div className='content-block'>
           <h1>Cohesive Colors.</h1>
           <div>
-            This is a tool that may help you to create cohesive color schemes.
+            Tool that may help you to create cohesive color schemes.
           </div>
         </div>
 
         <div className='content-block'>
           <h2>Original colors:</h2>
+          <div className='help-text'>Click on any color to edit.</div>
           <ColorBar colors={colorScheme} onChange={this.handleChangeColor} action='edit' />
           <button onClick={this.randomize}>
             Get random from ColourLovers
           </button>
-          {' - '}
+          {' '}
           <button onClick={this.handleResizePallete.bind(null, -1)} disabled={colorScheme.length < 2}>
             Fewer colors
           </button>
@@ -193,7 +194,7 @@ var App = React.createClass({
         </div>
 
         <div className='content-block'>
-          <h2>OverlayColor</h2>
+          <h2>Overlay Color:</h2>
           <ColorBar colors={[overlayColor]} onChange={this.handleOverlayChange} action='edit' />
           <div className='flex-center'>
             <div className='margin-right-Hx'>Intensity</div>
@@ -203,14 +204,16 @@ var App = React.createClass({
 
         <div className='content-block'>
           <h2>Result:</h2>
+          {!!window.ClipboardEvent && (
+            <div className='help-text'>Click on any color to copy.</div>
+          )}
           <ColorBar key={colorScheme.join('')} colors={fixMyColors(colorScheme, overlayColor, overlayIntensity)} action='copy' />
         </div>
 
         <div className='content-block text-block'>
-          {!!window.ClipboardEvent && (
-            <div>Click on any color to copy.</div>
-          )}
-          <br />
+          <div className='help-text'>
+            1/ Pick or create a color palette. 2/ Pick an overall color. 3/ ??? 4/ Profit!
+          </div>
           <div className='content-block -credits'>
             Based on <a target='_blank' href='https://dribbble.com/shots/166246-My-Secret-for-Color-Schemes'>this idea</a> by <a target='_blank' href='https://twitter.com/_erica'>_erica</a>.
             Made by <a href='http://javier.xyz/' target='_blank'>javierbyte</a>.

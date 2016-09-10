@@ -79,3 +79,8 @@ button {
 .margin-right-Hx {
   margin-right: 0.5rem;
 }
+
+.help-text {
+  font-size: 0.9rem;
+  color: #444;
+}
