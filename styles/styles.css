@@ -84,3 +84,13 @@ button {
   font-size: 0.9rem;
   color: #444;
 }
+
+.social-share {
+  position: fixed;
+  top: 0;
+  left: 0;
+  padding: 1rem;
+}
+.social-share iframe {
+  margin-left: 0.5rem;
+}
