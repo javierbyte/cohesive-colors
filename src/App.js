@@ -1,12 +1,12 @@
-const React = require('react')
-const _ = require('lodash')
-const tinycolor = require('tinycolor2')
-const colorblend = require('colorblendjs')
-const randomcolor = require('randomcolor')
+const React = require('react');
+const _ = require('lodash');
+const tinycolor = require('tinycolor2');
+const colorblend = require('colorblendjs');
+const randomcolor = require('randomcolor');
 
-const jsonp = require('jsonp')
+const jsonp = require('jsonp');
 
-const ColorBar = require('./components/ColorBar')
+const ColorBar = require('./components/ColorBar');
 
 const kInitialColorSchemeSource = [
   ['555e7b', 'b7d968', 'b576ad', 'e04644', 'fde47f', '7ccce5'],
@@ -60,36 +60,40 @@ const kInitialColorSchemeSource = [
   ['A8E6CE', 'DCEDC2', 'FFD3B5', 'FFAAA6', 'FF8C94'],
   ['3E4147', 'FFFEDF', 'DFBA69', '5A2E2E', '2A2C31'],
   ['515151', 'FFFFFF', '00B4FF', 'EEEEEE']
-]
+];
 
-function colorToRgbArray (color) {
-  var rgbColor = tinycolor(color).toRgb()
-  return [rgbColor.r, rgbColor.g, rgbColor.b]
+function colorToRgbArray(color) {
+  var rgbColor = tinycolor(color).toRgb();
+  return [rgbColor.r, rgbColor.g, rgbColor.b];
 }
 
-var rgbArrayToHex = (color) => {
+var rgbArrayToHex = color => {
   return tinycolor({
     r: color[0],
     g: color[1],
     b: color[2]
-  }).toHex()
-}
+  }).toHex();
+};
 
 var fixMyColors = (colorScheme, overlayColor, overlayIntensity) => {
-  return _.map(colorScheme, (color) => {
-    var newColor = colorblend.overlay(colorToRgbArray(color), colorToRgbArray(overlayColor), overlayIntensity)
-    return rgbArrayToHex(newColor)
-  })
-}
+  return _.map(colorScheme, color => {
+    var newColor = colorblend.overlay(colorToRgbArray(color), colorToRgbArray(overlayColor), overlayIntensity);
+    return rgbArrayToHex(newColor);
+  });
+};
 
-var getPalleteFromColorLovers = (callback) => {
-  jsonp('https://www.colourlovers.com/api/palettes/top?format=json&jsonCallback=callback&numResults=50', {
-    param: 'jsonCallback'
-  }, callback)
-}
+var getPalleteFromColorLovers = callback => {
+  jsonp(
+    'https://www.colourlovers.com/api/palettes/top?format=json&jsonCallback=callback&numResults=50',
+    {
+      param: 'jsonCallback'
+    },
+    callback
+  );
+};
 
 var App = React.createClass({
-  getInitialState () {
+  getInitialState() {
     return {
       overlayColor: 'FF9C00',
       overlayIntensity: 0.3,
@@ -97,90 +101,90 @@ var App = React.createClass({
       colorSchemeIndex: 0,
       colorSchemeSource: kInitialColorSchemeSource,
       colorScheme: kInitialColorSchemeSource[0]
-    }
+    };
   },
 
-  updateColorSource (nextIndex) {
+  updateColorSource(nextIndex) {
     getPalleteFromColorLovers((err, res) => {
-      if (err) return console.error(err)
+      if (err) return console.error(err);
 
-      const newColorSchemeSource = [this.state.colorScheme, ..._.map(res, 'colors')]
+      const newColorSchemeSource = [this.state.colorScheme, ..._.map(res, 'colors')];
 
       this.setState({
         colorSchemeIndex: 1,
         colorSchemeSource: newColorSchemeSource,
         colorScheme: newColorSchemeSource[1]
-      })
-    })
+      });
+    });
   },
 
-  handleChangeColor (index, color) {
-    var newColorScheme = this.state.colorScheme.slice()
-    newColorScheme[index] = color.hex.replace('#', '')
+  handleChangeColor(index, color) {
+    var newColorScheme = this.state.colorScheme.slice();
+    newColorScheme[index] = color.hex.replace('#', '');
 
     this.setState({
       colorScheme: newColorScheme
-    })
+    });
   },
 
-  handleOverlayChange (index, color) {
-    var newColor = color.hex.replace('#', '')
+  handleOverlayChange(index, color) {
+    var newColor = color.hex.replace('#', '');
 
     this.setState({
       overlayColor: newColor
-    })
+    });
   },
 
-  handleOverlayIntensityChange (evt) {
+  handleOverlayIntensityChange(evt) {
     this.setState({
       overlayIntensity: parseFloat(evt.target.value)
-    })
+    });
   },
 
-  handleResizePallete (delta) {
-    var colorScheme = this.state.colorScheme.slice()
+  handleResizePallete(delta) {
+    var colorScheme = this.state.colorScheme.slice();
 
     if (delta === 1) {
-      colorScheme.push(randomcolor().replace('#', ''))
+      colorScheme.push(randomcolor().replace('#', ''));
     } else {
-      colorScheme.pop()
+      colorScheme.pop();
     }
 
     this.setState({
       colorScheme: colorScheme
-    })
+    });
   },
 
-  randomize () {
-    const newSchemeIndex = (this.state.colorSchemeIndex + 1) % this.state.colorSchemeSource.length
+  randomize() {
+    const newSchemeIndex = (this.state.colorSchemeIndex + 1) % this.state.colorSchemeSource.length;
 
     if (newSchemeIndex === 0) {
-      this.updateColorSource(true)
-      return
+      this.updateColorSource(true);
+      return;
     }
 
     this.setState({
       colorScheme: this.state.colorSchemeSource[newSchemeIndex],
       colorSchemeIndex: newSchemeIndex
-    })
+    });
   },
 
-  render () {
-    var {colorScheme, overlayColor, overlayIntensity} = this.state
+  render() {
+    var { colorScheme, overlayColor, overlayIntensity } = this.state;
 
     return (
-      <div className='content'>
-        <div className='content-block'>
+      <div className="content">
+        <div className="content-block">
           <h1>Cohesive Colors.</h1>
           <div>
             Tool that may help you to create cohesive color schemes.
           </div>
         </div>
 
-        <div className='content-block'>
+        <div className="content-block">
           <h2>Original colors:</h2>
-          <div className='help-text'>Click on any color to edit.</div>
-          <ColorBar colors={colorScheme} onChange={this.handleChangeColor} action='edit' />
+          <div className="help-text">Click on any color to edit.</div>
+          <ColorBar colors={colorScheme} onChange={this.handleChangeColor} action="edit" />
           <button onClick={this.randomize}>
             Get random from ColourLovers
           </button>
@@ -193,36 +197,52 @@ var App = React.createClass({
           </button>
         </div>
 
-        <div className='content-block'>
+        <div className="content-block">
           <h2>Overlay Color:</h2>
-          <ColorBar colors={[overlayColor]} onChange={this.handleOverlayChange} action='edit' />
-          <div className='flex-center'>
-            <div className='margin-right-Hx'>Intensity</div>
-            <input className='input-slider' type='range' min='0' max='1' step='.01' onChange={this.handleOverlayIntensityChange} value={overlayIntensity} />
+          <ColorBar colors={[overlayColor]} onChange={this.handleOverlayChange} action="edit" />
+          <div className="flex-center">
+            <div className="margin-right-Hx">Intensity</div>
+            <input
+              className="input-slider"
+              type="range"
+              min="0"
+              max="1"
+              step=".01"
+              onChange={this.handleOverlayIntensityChange}
+              value={overlayIntensity}
+            />
           </div>
         </div>
 
-        <div className='content-block'>
+        <div className="content-block">
           <h2>Result:</h2>
-          {!!window.ClipboardEvent && (
-            <div className='help-text'>Click on any color to copy.</div>
-          )}
-          <ColorBar key={colorScheme.join('')} colors={fixMyColors(colorScheme, overlayColor, overlayIntensity)} action='copy' />
+          {!!window.ClipboardEvent && <div className="help-text">Click on any color to copy.</div>}
+          <ColorBar
+            key={colorScheme.join('')}
+            colors={fixMyColors(colorScheme, overlayColor, overlayIntensity)}
+            action="copy"
+          />
         </div>
 
-        <div className='content-block text-block'>
-          <div className='help-text'>
+        <div className="content-block text-block">
+          <div className="help-text">
             1/ Pick or create a color palette. 2/ Pick an overall color. 3/ ??? 4/ Profit!
           </div>
-          <div className='content-block -credits'>
-            Based on <a target='_blank' href='https://dribbble.com/shots/166246-My-Secret-for-Color-Schemes'>this idea</a> by <a target='_blank' href='https://twitter.com/_erica'>_erica</a>.
-            Made by <a href='http://javier.xyz/' target='_blank'>javierbyte</a>.
+          <div className="content-block -credits">
+            Based on
+            {' '}
+            <a target="_blank" href="https://dribbble.com/shots/166246-My-Secret-for-Color-Schemes">this idea</a>
+            {' '}
+            by
+            {' '}
+            <a target="_blank" href="https://twitter.com/_erica">_erica</a>
+            .
+            Made by <a href="http://javier.xyz/" target="_blank">javierbyte</a>.
           </div>
         </div>
       </div>
-    )
+    );
   }
+});
 
-})
-
-module.exports = App
+module.exports = App;

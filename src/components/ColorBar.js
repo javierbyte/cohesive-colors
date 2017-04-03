@@ -1,9 +1,9 @@
-const React = require('react')
-const ReactDOM = require('react-dom')
-const ColorPickerPackage = require('react-color')
-const ColorPicker = ColorPickerPackage.default
-const _ = require('lodash')
-const Clipboard = require('clipboard')
+const React = require('react');
+const ReactDOM = require('react-dom');
+const ColorPickerPackage = require('react-color');
+const ColorPicker = ColorPickerPackage.default;
+const _ = require('lodash');
+const Clipboard = require('clipboard');
 
 const ColorBar = React.createClass({
   propTypes: {
@@ -12,7 +12,7 @@ const ColorBar = React.createClass({
     action: React.PropTypes.oneOf(['copy', 'edit'])
   },
 
-  getInitialState () {
+  getInitialState() {
     return {
       currentlyEditing: -1,
 
@@ -21,45 +21,45 @@ const ColorBar = React.createClass({
         top: '0px',
         left: '0px'
       }
-    }
+    };
   },
 
-  componentDidMount () {
-    this.clips = []
+  componentDidMount() {
+    this.clips = [];
 
     if (this.props.action === 'copy') {
-      var colorElms = [...ReactDOM.findDOMNode(this).querySelectorAll('[data-color]')]
+      var colorElms = [...ReactDOM.findDOMNode(this).querySelectorAll('[data-color]')];
 
       _.forEach(colorElms, (el, idx) => {
-        var color = '#' + el.dataset.color.toUpperCase()
+        var color = '#' + el.dataset.color.toUpperCase();
 
         this.clips[idx] = new Clipboard(el, {
-          text: function (trigger) {
-            return color
+          text: function(trigger) {
+            return color;
           }
-        })
+        });
 
         this.clips[idx].on('success', () => {
-          console.warn('success', color)
-        })
-      })
+          console.warn('success', color);
+        });
+      });
     }
   },
 
-  componentWillUnmount () {
-    this.clips = null
+  componentWillUnmount() {
+    this.clips = null;
   },
 
-  onColorClick (colorIndex, evt) {
-    const {action} = this.props
+  onColorClick(colorIndex, evt) {
+    const { action } = this.props;
 
     if (action === 'edit') {
-      this.onEditColor(colorIndex, evt)
+      this.onEditColor(colorIndex, evt);
     }
   },
 
-  onEditColor (colorIndex, evt) {
-    var elRect = evt.currentTarget.getBoundingClientRect()
+  onEditColor(colorIndex, evt) {
+    var elRect = evt.currentTarget.getBoundingClientRect();
 
     this.setState({
       currentlyEditing: colorIndex,
@@ -68,47 +68,52 @@ const ColorBar = React.createClass({
         top: '' + Math.floor(elRect.top + elRect.height) + 'px',
         left: '' + Math.floor(elRect.left) + 'px'
       }
-    })
+    });
   },
 
-  handleClose () {
+  handleClose() {
     this.setState({
       currentlyEditing: -1
-    })
+    });
   },
 
-  render () {
-    var {colors, onChange} = this.props
-    var {currentlyEditing, popupPosition} = this.state
+  render() {
+    var { colors, onChange } = this.props;
+    var { currentlyEditing, popupPosition } = this.state;
 
     var colorRender = _.map(colors, (color, index) => {
       return (
-        <div className='colorbar-element' data-color={colors[index]} key={index} onClick={this.onColorClick.bind(null, index)} style={{
-          backgroundColor: '#' + color
-        }}>
+        <div
+          className="colorbar-element"
+          data-color={colors[index]}
+          key={index}
+          onClick={this.onColorClick.bind(null, index)}
+          style={{
+            backgroundColor: '#' + color
+          }}
+        >
           #{color}
         </div>
-      )
-    })
+      );
+    });
 
     return (
-      <div className='colorbar-container'>
-        <div className='colorbar'>
+      <div className="colorbar-container">
+        <div className="colorbar">
           {colorRender}
         </div>
-        {!!onChange && (
+        {!!onChange &&
           <ColorPicker
             display={currentlyEditing !== -1}
             onClose={this.handleClose}
-            type='chrome'
+            type="chrome"
             positionCSS={popupPosition}
             onChange={onChange.bind(null, currentlyEditing)}
-            color={colors[currentlyEditing]} />
-        )}
+            color={colors[currentlyEditing]}
+          />}
       </div>
-    )
+    );
   }
+});
 
-})
-
-module.exports = ColorBar
+module.exports = ColorBar;
