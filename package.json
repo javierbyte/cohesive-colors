@@ -18,17 +18,16 @@
   "homepage": "https://github.com/javierbyte/cohesive-colors",
   "devDependencies": {
     "babel-core": "^6.6.5",
-    "babel-eslint": "^5.0.0-beta4",
-    "babel-loader": "^6.2.4",
+    "babel-loader": "^7.1.1",
     "babel-preset-es2015": "^6.3.13",
     "babel-preset-react": "^6.3.13",
     "babel-preset-react-hmre": "^1.1.1",
-    "cross-env": "^1.0.7",
+    "cross-env": "^5.0.3",
     "eventsource-polyfill": "^0.9.6",
     "express": "^4.13.3",
     "rimraf": "^2.4.3",
-    "standard": "^6.0.8",
-    "webpack": "^1.12.9",
+    "standard": "^10.0.2",
+    "webpack": "^3.4.1",
     "webpack-dev-middleware": "^1.4.0",
     "webpack-hot-middleware": "^2.9.1"
   },
@@ -37,10 +36,11 @@
     "colorblendjs": "^0.1.2",
     "jsonp": "^0.2.0",
     "lodash": "^4.7.0",
-    "randomcolor": "^0.4.3",
-    "react": "^0.14.7",
-    "react-color": "^1.x.x",
-    "react-dom": "^0.14.7",
+    "randomcolor": "^0.5.3",
+    "react": "^15.6.1",
+    "react-click-outside": "github:tj/react-click-outside",
+    "react-color": "^2.13.4",
+    "react-dom": "^15.6.1",
     "tinycolor2": "^1.3.0"
   }
 }

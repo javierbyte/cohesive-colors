@@ -1,15 +1,18 @@
-const React = require('react');
-const ReactDOM = require('react-dom');
-const ColorPickerPackage = require('react-color');
+const React = require("react");
+const ReactDOM = require("react-dom");
+const ColorPickerPackage = require("react-color");
+const _ = require("lodash");
+const Clipboard = require("clipboard");
+
+import ClickOutside from "react-click-outside";
+
 const ColorPicker = ColorPickerPackage.default;
-const _ = require('lodash');
-const Clipboard = require('clipboard');
 
 const ColorBar = React.createClass({
   propTypes: {
     colors: React.PropTypes.array,
     onChange: React.PropTypes.func,
-    action: React.PropTypes.oneOf(['copy', 'edit'])
+    action: React.PropTypes.oneOf(["copy", "edit"])
   },
 
   getInitialState() {
@@ -17,9 +20,10 @@ const ColorBar = React.createClass({
       currentlyEditing: -1,
 
       popupPosition: {
-        position: 'fixed',
-        top: '0px',
-        left: '0px'
+        zIndex: 10,
+        position: "fixed",
+        top: "0px",
+        left: "0px"
       }
     };
   },
@@ -27,11 +31,13 @@ const ColorBar = React.createClass({
   componentDidMount() {
     this.clips = [];
 
-    if (this.props.action === 'copy') {
-      var colorElms = [...ReactDOM.findDOMNode(this).querySelectorAll('[data-color]')];
+    if (this.props.action === "copy") {
+      var colorElms = [
+        ...ReactDOM.findDOMNode(this).querySelectorAll("[data-color]")
+      ];
 
       _.forEach(colorElms, (el, idx) => {
-        var color = '#' + el.dataset.color.toUpperCase();
+        var color = "#" + el.dataset.color.toUpperCase();
 
         this.clips[idx] = new Clipboard(el, {
           text: function(trigger) {
@@ -39,9 +45,23 @@ const ColorBar = React.createClass({
           }
         });
 
-        this.clips[idx].on('success', () => {
-          console.warn('success', color);
+        this.clips[idx].on("success", () => {
+          console.warn("success", color);
         });
+      });
+    }
+
+    if (this.props.copyArray && this.props.colors) {
+      const propsColors = this.props.colors;
+
+      const copyAllEl = ReactDOM.findDOMNode(this).querySelector(
+        ".-js-copy-all"
+      );
+
+      this.clips[propsColors.length] = new Clipboard(copyAllEl, {
+        text: function(trigger) {
+          return propsColors.map(col => "#" + col.toUpperCase()).join(", ");
+        }
       });
     }
   },
@@ -53,7 +73,7 @@ const ColorBar = React.createClass({
   onColorClick(colorIndex, evt) {
     const { action } = this.props;
 
-    if (action === 'edit') {
+    if (action === "edit") {
       this.onEditColor(colorIndex, evt);
     }
   },
@@ -64,9 +84,10 @@ const ColorBar = React.createClass({
     this.setState({
       currentlyEditing: colorIndex,
       popupPosition: {
-        position: 'fixed',
-        top: '' + Math.floor(elRect.top + elRect.height) + 'px',
-        left: '' + Math.floor(elRect.left) + 'px'
+        zIndex: 10,
+        position: "fixed",
+        top: "" + Math.floor(elRect.top + elRect.height) + "px",
+        left: "" + Math.floor(elRect.left) + "px"
       }
     });
   },
@@ -78,7 +99,7 @@ const ColorBar = React.createClass({
   },
 
   render() {
-    var { colors, onChange } = this.props;
+    var { colors, onChange, copyArray } = this.props;
     var { currentlyEditing, popupPosition } = this.state;
 
     var colorRender = _.map(colors, (color, index) => {
@@ -89,7 +110,7 @@ const ColorBar = React.createClass({
           key={index}
           onClick={this.onColorClick.bind(null, index)}
           style={{
-            backgroundColor: '#' + color
+            backgroundColor: "#" + color
           }}
         >
           #{color}
@@ -102,15 +123,22 @@ const ColorBar = React.createClass({
         <div className="colorbar">
           {colorRender}
         </div>
+
+        {copyArray &&
+          <button className="link" href="#" className="-js-copy-all">
+            Copy all the colors
+          </button>}
+
         {!!onChange &&
-          <ColorPicker
-            display={currentlyEditing !== -1}
-            onClose={this.handleClose}
-            type="chrome"
-            positionCSS={popupPosition}
-            onChange={onChange.bind(null, currentlyEditing)}
-            color={colors[currentlyEditing]}
-          />}
+          currentlyEditing !== -1 &&
+          <ClickOutside style={popupPosition} onClickOutside={this.handleClose}>
+            <ColorPicker
+              style={popupPosition}
+              type="chrome"
+              onChange={onChange.bind(null, currentlyEditing)}
+              color={colors[currentlyEditing]}
+            />
+          </ClickOutside>}
       </div>
     );
   }

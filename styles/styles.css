@@ -5,7 +5,10 @@
 }
 
 body {
-  font: 16px/1.8 Roboto Mono, monaco, sans-serif;
+  font-size: 16px;
+  line-height: 1.8;
+  font-family: -apple-system, "Helvetica Neue", "Lucida Grande", Arial,
+    sans-serif;
   text-align: center;
 }
 h2 {
@@ -41,6 +44,7 @@ button {
 .colorbar {
   display: block;
   margin: 1em auto;
+  font-family: Monaco, Menlo, Courier, Courier New, Andale Mono, monospace;
 }
 .colorbar-element {
   font-size: .85em;
@@ -54,6 +58,7 @@ button {
   user-select: none;
   cursor: pointer;
   transition: background-color 0.1s;
+  min-width: 4.5em;
 }
 .colorbar-element:hover {
   top: -1px;
