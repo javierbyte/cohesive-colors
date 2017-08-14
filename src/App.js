@@ -249,6 +249,9 @@ var App = React.createClass({
             1/ Pick or create a color palette. 2/ Pick an overall color. 3/ ???
             4/ Profit!
           </div>
+          <div className='content-block -credits'>
+            I'm working on an iOS app! Create and save Cohesive Color palletes, <a href='http://eepurl.com/cZwQn9' target='_blank'>Sign Up</a> to be the first to know!
+          </div>
           <div className="content-block -credits">
             Based on{" "}
             <a
