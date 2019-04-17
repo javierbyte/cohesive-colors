@@ -1,4 +1,5 @@
-const React = require("react");
+import React from "react";
+
 const _ = require("lodash");
 const tinycolor = require("tinycolor2");
 const colorblend = require("colorblendjs");
@@ -77,11 +78,7 @@ var rgbArrayToHex = color => {
 
 var fixMyColors = (colorScheme, overlayColor, overlayIntensity) => {
   return _.map(colorScheme, color => {
-    var newColor = colorblend.overlay(
-      colorToRgbArray(color),
-      colorToRgbArray(overlayColor),
-      overlayIntensity
-    );
+    var newColor = colorblend.overlay(colorToRgbArray(color), colorToRgbArray(overlayColor), overlayIntensity);
     return rgbArrayToHex(newColor);
   });
 };
@@ -96,26 +93,24 @@ var getPalleteFromColorLovers = callback => {
   );
 };
 
-var App = React.createClass({
-  getInitialState() {
-    return {
+class App extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
       overlayColor: "FF9C00",
       overlayIntensity: 0.3,
-
       colorSchemeIndex: 0,
       colorSchemeSource: kInitialColorSchemeSource,
       colorScheme: kInitialColorSchemeSource[0]
     };
-  },
+  }
 
   updateColorSource(nextIndex) {
     getPalleteFromColorLovers((err, res) => {
       if (err) return console.error(err);
 
-      const newColorSchemeSource = [
-        this.state.colorScheme,
-        ..._.map(res, "colors")
-      ];
+      const newColorSchemeSource = [this.state.colorScheme, ..._.map(res, "colors")];
 
       this.setState({
         colorSchemeIndex: 1,
@@ -123,7 +118,7 @@ var App = React.createClass({
         colorScheme: newColorSchemeSource[1]
       });
     });
-  },
+  }
 
   handleChangeColor(index, color) {
     var newColorScheme = this.state.colorScheme.slice();
@@ -132,7 +127,7 @@ var App = React.createClass({
     this.setState({
       colorScheme: newColorScheme
     });
-  },
+  }
 
   handleOverlayChange(index, color) {
     var newColor = color.hex.replace("#", "");
@@ -140,13 +135,13 @@ var App = React.createClass({
     this.setState({
       overlayColor: newColor
     });
-  },
+  }
 
   handleOverlayIntensityChange(evt) {
     this.setState({
       overlayIntensity: parseFloat(evt.target.value)
     });
-  },
+  }
 
   handleResizePallete(delta) {
     var colorScheme = this.state.colorScheme.slice();
@@ -160,11 +155,10 @@ var App = React.createClass({
     this.setState({
       colorScheme: colorScheme
     });
-  },
+  }
 
   randomize() {
-    const newSchemeIndex =
-      (this.state.colorSchemeIndex + 1) % this.state.colorSchemeSource.length;
+    const newSchemeIndex = (this.state.colorSchemeIndex + 1) % this.state.colorSchemeSource.length;
 
     if (newSchemeIndex === 0) {
       this.updateColorSource(true);
@@ -175,7 +169,7 @@ var App = React.createClass({
       colorScheme: this.state.colorSchemeSource[newSchemeIndex],
       colorSchemeIndex: newSchemeIndex
     });
-  },
+  }
 
   render() {
     var { colorScheme, overlayColor, overlayIntensity } = this.state;
@@ -190,32 +184,17 @@ var App = React.createClass({
         <div className="content-block">
           <h2>Original colors:</h2>
           <div className="help-text">Click on any color to edit.</div>
-          <ColorBar
-            colors={colorScheme}
-            onChange={this.handleChangeColor}
-            action="edit"
-          />
-          <button onClick={this.randomize}>
-            Get random from ColourLovers
-          </button>{" "}
-          <button
-            onClick={this.handleResizePallete.bind(null, -1)}
-            disabled={colorScheme.length < 2}
-          >
+          <ColorBar colors={colorScheme} onChange={this.handleChangeColor.bind(this)} action="edit" />
+          <button onClick={this.randomize.bind(this)}>Get random from ColourLovers</button>{" "}
+          <button onClick={this.handleResizePallete.bind(this, -1)} disabled={colorScheme.length < 2}>
             Fewer colors
           </button>
-          <button onClick={this.handleResizePallete.bind(null, 1)}>
-            More colors
-          </button>
+          <button onClick={this.handleResizePallete.bind(this, 1)}>More colors</button>
         </div>
 
         <div className="content-block">
           <h2>Overlay Color:</h2>
-          <ColorBar
-            colors={[overlayColor]}
-            onChange={this.handleOverlayChange}
-            action="edit"
-          />
+          <ColorBar colors={[overlayColor]} onChange={this.handleOverlayChange.bind(this)} action="edit" />
           <div className="flex-center">
             <div className="margin-right-Hx">Intensity</div>
             <input
@@ -224,7 +203,7 @@ var App = React.createClass({
               min="0"
               max="1"
               step=".01"
-              onChange={this.handleOverlayIntensityChange}
+              onChange={this.handleOverlayIntensityChange.bind(this)}
               value={overlayIntensity}
             />
           </div>
@@ -232,12 +211,9 @@ var App = React.createClass({
 
         <div className="content-block">
           <h2>Result:</h2>
-          {!!window.ClipboardEvent &&
-            <div className="help-text">Click on any color to copy.</div>}
+          {!!window.ClipboardEvent && <div className="help-text">Click on any color to copy.</div>}
           <ColorBar
-            key={fixMyColors(colorScheme, overlayColor, overlayIntensity).join(
-              ""
-            )}
+            key={fixMyColors(colorScheme, overlayColor, overlayIntensity).join("")}
             copyArray={true}
             colors={fixMyColors(colorScheme, overlayColor, overlayIntensity)}
             action="copy"
@@ -245,19 +221,17 @@ var App = React.createClass({
         </div>
 
         <div className="content-block text-block">
-          <div className="help-text">
-            1/ Pick or create a color palette. 2/ Pick an overall color. 3/ ???
-            4/ Profit!
-          </div>
-          <div className='content-block -credits'>
-            I'm working on an iOS app! Create and save Cohesive Color palletes, <a href='http://eepurl.com/cZwQn9' target='_blank'>Sign Up</a> to be the first to know!
+          <div className="help-text">1/ Pick or create a color palette. 2/ Pick an overall color. 3/ ??? 4/ Profit!</div>
+          <div className="content-block -credits">
+            I'm working on an iOS app! Create and save Cohesive Color palletes,{" "}
+            <a href="http://eepurl.com/cZwQn9" target="_blank">
+              Sign Up
+            </a>{" "}
+            to be the first to know!
           </div>
           <div className="content-block -credits">
             Based on{" "}
-            <a
-              target="_blank"
-              href="https://dribbble.com/shots/166246-My-Secret-for-Color-Schemes"
-            >
+            <a target="_blank" href="https://dribbble.com/shots/166246-My-Secret-for-Color-Schemes">
               this idea
             </a>{" "}
             by{" "}
@@ -267,12 +241,13 @@ var App = React.createClass({
             . Made by{" "}
             <a href="http://javier.xyz/" target="_blank">
               javierbyte
-            </a>.
+            </a>
+            .
           </div>
         </div>
       </div>
     );
   }
-});
+}
 
 module.exports = App;
