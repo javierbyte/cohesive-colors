@@ -1,14 +1,14 @@
 {
   "files": {
     "main.css": "/cohesive-colors/static/css/main.e4042b1d.chunk.css",
-    "main.js": "/cohesive-colors/static/js/main.6403c4d2.chunk.js",
-    "main.js.map": "/cohesive-colors/static/js/main.6403c4d2.chunk.js.map",
+    "main.js": "/cohesive-colors/static/js/main.a69ac1fc.chunk.js",
+    "main.js.map": "/cohesive-colors/static/js/main.a69ac1fc.chunk.js.map",
     "runtime-main.js": "/cohesive-colors/static/js/runtime-main.88bfc42e.js",
     "runtime-main.js.map": "/cohesive-colors/static/js/runtime-main.88bfc42e.js.map",
     "static/js/2.35af6b0b.chunk.js": "/cohesive-colors/static/js/2.35af6b0b.chunk.js",
     "static/js/2.35af6b0b.chunk.js.map": "/cohesive-colors/static/js/2.35af6b0b.chunk.js.map",
     "index.html": "/cohesive-colors/index.html",
-    "precache-manifest.ab0c50119b9ba922545962c811702633.js": "/cohesive-colors/precache-manifest.ab0c50119b9ba922545962c811702633.js",
+    "precache-manifest.a002d009676f2345b8fb140b9e9d493e.js": "/cohesive-colors/precache-manifest.a002d009676f2345b8fb140b9e9d493e.js",
     "service-worker.js": "/cohesive-colors/service-worker.js",
     "static/css/main.e4042b1d.chunk.css.map": "/cohesive-colors/static/css/main.e4042b1d.chunk.css.map"
   },
@@ -16,6 +16,6 @@
     "static/js/runtime-main.88bfc42e.js",
     "static/js/2.35af6b0b.chunk.js",
     "static/css/main.e4042b1d.chunk.css",
-    "static/js/main.6403c4d2.chunk.js"
+    "static/js/main.a69ac1fc.chunk.js"
   ]
 }
