@@ -1,6 +1,6 @@
 {
   "files": {
-    "main.css": "/cohesive-colors/static/css/main.a80b0882.chunk.css",
+    "main.css": "/cohesive-colors/static/css/main.e4042b1d.chunk.css",
     "main.js": "/cohesive-colors/static/js/main.2387c7f3.chunk.js",
     "main.js.map": "/cohesive-colors/static/js/main.2387c7f3.chunk.js.map",
     "runtime-main.js": "/cohesive-colors/static/js/runtime-main.88bfc42e.js",
@@ -8,14 +8,14 @@
     "static/js/2.35af6b0b.chunk.js": "/cohesive-colors/static/js/2.35af6b0b.chunk.js",
     "static/js/2.35af6b0b.chunk.js.map": "/cohesive-colors/static/js/2.35af6b0b.chunk.js.map",
     "index.html": "/cohesive-colors/index.html",
-    "precache-manifest.d80188ff93932bedce2575459c66492a.js": "/cohesive-colors/precache-manifest.d80188ff93932bedce2575459c66492a.js",
+    "precache-manifest.1d0db630e8d4f06e7a30a7cf2fa998bd.js": "/cohesive-colors/precache-manifest.1d0db630e8d4f06e7a30a7cf2fa998bd.js",
     "service-worker.js": "/cohesive-colors/service-worker.js",
-    "static/css/main.a80b0882.chunk.css.map": "/cohesive-colors/static/css/main.a80b0882.chunk.css.map"
+    "static/css/main.e4042b1d.chunk.css.map": "/cohesive-colors/static/css/main.e4042b1d.chunk.css.map"
   },
   "entrypoints": [
     "static/js/runtime-main.88bfc42e.js",
     "static/js/2.35af6b0b.chunk.js",
-    "static/css/main.a80b0882.chunk.css",
+    "static/css/main.e4042b1d.chunk.css",
     "static/js/main.2387c7f3.chunk.js"
   ]
 }
