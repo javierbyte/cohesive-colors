@@ -2,7 +2,8 @@
   "name": "cohesive-colors",
   "description": "Tool that may help you to create cohesive color schemes.",
   "version": "1.0.0",
-  "private": true,
+  "private": false,
+  "homepage": "https://javier.xyz/cohesive-colors/",
   "dependencies": {
     "react": "^16.10.2",
     "react-dom": "^16.10.2",
