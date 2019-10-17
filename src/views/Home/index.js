@@ -257,20 +257,17 @@ class Home extends React.Component {
           </div>
           <br />
           <div className="content-block -credits">
-            Based on{" "}
+            {"Based on "}
             <a target="_blank" href="https://dribbble.com/shots/166246-My-Secret-for-Color-Schemes">
               this idea
-            </a>{" "}
-            by{" "}
-            <a target="_blank" href="https://twitter.com/_erica">
-              _erica
             </a>
-            . Made by{" "}
+            {". Made by "}
             <a href="http://javier.xyz/" target="_blank">
               javierbyte
             </a>
             .
           </div>
+          <br />
           <br />
         </div>
       </div>
