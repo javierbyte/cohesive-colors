@@ -135,5 +135,3 @@ class ColorBar extends React.Component {
 }
 
 export default ColorBar;
-
-

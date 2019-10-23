@@ -12,8 +12,6 @@ const jsonp = require("jsonp");
 // const ColorBar = require("../../components/ColorBar");
 // const ColorBar = () => <div>khe</div>
 
-console.warn({ ColorBar });
-
 const kInitialColorSchemeSource = [
   ["555e7b", "b7d968", "b576ad", "e04644", "fde47f", "7ccce5"],
   ["69D2E7", "A7DBD8", "E0E4CC", "F38630", "FA6900"],
@@ -228,6 +226,7 @@ class Home extends React.Component {
           />
         </div>
         <br />
+
         <div className="credits">
           <div className="credits-header">Other projects</div>
           <a href="https://javier.xyz/img2css">
@@ -267,7 +266,6 @@ class Home extends React.Component {
             </a>
             .
           </div>
-          <br />
           <br />
         </div>
       </div>
