@@ -11,7 +11,7 @@
     "clipboard": "^2.0.4",
     "colorblendjs": "^0.1.2",
     "jsonp": "^0.2.0",
-    "lodash": "^4.7.0",
+    "lodash": "^4.17.19",
     "randomcolor": "^0.5.3",
     "react-click-outside": "tj/react-click-outside",
     "react-color": "^2.13.4",
