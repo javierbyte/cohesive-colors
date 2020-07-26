@@ -1,11 +1,11 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "cc5faf1b681af9fa627e2f748f177551",
+    "revision": "07ae5075a5102211dca5a11e8b50e8a9",
     "url": "/cohesive-colors/index.html"
   },
   {
-    "revision": "02c3ad2797016e79cab0",
-    "url": "/cohesive-colors/static/css/main.918bbe07.chunk.css"
+    "revision": "e098d9e3fa5ce186bf8e",
+    "url": "/cohesive-colors/static/css/main.4b145f31.chunk.css"
   },
   {
     "revision": "8d70cff6cded8708ee97",
@@ -16,8 +16,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/cohesive-colors/static/js/2.81844192.chunk.js.LICENSE.txt"
   },
   {
-    "revision": "02c3ad2797016e79cab0",
-    "url": "/cohesive-colors/static/js/main.44650613.chunk.js"
+    "revision": "e098d9e3fa5ce186bf8e",
+    "url": "/cohesive-colors/static/js/main.eb64fa6d.chunk.js"
   },
   {
     "revision": "1ad2db37d3af83cedd25",
