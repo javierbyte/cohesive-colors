@@ -4,14 +4,7 @@ object-assign
 @license MIT
 */
 
-/*!
- * clipboard.js v2.0.6
- * https://clipboardjs.com/
- * 
- * Licensed MIT © Zeno Rocha
- */
-
-/** @license React v0.19.1
+/** @license React v0.20.0-rc.3
  * scheduler.production.min.js
  *
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -21,6 +14,15 @@ object-assign
  */
 
 /** @license React v16.13.1
+ * react-is.production.min.js
+ *
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+/** @license React v17.0.0-rc.3
  * react-dom.production.min.js
  *
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -29,7 +31,7 @@ object-assign
  * LICENSE file in the root directory of this source tree.
  */
 
-/** @license React v16.13.1
+/** @license React v17.0.0-rc.3
  * react.production.min.js
  *
  * Copyright (c) Facebook, Inc. and its affiliates.
