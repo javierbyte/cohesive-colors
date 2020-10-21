@@ -4,19 +4,17 @@
   "version": "1.0.0",
   "private": false,
   "homepage": "https://javier.xyz/cohesive-colors/",
-  "homepages": "https://cohesivecolors.com/",
   "dependencies": {
-    "clipboard": "^2.0.4",
+    "@ctrl/tinycolor": "^3.1.6",
+    "capsize": "^1.1.0",
     "colorblendjs": "^0.1.2",
-    "jsonp": "^0.2.0",
-    "lodash": "^4.7.0",
-    "randomcolor": "^0.5.3",
-    "react": "^16.10.2",
+    "randomcolor": "^0.6.2",
+    "react": "^17.0.0-rc.3",
     "react-click-outside": "tj/react-click-outside",
     "react-color": "^2.13.4",
-    "react-dom": "^16.10.2",
-    "react-scripts": "^3.4.1",
-    "tinycolor2": "^1.3.0"
+    "react-dom": "^17.0.0-rc.3",
+    "react-scripts": "^3.4.3",
+    "styled-components": "^5.2.0"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -48,6 +46,8 @@
   "author": "Javier Bórquez <hi@javier.xyz>",
   "license": "BSD-3-Clause",
   "devDependencies": {
+    "eslint": "^7.11.0",
+    "eslint-plugin-react": "^7.21.4",
     "gh-pages": "^3.1.0"
   }
 }

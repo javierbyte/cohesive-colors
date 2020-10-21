@@ -1,11 +1,42 @@
 import React from "react";
 import ClickOutside from "react-click-outside";
 import { ChromePicker } from "react-color";
-import _ from "lodash";
-import Clipboard from "clipboard";
+
+import Styled from "styled-components";
 
 const $body = document.querySelector("body");
 let scrollPosition = 0;
+
+const ColorbarContainer = Styled.div`
+  padding: 0 16px 16px 0;
+`;
+
+const Colorbar = Styled.div``;
+
+const ColorbarElement = Styled.button`
+  appearance: none;
+  border: none;
+  text-align: center;
+  display: inline-block;
+  text-transform: uppercase;
+  user-select: none;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  font-weight: 500 !important;
+  color: #0007;
+  line-height:1;
+  font-size: 16px;
+  width:80px;
+  height:80px;
+  border-radius:80px;
+  margin-right: -12px;
+  margin-bottom: -12px;
+
+  box-shadow: rgba(0, 0, 0, 0.05) 0 1px 0, rgba(0, 0, 0, 0.02) 0 3px 16px;
+
+  transition: transform 0.1s, background-color 0.1s, border-radius 0.3s;
+  transform: scale(1);
+`;
 
 const bodyLock = {
   enable() {
@@ -33,44 +64,8 @@ class ColorBar extends React.Component {
       top: "0px",
       left: "0px",
     },
-    priority: new Array(this.props.colors.length)
-      .fill("")
-      .map((e, eIdx) => eIdx),
+    priority: new Array(this.props.colors.length).fill("").map((e, eIdx) => eIdx),
   };
-
-  componentDidMount() {
-    const self = this;
-    this.clips = [];
-
-    if (this.props.action === "copy") {
-      var colorElms = [
-        ...document.querySelectorAll(".-colorbar-copy [data-color]"),
-      ];
-
-      _.forEach(colorElms, (el, idx) => {
-        var color = "#" + el.dataset.color.toUpperCase();
-        const index = idx;
-
-        this.clips[idx] = new Clipboard(el, {
-          text: function (trigger) {
-            return self.props.colors[index];
-          },
-        });
-      });
-    }
-
-    if (this.props.copyArray && this.props.colors) {
-      const copyAllEl = document.querySelector(".-js-copy-all");
-
-      this.clips[self.props.colors.length] = new Clipboard(copyAllEl, {
-        text: function (trigger) {
-          return self.props.colors
-            .map((col) => "#" + col.toUpperCase())
-            .join(", ");
-        },
-      });
-    }
-  }
 
   componentWillUnmount() {
     for (const clipId in this.clips) {
@@ -87,16 +82,18 @@ class ColorBar extends React.Component {
 
     if (action === "edit") {
       this.onEditColor(colorIndex, evt);
+    } else {
+      navigator &&
+        navigator.clipboard &&
+        navigator.clipboard.writeText &&
+        navigator.clipboard.writeText("#" + this.props.colors[colorIndex]);
     }
   }
 
   onEditColor(colorIndex, evt) {
     var elRect = evt.currentTarget.getBoundingClientRect();
 
-    const leftPosition = Math.min(
-      Math.floor(elRect.left),
-      window.innerWidth - 350
-    );
+    const leftPosition = Math.min(Math.floor(elRect.left), window.innerWidth - 350);
 
     bodyLock.enable();
 
@@ -119,70 +116,34 @@ class ColorBar extends React.Component {
   }
 
   render() {
-    var { colors, onChange, copyArray } = this.props;
+    var { colors, onChange } = this.props;
     var { currentlyEditing, popupPosition } = this.state;
 
-    var colorRender = _.map(colors, (color, index) => {
+    var colorRender = colors.map((color, index) => {
       return (
-        <div
-          className={`colorbar-element`}
-          data-color={colors[index]}
+        <ColorbarElement
           key={index}
-          // onMouseOver={
-          // (evt) => {
-          //   this.setState((state) => {
-          //     const newPriority = new Array(colors.length)
-          //       .fill(0)
-          //       .map((el, elIdx) => {
-          //         return state.priority[elIdx] || elIdx;
-          //       });
-
-          //     const maxPriority = newPriority.reduce((res, current) => {
-          //       return Math.max(res, current);
-          //     }, 0);
-
-          //     newPriority[index] = maxPriority + 1;
-
-          //     return {
-          //       ...state,
-          //       priority: newPriority,
-          //     };
-          //   });
-          // }
-          // }
           onClick={this.onColorClick.bind(this, index)}
           style={{
             backgroundColor: "#" + color,
-            zIndex:
-              currentlyEditing === index
-                ? 100000 - 1
-                : 1000 - (this.state.priority[index] || index),
+            zIndex: currentlyEditing === index ? 100000 - 1 : 1000 - (this.state.priority[index] || index),
             borderRadius: currentlyEditing === index ? 3 : "50%",
           }}>
-          #{color}
-        </div>
+          <div>{`${color.slice(0, 2)}`}</div>
+          <div>{`${color.slice(2, 4)}`}</div>
+          <div>{`${color.slice(4, 6)}`}</div>
+        </ColorbarElement>
       );
     });
 
     return (
-      <div
-        className={`colorbar-container  ${copyArray ? "-colorbar-copy" : ""}`}>
-        <div className="colorbar">{colorRender}</div>
-
-        <br />
-
-        {copyArray && (
-          <button href="#" className="-js-copy-all">
-            Copy Results
-          </button>
-        )}
+      <ColorbarContainer>
+        <Colorbar>{colorRender}</Colorbar>
 
         {!!onChange && currentlyEditing !== -1 && (
-          <ClickOutside
-            style={popupPosition}
-            onClickOutside={this.handleClose.bind(this)}>
+          <ClickOutside style={popupPosition} onClickOutside={this.handleClose.bind(this)}>
             <ChromePicker
-              width={300}
+              width={320}
               disableAlpha={true}
               type="chrome"
               onChange={onChange.bind(this, currentlyEditing)}
@@ -190,7 +151,7 @@ class ColorBar extends React.Component {
             />
           </ClickOutside>
         )}
-      </div>
+      </ColorbarContainer>
     );
   }
 }
