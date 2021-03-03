@@ -1,16 +1,29 @@
-import React from "react";
+import React, { Fragment, useState, useEffect } from "react";
 
-import { TinyColor } from "@ctrl/tinycolor";
-import colorblend from "colorblendjs";
-import randomcolor from "randomcolor";
+import ColorBar from "./components/ColorBar.jsx";
 
-import "./index.css";
+import Credits from "./components/Credits.jsx";
+import MoreExperiments from "./components/MoreExperiments.jsx";
 
-import ColorBar from "./components/ColorBar";
+import { FixMyColors } from "./util/color-functions.js";
 
-import { Button, Range, HeaderH1, HeaderH3, Text, Space, Box, A, Container, Input, Inline, Ul, Li } from "./jbx.jsx";
+import { Button, Range, HeaderH1, HeaderH3, Text, Space, Box, A, Container, Input, Inline } from "./components/jbx.jsx";
 
-const aa = 3;
+import Styled from "styled-components";
+
+const Alert = Styled.div({
+  backgroundColor: "rgba(246,229,141,.19)",
+  borderLeft: "3px solid #f6e58d",
+  display: "none",
+  padding: 8,
+  "@media screen and (min-width: 1200px)": {
+    display: "inline-block",
+    position: "absolute",
+    top: 32,
+    right: 64,
+    maxWidth: 380,
+  },
+});
 
 const kInitialColorSchemeSource = [
   ["555e7b", "b7d968", "b576ad", "e04644", "fde47f", "7ccce5"],
@@ -63,141 +76,40 @@ const kInitialColorSchemeSource = [
   ["300030", "480048", "601848", "C04848", "F07241"],
   ["A8E6CE", "DCEDC2", "FFD3B5", "FFAAA6", "FF8C94"],
   ["3E4147", "FFFEDF", "DFBA69", "5A2E2E", "2A2C31"],
-  ["515151", "FFFFFF", "00B4FF", "EEEEEE"],
 ];
 
-function colorToRgbArray(color) {
-  const rgbColor = new TinyColor(color).toRgb();
-  return [rgbColor.r, rgbColor.g, rgbColor.b];
-}
+function Home() {
+  const [colorSources] = useState(kInitialColorSchemeSource);
 
-const rgbArrayToHex = (color) => {
-  return new TinyColor({
-    r: color[0],
-    g: color[1],
-    b: color[2],
-  }).toHex();
-};
+  const [colorScheme, colorSchemeSet] = useState(kInitialColorSchemeSource[0]);
 
-const fixMyColors = (colorScheme, overlayColor, overlayIntensity) => {
-  return colorScheme.map((color) => {
-    const newColor = colorblend.overlay(colorToRgbArray(color), colorToRgbArray(overlayColor), overlayIntensity);
-    return rgbArrayToHex(newColor);
-  });
-};
+  const [overlayColor, overlayColorSet] = useState("FF9C00");
+  const [overlayIntensity, overlayIntensitySet] = useState(0.3);
 
-// const getPalleteFromColorLovers = (callback) => {
-//   jsonp(
-//     "https://www.colourlovers.com/api/palettes/top?format=json&jsonCallback=callback&numResults=50",
-//     {
-//       param: "jsonCallback",
-//     },
-//     callback
-//   );
-// };
+  const shareUrl = `${document.location.origin}${document.location.pathname}?src=${colorScheme.join(
+    ","
+  )}&overlay=${overlayColor}&intensity=${overlayIntensity}`;
 
-class Home extends React.Component {
-  state = {
-    overlayColor: "FF9C00",
-    overlayIntensity: 0.3,
-    colorSchemeIndex: 0,
-    colorSchemeSource: kInitialColorSchemeSource,
-    colorScheme: kInitialColorSchemeSource[0],
-  };
+  useEffect(() => {
+    const colorSchemeQuery = new URLSearchParams(document.location.search).get("src");
+    if (colorSchemeQuery) colorSchemeSet(colorSchemeQuery.split(","));
 
-  componentDidMount() {
-    const colorScheme = new URLSearchParams(document.location.search).get("src");
-    const overlayColor = new URLSearchParams(document.location.search).get("overlay");
-    const overlayIntensity = new URLSearchParams(document.location.search).get("intensity");
+    const overlayColorQuery = new URLSearchParams(document.location.search).get("overlay");
+    if (overlayColorQuery) overlayColorSet(overlayColorQuery);
 
-    this.setState((state) => {
-      return {
-        colorScheme: colorScheme ? colorScheme.split(",") : state.colorScheme,
-        overlayColor: overlayColor || state.overlayColor,
-        overlayIntensity: overlayIntensity || state.overlayIntensity,
-      };
-    });
-  }
+    const overlayIntensityQuery = new URLSearchParams(document.location.search).get("intensity");
+    if (overlayIntensityQuery) overlayIntensitySet(Number(overlayIntensityQuery));
+  }, []);
 
-  // updateColorSource(nextIndex) {
-  //   getPalleteFromColorLovers((err, res) => {
-  //     if (err) return console.error(err);
-
-  //     const newColorSchemeSource = [this.state.colorScheme, ...map(res, "colors")];
-
-  //     this.setState({
-  //       colorSchemeIndex: 1,
-  //       colorSchemeSource: newColorSchemeSource,
-  //       colorScheme: newColorSchemeSource[1],
-  //     });
-  //   });
-  // }
-
-  handleChangeColor(index, color) {
-    const newColorScheme = this.state.colorScheme.slice();
-    newColorScheme[index] = color.hex.replace("#", "");
-
-    this.setState({
-      colorScheme: newColorScheme,
-    });
-  }
-
-  handleOverlayChange(index, color) {
-    const newColor = color.hex.replace("#", "");
-
-    this.setState({
-      overlayColor: newColor,
-    });
-  }
-
-  handleOverlayIntensityChange(evt) {
-    this.setState({
-      overlayIntensity: parseFloat(evt.target.value),
-    });
-  }
-
-  handleResizePallete(delta) {
-    const colorScheme = this.state.colorScheme.slice();
-
-    if (delta === 1) {
-      colorScheme.push(randomcolor().replace("#", ""));
-    } else {
-      colorScheme.pop();
-    }
-
-    this.setState({
-      colorScheme: colorScheme,
-    });
-  }
-
-  randomize() {
-    const newSchemeIndex = (this.state.colorSchemeIndex + 1) % this.state.colorSchemeSource.length;
-
-    // if (newSchemeIndex === 0) {
-    //   this.updateColorSource(true);
-    //   return;
-    // }
-
-    this.setState({
-      colorScheme: this.state.colorSchemeSource[newSchemeIndex],
-      colorSchemeIndex: newSchemeIndex,
-    });
-  }
-
-  render() {
-    const { colorScheme, overlayColor, overlayIntensity } = this.state;
-
-    const shareUrl = `${document.location.origin}${document.location.pathname}?src=${colorScheme.join(
-      ","
-    )}&overlay=${overlayColor}&intensity=${overlayIntensity}`;
-
-    return (
+  return (
+    <Fragment>
       <Container>
-        <Box padding={2}>
+        <Box padding={[2, 1]}>
           <Space h={1} />
 
           <HeaderH1
             style={{
+              fontWeight: 900,
               display: "inline-block",
               width: "auto",
               padding: "6px",
@@ -207,6 +119,7 @@ class Home extends React.Component {
           </HeaderH1>
           <HeaderH1
             style={{
+              fontWeight: 900,
               display: "inline-block",
               width: "auto",
               marginTop: "-4px",
@@ -217,42 +130,54 @@ class Home extends React.Component {
           </HeaderH1>
 
           <Space h={1} />
-          <Text>Tool that may help you to create cohesive color schemes.</Text>
+          <Text>Tool that can help you to create cohesive color palettes.</Text>
           <Space h={2} />
 
           <HeaderH3>1. Select Colors</HeaderH3>
 
-          <Text>Create the original color pallete, anything you want. Click to edit.</Text>
+          <Text>Create the original color palette, anything you want. Click to edit.</Text>
 
           <Space h={1} />
-          <ColorBar colors={colorScheme} onChange={this.handleChangeColor.bind(this)} action="edit" />
+          <ColorBar colors={colorScheme} onChange={colorSchemeSet} action="EDIT" />
           <Space h={1} />
           <Inline>
-            <Button className="-small" onClick={this.randomize.bind(this)}>
+            <Button
+              onClick={() => {
+                const randomColorScheme = colorSources[Math.floor(Math.random() * colorSources.length)];
+                colorSchemeSet(randomColorScheme);
+              }}
+              className="-small">
               Random
             </Button>
             <Space w={1} />
             <Button
               style={{ width: 42 }}
-              onClick={this.handleResizePallete.bind(this, -1)}
-              disabled={colorScheme.length < 2}>
+              disabled={colorScheme.length < 2}
+              onClick={() => {
+                colorSchemeSet(colorScheme.slice(0, -1));
+              }}>
               -
             </Button>
             <Space w={0.5} />
 
-            <Button style={{ width: 42 }} onClick={this.handleResizePallete.bind(this, 1)}>
+            <Button
+              style={{ width: 42 }}
+              onClick={() => {
+                const randomColorScheme = colorSources[Math.floor(Math.random() * colorSources.length)];
+                const randomColor = randomColorScheme[Math.floor(Math.random() * randomColorScheme.length)];
+                colorSchemeSet([...colorScheme, randomColor]);
+              }}>
               +
             </Button>
           </Inline>
 
           <Space h={2} />
           <HeaderH3>2. Add overlay</HeaderH3>
-          <Text>This color will bring the original colors together.</Text>
 
           <Space h={1} />
 
           <Inline>
-            <ColorBar colors={[overlayColor]} onChange={this.handleOverlayChange.bind(this)} action="edit" />
+            <ColorBar colors={[overlayColor]} onChange={(newArr) => overlayColorSet(newArr[0])} action="EDIT" />
 
             <Space w={1} />
 
@@ -265,10 +190,10 @@ class Home extends React.Component {
                 aria-label="Scale"
                 type="range"
                 value={overlayIntensity}
-                onChange={this.handleOverlayIntensityChange.bind(this)}
-                min="0"
-                max="1"
-                step=".01"
+                onChange={(evt) => overlayIntensitySet(evt.target.value)}
+                min={0}
+                max={1}
+                step={0.01}
               />
             </Box>
           </Inline>
@@ -281,7 +206,7 @@ class Home extends React.Component {
             {navigator && navigator.clipboard && navigator.clipboard.writeText && (
               <Button
                 onClick={() => {
-                  const colorsStr = fixMyColors(colorScheme, overlayColor, overlayIntensity)
+                  const colorsStr = FixMyColors(colorScheme, overlayColor, overlayIntensity)
                     .map((color) => `#${color}`)
                     .join(", ");
 
@@ -295,15 +220,16 @@ class Home extends React.Component {
 
           <Space h={1} />
 
-          <ColorBar copyArray={true} colors={fixMyColors(colorScheme, overlayColor, overlayIntensity)} action="copy" />
+          <ColorBar copyArray={true} colors={FixMyColors(colorScheme, overlayColor, overlayIntensity)} action="COPY" />
 
           <Space h={1} />
 
-          <Text>Share this color pallete</Text>
+          <Text>Share this color palette</Text>
+          <Space h={0.5} />
           <Inline>
-            <Input aria-label="Share URL" type="text" value={shareUrl} disabled={true} />
+            <Input aria-label="Share URL" type="text" style={{ maxWidth: "70vw" }} value={shareUrl} disabled={true} />
             <Space w={1} />
-            {"navigator && navigator.clipboard && navigator.clipboard.writeText" && (
+            {navigator && navigator.clipboard && navigator.clipboard.writeText && (
               <Button
                 onClick={() => {
                   navigator.clipboard.writeText(shareUrl);
@@ -314,70 +240,22 @@ class Home extends React.Component {
           </Inline>
 
           <Space h={2} />
-
-          <Text>More unrelated experiments</Text>
-          <Space h={0.5} />
-          <Ul>
-            <Li>
-              <Text>
-                Tool that can convert any image into a pure css image, <A href="https://javier.xyz/img2css/">img2css</A>
-                .
-              </Text>
-            </Li>
-            <Li>
-              <Text>
-                Find the visual center of your images / logos,{" "}
-                <A href="https://javier.xyz/visual-center/">visual-center</A>.
-              </Text>
-            </Li>
-            <Li>
-              <Text>
-                Create animated CSS transitions with box-shadow, <A href="https://javier.xyz/morphin/">morphin</A>.
-              </Text>
-            </Li>
-            <Li>
-              <Text>
-                JS AI Battle Game, <A href="https://clashjs.com/">clashjs</A>.
-              </Text>
-            </Li>
-          </Ul>
-
+          <MoreExperiments />
           <Space h={2} />
-
-          <Box
-            padding={0.25}
-            style={{
-              display: "inline-block",
-              backgroundColor: "rgba(246,229,141,.19)",
-              borderLeft: "3px solid #f6e58d",
-            }}>
-            <Text>
-              I'm working on an iOS app! Create and save cohesive color palletes,{" "}
-              <strong>
-                <A href="http://eepurl.com/cZwQn9" target="_blank" rel="noopener noreferrer">
-                  Sign Up
-                </A>
-              </strong>{" "}
-              to be the first to know!
-            </Text>
-          </Box>
-
-          <Space h={2} />
-          <Text>
-            Made by <A href="https://javier.xyz">javierbyte</A>. Based on this idea{" "}
-            <A
-              target="_blank"
-              rel="noopener noreferrer"
-              href="https://dribbble.com/shots/166246-My-Secret-for-Color-Schemes">
-              this idea
-            </A>
-            .
-          </Text>
+          <Credits />
           <Space h={3} />
         </Box>
       </Container>
-    );
-  }
+
+      <Alert>
+        <Text>
+          {"Follow me on twitter "}
+          <A href="https://twitter.com/javierbyte">@javierbyte</A>
+          {" for more experiments and tools!"}
+        </Text>
+      </Alert>
+    </Fragment>
+  );
 }
 
 export default Home;

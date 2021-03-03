@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 import React from "react";
 import Styled from "styled-components";
 import capsize from "capsize";
@@ -82,6 +84,7 @@ export const ButtonContainer = Styled.button({
   padding: `0 ${SPACE / 2}px`,
   border: "none",
   height: SPACE * 2.5,
+  outline: "none",
 });
 
 export const Button = function (props) {
@@ -221,7 +224,9 @@ export const Box = Styled.div({
 
     const paddingArr = [padding].flat();
 
-    return paddingArr.map((paddingValue) => `${paddingValue * SPACE}px`).join(` `);
+    return paddingArr
+      .map((paddingValue) => `${paddingValue * SPACE}px`)
+      .join(` `);
   },
 
   "@media (max-width: 768px)": {
