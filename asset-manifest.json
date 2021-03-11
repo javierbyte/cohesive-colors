@@ -1,8 +1,8 @@
 {
   "files": {
     "main.css": "/cohesive-colors/static/css/main.280eda04.chunk.css",
-    "main.js": "/cohesive-colors/static/js/main.73bde582.chunk.js",
-    "main.js.map": "/cohesive-colors/static/js/main.73bde582.chunk.js.map",
+    "main.js": "/cohesive-colors/static/js/main.1d2b9fae.chunk.js",
+    "main.js.map": "/cohesive-colors/static/js/main.1d2b9fae.chunk.js.map",
     "runtime-main.js": "/cohesive-colors/static/js/runtime-main.7a2e7ebd.js",
     "runtime-main.js.map": "/cohesive-colors/static/js/runtime-main.7a2e7ebd.js.map",
     "static/js/2.e5e176f0.chunk.js": "/cohesive-colors/static/js/2.e5e176f0.chunk.js",
@@ -15,6 +15,6 @@
     "static/js/runtime-main.7a2e7ebd.js",
     "static/js/2.e5e176f0.chunk.js",
     "static/css/main.280eda04.chunk.css",
-    "static/js/main.73bde582.chunk.js"
+    "static/js/main.1d2b9fae.chunk.js"
   ]
 }
