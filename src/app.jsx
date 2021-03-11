@@ -104,7 +104,7 @@ function Home() {
   return (
     <Fragment>
       <Container>
-        <Box padding={[2, 1]}>
+        <Box padding={[2, 2]}>
           <Space h={1} />
 
           <HeaderH1
