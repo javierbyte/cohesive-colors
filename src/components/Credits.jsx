@@ -32,7 +32,7 @@ export default function Credits() {
 
       <Space h={2} />
       <Text>
-        Made by <A href="https://javier.xyz">javierbyte</A>. Based on this idea{" "}
+        Made by <A href="https://javier.xyz">javierbyte</A>.{" "}
         <A
           target="_blank"
           rel="noopener noreferrer"
