@@ -32,7 +32,7 @@ export default function Credits() {
 
       <Space h={2} />
       <Text>
-        Made by <A href="https://javier.xyz">javierbyte</A>.{" "}
+        Made by <A href="https://javier.xyz">javierbyte</A>.{" Based on "}
         <A
           target="_blank"
           rel="noopener noreferrer"
@@ -40,7 +40,7 @@ export default function Credits() {
         >
           this idea
         </A>
-        .
+        {"."}
       </Text>
     </Fragment>
   );
