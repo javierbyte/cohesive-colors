@@ -6,13 +6,14 @@
   "homepage": "https://javier.xyz/cohesive-colors/",
   "dependencies": {
     "@ctrl/tinycolor": "^3.1.6",
-    "capsize": "^1.1.0",
+    "capsize": "1.1.0",
     "colorblendjs": "^0.1.2",
-    "react": "^17.0.1",
+    "jbx": "^1.0.0",
+    "react": "^17.0.2",
     "react-color": "^2.13.4",
-    "react-dom": "^17.0.1",
+    "react-dom": "^17.0.2",
     "react-scripts": "^4.0.3",
-    "styled-components": "^5.2.0"
+    "styled-components": "^5.3.0"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -45,8 +46,8 @@
   "author": "Javier Bórquez <hi@javier.xyz>",
   "license": "BSD-3-Clause",
   "devDependencies": {
-    "eslint": "^7.11.0",
-    "eslint-plugin-react": "^7.21.4",
-    "gh-pages": "^3.1.0"
+    "eslint": "^7.30.0",
+    "eslint-plugin-react": "^7.24.0",
+    "gh-pages": "^3.2.3"
   }
 }

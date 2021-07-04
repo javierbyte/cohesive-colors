@@ -7,15 +7,19 @@ import MoreExperiments from "./components/MoreExperiments.jsx";
 
 import { FixMyColors } from "./util/color-functions.js";
 
-import { Button, Range, HeaderH1, HeaderH3, Text, Space, Box, A, Container, Input, Inline } from "./components/jbx.jsx";
+import { JBX, Button, Range, HeaderH1, HeaderH3, Text, Space, Box, Container, Input, Inline } from "jbx";
 
 import Styled from "styled-components";
 
-const Alert = Styled.div({
-  backgroundColor: "rgba(246,229,141,.19)",
-  borderLeft: "3px solid #f6e58d",
+const Alert = Styled.a({
+  backgroundColor: "#1DA1F2",
+  borderLeft: "3px solid rgba(0, 0, 0, 0.2)",
+  textShadow: "rgba(0, 0, 0, 0.1) 0 -1px 0",
+  color: "#fff",
   display: "none",
   padding: 8,
+  zIndex: 2,
+  textDecoration: "none",
   "@media screen and (min-width: 1200px)": {
     display: "inline-block",
     position: "absolute",
@@ -23,6 +27,10 @@ const Alert = Styled.div({
     right: 64,
     maxWidth: 380,
   },
+  ':hover': {
+    textDecoration: "underline",
+    backgroundColor: "#1d8ff2"
+  }
 });
 
 const kInitialColorSchemeSource = [
@@ -103,6 +111,7 @@ function Home() {
 
   return (
     <Fragment>
+      <JBX accent={"#eb4d4b"} />
       <Container>
         <Box padding={[2, 2]}>
           <Space h={1} />
@@ -247,10 +256,10 @@ function Home() {
         </Box>
       </Container>
 
-      <Alert>
+      <Alert href="https://twitter.com/javierbyte">
         <Text>
-          {"Follow me on twitter "}
-          <A href="https://twitter.com/javierbyte">@javierbyte</A>
+          {"Follow me on twitter, "}
+          <strong>@javierbyte</strong>
           {" for more experiments and tools!"}
         </Text>
       </Alert>
