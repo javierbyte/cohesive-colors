@@ -7,7 +7,19 @@ import MoreExperiments from "./components/MoreExperiments.jsx";
 
 import { FixMyColors } from "./util/color-functions.js";
 
-import { JBX, Button, Range, HeaderH1, HeaderH3, Text, Space, Box, Container, Input, Inline } from "jbx";
+import {
+  JBX,
+  Button,
+  Range,
+  HeaderH1,
+  HeaderH3,
+  Text,
+  Space,
+  Box,
+  Container,
+  Input,
+  Inline,
+} from "jbx";
 
 import Styled from "styled-components";
 
@@ -27,10 +39,10 @@ const Alert = Styled.a({
     right: 64,
     maxWidth: 380,
   },
-  ':hover': {
+  ":hover": {
     textDecoration: "underline",
-    backgroundColor: "#1d8ff2"
-  }
+    backgroundColor: "#1d8ff2",
+  },
 });
 
 const kInitialColorSchemeSource = [
@@ -94,166 +106,203 @@ function Home() {
   const [overlayColor, overlayColorSet] = useState("FF9C00");
   const [overlayIntensity, overlayIntensitySet] = useState(0.3);
 
-  const shareUrl = `${document.location.origin}${document.location.pathname}?src=${colorScheme.join(
+  const shareUrl = `${document.location.origin}${
+    document.location.pathname
+  }?src=${colorScheme.join(
     ","
   )}&overlay=${overlayColor}&intensity=${overlayIntensity}`;
 
   useEffect(() => {
-    const colorSchemeQuery = new URLSearchParams(document.location.search).get("src");
+    const colorSchemeQuery = new URLSearchParams(document.location.search).get(
+      "src"
+    );
     if (colorSchemeQuery) colorSchemeSet(colorSchemeQuery.split(","));
 
-    const overlayColorQuery = new URLSearchParams(document.location.search).get("overlay");
+    const overlayColorQuery = new URLSearchParams(document.location.search).get(
+      "overlay"
+    );
     if (overlayColorQuery) overlayColorSet(overlayColorQuery);
 
-    const overlayIntensityQuery = new URLSearchParams(document.location.search).get("intensity");
-    if (overlayIntensityQuery) overlayIntensitySet(Number(overlayIntensityQuery));
+    const overlayIntensityQuery = new URLSearchParams(
+      document.location.search
+    ).get("intensity");
+    if (overlayIntensityQuery)
+      overlayIntensitySet(Number(overlayIntensityQuery));
   }, []);
 
   return (
     <Fragment>
-      <JBX accent={"#eb4d4b"} />
       <Container>
-        <Box padding={[2, 2]}>
-          <Space h={1} />
+        <JBX accent={"#eb4d4b"} />
 
-          <HeaderH1
-            style={{
-              fontWeight: 900,
-              display: "inline-block",
-              width: "auto",
-              padding: "6px",
-              backgroundColor: "var(--accent-color)",
+        <HeaderH1
+          style={{
+            fontWeight: 900,
+            display: "inline-block",
+            width: "auto",
+            padding: "6px",
+            backgroundColor: "var(--accent-color)",
+          }}>
+          Cohesive
+        </HeaderH1>
+        <HeaderH1
+          style={{
+            fontWeight: 900,
+            display: "inline-block",
+            width: "auto",
+            marginTop: "-4px",
+            padding: "6px",
+            backgroundColor: "var(--accent-color)",
+          }}>
+          Colors
+        </HeaderH1>
+
+        <Space h={1} />
+        <Text>Tool that can help you to create cohesive color palettes.</Text>
+        <Space h={2} />
+
+        <HeaderH3>1. Select Colors</HeaderH3>
+
+        <Text>
+          Create the original color palette, anything you want. Click to edit.
+        </Text>
+
+        <Space h={1} />
+        <ColorBar
+          colors={colorScheme}
+          onChange={colorSchemeSet}
+          action="EDIT"
+        />
+        <Space h={1} />
+        <Inline>
+          <Button
+            onClick={() => {
+              const randomColorScheme =
+                colorSources[Math.floor(Math.random() * colorSources.length)];
+              colorSchemeSet(randomColorScheme);
+            }}
+            className="-small">
+            Random
+          </Button>
+          <Space w={1} />
+          <Button
+            style={{ width: 42 }}
+            disabled={colorScheme.length < 2}
+            onClick={() => {
+              colorSchemeSet(colorScheme.slice(0, -1));
             }}>
-            Cohesive
-          </HeaderH1>
-          <HeaderH1
-            style={{
-              fontWeight: 900,
-              display: "inline-block",
-              width: "auto",
-              marginTop: "-4px",
-              padding: "6px",
-              backgroundColor: "var(--accent-color)",
+            -
+          </Button>
+          <Space w={0.5} />
+
+          <Button
+            style={{ width: 42 }}
+            onClick={() => {
+              const randomColorScheme =
+                colorSources[Math.floor(Math.random() * colorSources.length)];
+              const randomColor =
+                randomColorScheme[
+                  Math.floor(Math.random() * randomColorScheme.length)
+                ];
+              colorSchemeSet([...colorScheme, randomColor]);
             }}>
-            Colors
-          </HeaderH1>
+            +
+          </Button>
+        </Inline>
 
-          <Space h={1} />
-          <Text>Tool that can help you to create cohesive color palettes.</Text>
-          <Space h={2} />
+        <Space h={2} />
+        <HeaderH3>2. Add overlay</HeaderH3>
 
-          <HeaderH3>1. Select Colors</HeaderH3>
+        <Space h={1} />
 
-          <Text>Create the original color palette, anything you want. Click to edit.</Text>
+        <Inline>
+          <ColorBar
+            colors={[overlayColor]}
+            onChange={(newArr) => overlayColorSet(newArr[0])}
+            action="EDIT"
+          />
 
-          <Space h={1} />
-          <ColorBar colors={colorScheme} onChange={colorSchemeSet} action="EDIT" />
-          <Space h={1} />
-          <Inline>
+          <Space w={1} />
+
+          <Box style={{ width: 220 }}>
+            <Text>
+              Intensity{" "}
+              <span style={{ color: "#666" }}>
+                {Math.round(overlayIntensity * 100)}%
+              </span>
+            </Text>
+            <Space h={1} />
+            <Range
+              aria-label="Scale"
+              type="range"
+              value={overlayIntensity}
+              onChange={(evt) => overlayIntensitySet(evt.target.value)}
+              min={0}
+              max={1}
+              step={0.01}
+            />
+          </Box>
+        </Inline>
+
+        <Space h={2} />
+
+        <Inline>
+          <HeaderH3>3. Result</HeaderH3>
+          <div style={{ flex: 1 }} />
+          {navigator && navigator.clipboard && navigator.clipboard.writeText && (
             <Button
               onClick={() => {
-                const randomColorScheme = colorSources[Math.floor(Math.random() * colorSources.length)];
-                colorSchemeSet(randomColorScheme);
-              }}
-              className="-small">
-              Random
-            </Button>
-            <Space w={1} />
-            <Button
-              style={{ width: 42 }}
-              disabled={colorScheme.length < 2}
-              onClick={() => {
-                colorSchemeSet(colorScheme.slice(0, -1));
+                const colorsStr = FixMyColors(
+                  colorScheme,
+                  overlayColor,
+                  overlayIntensity
+                )
+                  .map((color) => `#${color}`)
+                  .join(", ");
+
+                navigator.clipboard.writeText(colorsStr);
               }}>
-              -
+              Copy All
             </Button>
-            <Space w={0.5} />
+          )}
+        </Inline>
+        <Text>Click on any color to copy.</Text>
 
+        <Space h={1} />
+
+        <ColorBar
+          copyArray={true}
+          colors={FixMyColors(colorScheme, overlayColor, overlayIntensity)}
+          action="COPY"
+        />
+
+        <Space h={1} />
+
+        <Text>Share this color palette</Text>
+        <Space h={0.5} />
+        <Inline>
+          <Input
+            aria-label="Share URL"
+            type="text"
+            style={{ maxWidth: "70vw" }}
+            value={shareUrl}
+            disabled={true}
+          />
+          <Space w={1} />
+          {navigator && navigator.clipboard && navigator.clipboard.writeText && (
             <Button
-              style={{ width: 42 }}
               onClick={() => {
-                const randomColorScheme = colorSources[Math.floor(Math.random() * colorSources.length)];
-                const randomColor = randomColorScheme[Math.floor(Math.random() * randomColorScheme.length)];
-                colorSchemeSet([...colorScheme, randomColor]);
+                navigator.clipboard.writeText(shareUrl);
               }}>
-              +
+              Copy URL
             </Button>
-          </Inline>
+          )}
+        </Inline>
 
-          <Space h={2} />
-          <HeaderH3>2. Add overlay</HeaderH3>
-
-          <Space h={1} />
-
-          <Inline>
-            <ColorBar colors={[overlayColor]} onChange={(newArr) => overlayColorSet(newArr[0])} action="EDIT" />
-
-            <Space w={1} />
-
-            <Box style={{ width: 220 }}>
-              <Text>
-                Intensity <span style={{ color: "#666" }}>{Math.round(overlayIntensity * 100)}%</span>
-              </Text>
-              <Space h={1} />
-              <Range
-                aria-label="Scale"
-                type="range"
-                value={overlayIntensity}
-                onChange={(evt) => overlayIntensitySet(evt.target.value)}
-                min={0}
-                max={1}
-                step={0.01}
-              />
-            </Box>
-          </Inline>
-
-          <Space h={2} />
-
-          <Inline>
-            <HeaderH3>3. Result</HeaderH3>
-            <div style={{ flex: 1 }} />
-            {navigator && navigator.clipboard && navigator.clipboard.writeText && (
-              <Button
-                onClick={() => {
-                  const colorsStr = FixMyColors(colorScheme, overlayColor, overlayIntensity)
-                    .map((color) => `#${color}`)
-                    .join(", ");
-
-                  navigator.clipboard.writeText(colorsStr);
-                }}>
-                Copy All
-              </Button>
-            )}
-          </Inline>
-          <Text>Click on any color to copy.</Text>
-
-          <Space h={1} />
-
-          <ColorBar copyArray={true} colors={FixMyColors(colorScheme, overlayColor, overlayIntensity)} action="COPY" />
-
-          <Space h={1} />
-
-          <Text>Share this color palette</Text>
-          <Space h={0.5} />
-          <Inline>
-            <Input aria-label="Share URL" type="text" style={{ maxWidth: "70vw" }} value={shareUrl} disabled={true} />
-            <Space w={1} />
-            {navigator && navigator.clipboard && navigator.clipboard.writeText && (
-              <Button
-                onClick={() => {
-                  navigator.clipboard.writeText(shareUrl);
-                }}>
-                Copy URL
-              </Button>
-            )}
-          </Inline>
-
-          <Space h={2} />
-          <MoreExperiments />
-          <Space h={2} />
-          <Credits />
-          <Space h={3} />
-        </Box>
+        <Space h={2} />
+        <MoreExperiments />
+        <Space h={2} />
+        <Credits />
       </Container>
 
       <Alert href="https://twitter.com/javierbyte">
