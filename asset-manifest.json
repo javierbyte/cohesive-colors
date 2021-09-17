@@ -1,17 +1,17 @@
 {
   "files": {
-    "main.js": "/cohesive-colors/static/js/main.087369d2.chunk.js",
-    "main.js.map": "/cohesive-colors/static/js/main.087369d2.chunk.js.map",
+    "main.js": "/cohesive-colors/static/js/main.9051c390.chunk.js",
+    "main.js.map": "/cohesive-colors/static/js/main.9051c390.chunk.js.map",
     "runtime-main.js": "/cohesive-colors/static/js/runtime-main.62ce2fba.js",
     "runtime-main.js.map": "/cohesive-colors/static/js/runtime-main.62ce2fba.js.map",
-    "static/js/2.79a0759b.chunk.js": "/cohesive-colors/static/js/2.79a0759b.chunk.js",
-    "static/js/2.79a0759b.chunk.js.map": "/cohesive-colors/static/js/2.79a0759b.chunk.js.map",
+    "static/js/2.bbffc889.chunk.js": "/cohesive-colors/static/js/2.bbffc889.chunk.js",
+    "static/js/2.bbffc889.chunk.js.map": "/cohesive-colors/static/js/2.bbffc889.chunk.js.map",
     "index.html": "/cohesive-colors/index.html",
-    "static/js/2.79a0759b.chunk.js.LICENSE.txt": "/cohesive-colors/static/js/2.79a0759b.chunk.js.LICENSE.txt"
+    "static/js/2.bbffc889.chunk.js.LICENSE.txt": "/cohesive-colors/static/js/2.bbffc889.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
     "static/js/runtime-main.62ce2fba.js",
-    "static/js/2.79a0759b.chunk.js",
-    "static/js/main.087369d2.chunk.js"
+    "static/js/2.bbffc889.chunk.js",
+    "static/js/main.9051c390.chunk.js"
   ]
 }
