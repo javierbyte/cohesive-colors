@@ -161,7 +161,8 @@ function Home() {
                 colorSources[Math.floor(Math.random() * colorSources.length)];
               colorSchemeSet(randomColorScheme);
             }}
-            className="-small">
+            className="-small"
+          >
             Random
           </Button>
           <Space w={1} />
@@ -170,7 +171,8 @@ function Home() {
             disabled={colorScheme.length < 2}
             onClick={() => {
               colorSchemeSet(colorScheme.slice(0, -1));
-            }}>
+            }}
+          >
             -
           </Button>
           <Space w={0.5} />
@@ -185,7 +187,8 @@ function Home() {
                   Math.floor(Math.random() * randomColorScheme.length)
                 ];
               colorSchemeSet([...colorScheme, randomColor]);
-            }}>
+            }}
+          >
             +
           </Button>
         </Inline>
@@ -241,7 +244,8 @@ function Home() {
                   .join(", ");
 
                 navigator.clipboard.writeText(colorsStr);
-              }}>
+              }}
+            >
               Copy All
             </Button>
           )}
@@ -273,7 +277,8 @@ function Home() {
             <Button
               onClick={() => {
                 navigator.clipboard.writeText(shareUrl);
-              }}>
+              }}
+            >
               Copy URL
             </Button>
           )}
