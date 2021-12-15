@@ -11,7 +11,7 @@ import {
   JBX,
   Button,
   Range,
-  HeaderH1,
+  MainHeader,
   HeaderH3,
   Text,
   Space,
@@ -135,27 +135,7 @@ function Home() {
       <Container>
         <JBX accent={"#eb4d4b"} />
 
-        <HeaderH1
-          style={{
-            fontWeight: 900,
-            display: "inline-block",
-            width: "auto",
-            padding: "6px",
-            backgroundColor: "var(--accent-color)",
-          }}>
-          Cohesive
-        </HeaderH1>
-        <HeaderH1
-          style={{
-            fontWeight: 900,
-            display: "inline-block",
-            width: "auto",
-            marginTop: "-4px",
-            padding: "6px",
-            backgroundColor: "var(--accent-color)",
-          }}>
-          Colors
-        </HeaderH1>
+        <MainHeader>Cohesive Colors</MainHeader>
 
         <Space h={1} />
         <Text>Tool that can help you to create cohesive color palettes.</Text>
