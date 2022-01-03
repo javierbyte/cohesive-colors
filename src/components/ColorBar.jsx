@@ -1,11 +1,11 @@
 /* eslint-disable */
 
-import React, { useState, useEffect } from "react";
-import { ChromePicker } from "react-color";
+import { useState, useEffect } from 'react';
+import { ChromePicker } from 'react-color';
 
-import Styled from "styled-components";
+import Styled from 'styled-components';
 
-const $body = document.querySelector("body");
+const $body = document.querySelector('body');
 let scrollPosition = 0;
 
 const ColorbarContainer = Styled.div`
@@ -44,18 +44,18 @@ const ColorbarElement = Styled.div`
 const bodyLock = {
   enable() {
     scrollPosition = window.pageYOffset;
-    $body.style.overflow = "hidden";
-    $body.style.position = "fixed";
+    $body.style.overflow = 'hidden';
+    $body.style.position = 'fixed';
     $body.style.top = `-${scrollPosition}px`;
-    $body.style.width = "100%";
+    $body.style.width = '100%';
   },
   disable() {
-    $body.style.removeProperty("overflow");
-    $body.style.removeProperty("position");
-    $body.style.removeProperty("top");
-    $body.style.removeProperty("width");
+    $body.style.removeProperty('overflow');
+    $body.style.removeProperty('position');
+    $body.style.removeProperty('top');
+    $body.style.removeProperty('width');
     window.scrollTo(0, scrollPosition);
-  },
+  }
 };
 
 function ColorBar(props) {
@@ -65,18 +65,20 @@ function ColorBar(props) {
 
   const [popupPosition, popupPositionSet] = useState({
     top: 0,
-    left: 0,
+    left: 0
   });
 
   useEffect(() => {
-    window.addEventListener("click", (evt) => {
-      if (action !== "EDIT") return;
+    window.addEventListener('click', (evt) => {
+      if (action !== 'EDIT') return;
       try {
         if (
           evt.path &&
           [...evt.path].find((el) => {
             if (!el.classList) return false;
-            return [...el.classList].find((className) => className.includes("chrome-picker"));
+            return [...el.classList].find((className) =>
+              className.includes('chrome-picker')
+            );
           })
         ) {
         } else {
@@ -97,19 +99,22 @@ function ColorBar(props) {
   function onColorClick(evt, index) {
     evt.stopPropagation();
 
-    if (action === "EDIT") {
+    if (action === 'EDIT') {
       currentlyEditingSet(currentlyEditing === index ? null : index);
 
       const elRect = evt.currentTarget.getBoundingClientRect();
 
-      const leftPosition = Math.min(Math.floor(elRect.left), window.innerWidth - 350);
+      const leftPosition = Math.min(
+        Math.floor(elRect.left),
+        window.innerWidth - 350
+      );
 
       popupPositionSet({
         top: Math.floor(elRect.top + elRect.height),
-        left: leftPosition,
+        left: leftPosition
       });
     }
-    if (action === "COPY") {
+    if (action === 'COPY') {
       navigator &&
         navigator.clipboard &&
         navigator.clipboard.writeText &&
@@ -127,22 +132,31 @@ function ColorBar(props) {
               onClick={(evt) => onColorClick(evt, index)}
               style={{
                 backgroundColor: `#${color}`,
-                zIndex: currentlyEditing === index ? 100000 : colors.length - index,
-                borderRadius: currentlyEditing === index ? 0 : "50%",
-              }}></ColorbarElement>
+                zIndex:
+                  currentlyEditing === index ? 100000 : colors.length - index,
+                borderRadius: currentlyEditing === index ? 0 : '50%'
+              }}
+            ></ColorbarElement>
           );
         })}
       </Colorbar>
 
       {!!onChange && currentlyEditing !== null && (
-        <div style={{ transition: "top 0.1s, left 0.1s", position: "fixed", zIndex: 9999, ...popupPosition }}>
+        <div
+          style={{
+            transition: 'top 0.1s, left 0.1s',
+            position: 'fixed',
+            zIndex: 9999,
+            ...popupPosition
+          }}
+        >
           <ChromePicker
             width={320}
             disableAlpha={true}
             type="chrome"
             onChange={(result, evt) => {
               const newColors = [...colors];
-              newColors[currentlyEditing] = result.hex.replace("#", "");
+              newColors[currentlyEditing] = result.hex.replace('#', '');
               onChange(newColors);
             }}
             color={colors[currentlyEditing]}

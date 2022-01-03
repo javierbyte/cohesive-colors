@@ -1,6 +1,6 @@
-import React, { Fragment } from "react";
+import { Fragment } from 'react';
 
-import { Text, Space, A, Ul, Li } from "jbx";
+import { Text, Space, A, Ul, Li } from 'jbx';
 
 function MoreExperiments() {
   return (
