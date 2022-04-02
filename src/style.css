@@ -1,0 +1,34 @@
+:root {
+  --accent-color: #eb4d4b;
+}
+
+.jbx-colorbar-container {
+  padding: 0 16px 16px 0;
+}
+
+.jbx-colorbar--element {
+  appearance: none;
+  border: none;
+  text-align: center;
+  display: inline-block;
+  text-transform: uppercase;
+  user-select: none;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  font-weight: 500 !important;
+  color: #0007;
+  line-height: 1;
+  font-size: 16px;
+  width: 80px;
+  height: 80px;
+  border-radius: 80px;
+  margin-right: -12px;
+  margin-bottom: -12px;
+
+  box-shadow: rgba(0, 0, 0, 0.05) 0 1px 0, rgba(0, 0, 0, 0.02) 0 3px 16px;
+
+  transition: transform 0.1s, background-color 0.1s, border-radius 0.3s;
+  transform: scale(1);
+
+  outline: none;
+}

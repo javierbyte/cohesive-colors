@@ -8,42 +8,17 @@ import MoreExperiments from './components/MoreExperiments.jsx';
 import { FixMyColors } from './util/color-functions.js';
 
 import {
-  JBX,
-  Button,
-  Range,
-  MainHeader,
-  HeaderH3,
-  Text,
-  Space,
   Box,
+  Button,
   Container,
-  Input,
+  HeaderH3,
   Inline,
+  Input,
+  MainHeader,
+  Range,
+  Space,
+  Text,
 } from 'jbx';
-
-import Styled from 'styled-components';
-
-const Alert = Styled.a({
-  backgroundColor: '#1DA1F2',
-  borderLeft: '3px solid rgba(0, 0, 0, 0.2)',
-  textShadow: 'rgba(0, 0, 0, 0.1) 0 -1px 0',
-  color: '#fff',
-  display: 'none',
-  padding: 8,
-  zIndex: 2,
-  textDecoration: 'none',
-  '@media screen and (min-width: 1200px)': {
-    display: 'inline-block',
-    position: 'absolute',
-    top: 32,
-    right: 64,
-    maxWidth: 380,
-  },
-  ':hover': {
-    textDecoration: 'underline',
-    backgroundColor: '#1d8ff2',
-  },
-});
 
 const kInitialColorSchemeSource = [
   ['555e7b', 'b7d968', 'b576ad', 'e04644', 'fde47f', '7ccce5'],
@@ -133,8 +108,6 @@ function Home() {
   return (
     <Fragment>
       <Container>
-        <JBX accent={'#eb4d4b'} />
-
         <MainHeader>Cohesive Colors</MainHeader>
 
         <Space h={1} />
@@ -161,7 +134,6 @@ function Home() {
                 colorSources[Math.floor(Math.random() * colorSources.length)];
               colorSchemeSet(randomColorScheme);
             }}
-            className="-small"
           >
             Random
           </Button>
@@ -289,14 +261,6 @@ function Home() {
         <Space h={2} />
         <Credits />
       </Container>
-
-      <Alert href="https://twitter.com/javierbyte">
-        <Text>
-          {'Follow me on twitter, '}
-          <strong>@javierbyte</strong>
-          {' for more experiments and tools!'}
-        </Text>
-      </Alert>
     </Fragment>
   );
 }

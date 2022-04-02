@@ -3,57 +3,28 @@
 import { useState, useEffect } from 'react';
 import { ChromePicker } from 'react-color';
 
-import Styled from 'styled-components';
+import { Component } from 'jbx';
 
-const $body = document.querySelector('body');
+const bodyEl = document.querySelector('body');
 let scrollPosition = 0;
 
-const ColorbarContainer = Styled.div`
-  padding: 0 16px 16px 0;
-`;
-
-const Colorbar = Styled.div``;
-
-const ColorbarElement = Styled.div`
-  appearance: none;
-  border: none;
-  text-align: center;
-  display: inline-block;
-  text-transform: uppercase;
-  user-select: none;
-  font-variant-numeric: tabular-nums;
-  cursor: pointer;
-  font-weight: 500 !important;
-  color: #0007;
-  line-height:1;
-  font-size: 16px;
-  width:80px;
-  height:80px;
-  border-radius:80px;
-  margin-right: -12px;
-  margin-bottom: -12px;
-
-  box-shadow: rgba(0, 0, 0, 0.05) 0 1px 0, rgba(0, 0, 0, 0.02) 0 3px 16px;
-
-  transition: transform 0.1s, background-color 0.1s, border-radius 0.3s;
-  transform: scale(1);
-
-  outline: none;
-`;
+const ColorbarContainer = Component(`jbx-colorbar-container`);
+const Colorbar = Component(`jbx-colorbar`);
+const ColorbarElement = Component(`jbx-colorbar--element`);
 
 const bodyLock = {
   enable() {
     scrollPosition = window.pageYOffset;
-    $body.style.overflow = 'hidden';
-    $body.style.position = 'fixed';
-    $body.style.top = `-${scrollPosition}px`;
-    $body.style.width = '100%';
+    bodyEl.style.overflow = 'hidden';
+    bodyEl.style.position = 'fixed';
+    bodyEl.style.top = `-${scrollPosition}px`;
+    bodyEl.style.width = '100%';
   },
   disable() {
-    $body.style.removeProperty('overflow');
-    $body.style.removeProperty('position');
-    $body.style.removeProperty('top');
-    $body.style.removeProperty('width');
+    bodyEl.style.removeProperty('overflow');
+    bodyEl.style.removeProperty('position');
+    bodyEl.style.removeProperty('top');
+    bodyEl.style.removeProperty('width');
     window.scrollTo(0, scrollPosition);
   },
 };
