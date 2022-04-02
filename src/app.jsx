@@ -18,7 +18,7 @@ import {
   Box,
   Container,
   Input,
-  Inline
+  Inline,
 } from 'jbx';
 
 import Styled from 'styled-components';
@@ -37,12 +37,12 @@ const Alert = Styled.a({
     position: 'absolute',
     top: 32,
     right: 64,
-    maxWidth: 380
+    maxWidth: 380,
   },
   ':hover': {
     textDecoration: 'underline',
-    backgroundColor: '#1d8ff2'
-  }
+    backgroundColor: '#1d8ff2',
+  },
 });
 
 const kInitialColorSchemeSource = [
@@ -95,7 +95,7 @@ const kInitialColorSchemeSource = [
   ['AAB3AB', 'C4CBB7', 'EBEFC9', 'EEE0B7', 'E8CAAF'],
   ['300030', '480048', '601848', 'C04848', 'F07241'],
   ['A8E6CE', 'DCEDC2', 'FFD3B5', 'FFAAA6', 'FF8C94'],
-  ['3E4147', 'FFFEDF', 'DFBA69', '5A2E2E', '2A2C31']
+  ['3E4147', 'FFFEDF', 'DFBA69', '5A2E2E', '2A2C31'],
 ];
 
 function Home() {

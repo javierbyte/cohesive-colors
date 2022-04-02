@@ -10,7 +10,7 @@ function rgbArrayToHex(color) {
   return new TinyColor({
     r: color[0],
     g: color[1],
-    b: color[2]
+    b: color[2],
   }).toHex();
 }
 

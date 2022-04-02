@@ -8,12 +8,12 @@
     "@ctrl/tinycolor": "^3.1.6",
     "capsize": "^2.0.0",
     "colorblendjs": "^0.1.2",
-    "jbx": "^1.7.2",
-    "react": "^17.0.2",
+    "jbx": "^1.7.6",
+    "react": "^18.0.0",
     "react-color": "^2.13.4",
-    "react-dom": "^17.0.2",
+    "react-dom": "^18.0.0",
     "react-scripts": "^5.0.0",
-    "styled-components": "^5.3.3"
+    "styled-components": "^5.3.5"
   },
   "scripts": {
     "dev": "react-scripts start",

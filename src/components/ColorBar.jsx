@@ -55,7 +55,7 @@ const bodyLock = {
     $body.style.removeProperty('top');
     $body.style.removeProperty('width');
     window.scrollTo(0, scrollPosition);
-  }
+  },
 };
 
 function ColorBar(props) {
@@ -65,7 +65,7 @@ function ColorBar(props) {
 
   const [popupPosition, popupPositionSet] = useState({
     top: 0,
-    left: 0
+    left: 0,
   });
 
   useEffect(() => {
@@ -111,7 +111,7 @@ function ColorBar(props) {
 
       popupPositionSet({
         top: Math.floor(elRect.top + elRect.height),
-        left: leftPosition
+        left: leftPosition,
       });
     }
     if (action === 'COPY') {
@@ -134,7 +134,7 @@ function ColorBar(props) {
                 backgroundColor: `#${color}`,
                 zIndex:
                   currentlyEditing === index ? 100000 : colors.length - index,
-                borderRadius: currentlyEditing === index ? 0 : '50%'
+                borderRadius: currentlyEditing === index ? 0 : '50%',
               }}
             ></ColorbarElement>
           );
@@ -147,7 +147,7 @@ function ColorBar(props) {
             transition: 'top 0.1s, left 0.1s',
             position: 'fixed',
             zIndex: 9999,
-            ...popupPosition
+            ...popupPosition,
           }}
         >
           <ChromePicker
