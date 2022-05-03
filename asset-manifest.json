@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/cohesive-colors/static/css/main.18bbc6c1.css",
-    "main.js": "/cohesive-colors/static/js/main.a90fd924.js",
+    "main.css": "/cohesive-colors/static/css/main.30f51c88.css",
+    "main.js": "/cohesive-colors/static/js/main.d8ab3cbb.js",
     "index.html": "/cohesive-colors/index.html",
-    "main.18bbc6c1.css.map": "/cohesive-colors/static/css/main.18bbc6c1.css.map",
-    "main.a90fd924.js.map": "/cohesive-colors/static/js/main.a90fd924.js.map"
+    "main.30f51c88.css.map": "/cohesive-colors/static/css/main.30f51c88.css.map",
+    "main.d8ab3cbb.js.map": "/cohesive-colors/static/js/main.d8ab3cbb.js.map"
   },
   "entrypoints": [
-    "static/css/main.18bbc6c1.css",
-    "static/js/main.a90fd924.js"
+    "static/css/main.30f51c88.css",
+    "static/js/main.d8ab3cbb.js"
   ]
 }
