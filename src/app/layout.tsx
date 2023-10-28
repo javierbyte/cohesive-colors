@@ -4,13 +4,13 @@ import type { Metadata } from "next";
 
 const title = "Cohesive Colors";
 const description = "Create more cohesive color palettes";
-const canonical = "https://javier.xyz/cohesive-colors2";
+const canonical = "https://javier.xyz/cohesive-colors";
 
 export const metadata: Metadata = {
   title: title,
   description: description,
   openGraph: {
-    images: "https://javier.xyz/cohesive-colors2/opengraph.jpg",
+    images: "https://javier.xyz/cohesive-colors/opengraph.jpg",
     title: title,
     description: description,
     url: canonical,
