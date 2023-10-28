@@ -1,38 +1,57 @@
-/* eslint-disable */
+import { useState, useEffect } from "react";
+import { ChromePicker } from "@hello-pangea/color-picker";
 
-import { useState, useEffect } from 'react';
-import { ChromePicker } from 'react-color';
+import { Component } from "jbx";
+import type { ColorSet } from "../types";
 
-import { Component } from 'jbx';
-
-const bodyEl = document.querySelector('body');
 let scrollPosition = 0;
 
 const ColorbarContainer = Component(`jbx-colorbar-container`);
 const Colorbar = Component(`jbx-colorbar`);
-const ColorbarElement = Component(`jbx-colorbar--element`);
+const ColorbarElement = Component<{
+  onClick?: (evt: React.MouseEvent<HTMLElement>) => void;
+}>(`jbx-colorbar--element`);
 
 const bodyLock = {
   enable() {
+    const bodyEl = document.querySelector("body");
+    if (!bodyEl) return;
+
     scrollPosition = window.pageYOffset;
-    bodyEl.style.overflow = 'hidden';
-    bodyEl.style.position = 'fixed';
+    bodyEl.style.overflow = "hidden";
+    bodyEl.style.position = "fixed";
     bodyEl.style.top = `-${scrollPosition}px`;
-    bodyEl.style.width = '100%';
+    bodyEl.style.width = "100%";
   },
   disable() {
-    bodyEl.style.removeProperty('overflow');
-    bodyEl.style.removeProperty('position');
-    bodyEl.style.removeProperty('top');
-    bodyEl.style.removeProperty('width');
+    const bodyEl = document.querySelector("body");
+    if (!bodyEl) return;
+
+    bodyEl.style.removeProperty("overflow");
+    bodyEl.style.removeProperty("position");
+    bodyEl.style.removeProperty("top");
+    bodyEl.style.removeProperty("width");
     window.scrollTo(0, scrollPosition);
   },
 };
 
-function ColorBar(props) {
+function getParents(elem: Node) {
+  var parents = [];
+  // @ts-ignore
+  for (; elem && elem !== document; elem = elem.parentNode) {
+    parents.push(elem);
+  }
+  return parents as HTMLElement[];
+}
+
+function ColorBar(props: {
+  colors: ColorSet;
+  onChange?: (newColors: ColorSet) => void;
+  action?: "EDIT" | "COPY";
+}) {
   const { colors, onChange, action } = props;
 
-  const [currentlyEditing, currentlyEditingSet] = useState(null);
+  const [currentlyEditing, currentlyEditingSet] = useState<number | null>(null);
 
   const [popupPosition, popupPositionSet] = useState({
     top: 0,
@@ -40,15 +59,19 @@ function ColorBar(props) {
   });
 
   useEffect(() => {
-    window.addEventListener('click', (evt) => {
-      if (action !== 'EDIT') return;
+    window.addEventListener("click", (evt: Event) => {
+      if (action !== "EDIT" || !evt.target) return;
+
+      const element = evt.target as HTMLElement;
+
+      const path = getParents(element);
+
       try {
         if (
-          evt.path &&
-          [...evt.path].find((el) => {
+          path.find((el) => {
             if (!el.classList) return false;
-            return [...el.classList].find((className) =>
-              className.includes('chrome-picker')
+            return Array.from(el.classList).find((className) =>
+              className.includes("chrome-picker")
             );
           })
         ) {
@@ -67,10 +90,10 @@ function ColorBar(props) {
     }
   }, [currentlyEditing]);
 
-  function onColorClick(evt, index) {
+  function onColorClick(evt: React.MouseEvent<HTMLElement>, index: number) {
     evt.stopPropagation();
 
-    if (action === 'EDIT') {
+    if (action === "EDIT") {
       currentlyEditingSet(currentlyEditing === index ? null : index);
 
       const elRect = evt.currentTarget.getBoundingClientRect();
@@ -85,7 +108,7 @@ function ColorBar(props) {
         left: leftPosition,
       });
     }
-    if (action === 'COPY') {
+    if (action === "COPY") {
       navigator &&
         navigator.clipboard &&
         navigator.clipboard.writeText &&
@@ -100,12 +123,14 @@ function ColorBar(props) {
           return (
             <ColorbarElement
               key={index}
-              onClick={(evt) => onColorClick(evt, index)}
+              onClick={(evt: React.MouseEvent<HTMLElement>) =>
+                onColorClick(evt, index)
+              }
               style={{
                 backgroundColor: `#${color}`,
                 zIndex:
                   currentlyEditing === index ? 100000 : colors.length - index,
-                borderRadius: currentlyEditing === index ? 0 : '50%',
+                borderRadius: currentlyEditing === index ? 0 : "50%",
               }}
             ></ColorbarElement>
           );
@@ -115,8 +140,8 @@ function ColorBar(props) {
       {!!onChange && currentlyEditing !== null && (
         <div
           style={{
-            transition: 'top 0.1s, left 0.1s',
-            position: 'fixed',
+            transition: "top 0.1s, left 0.1s",
+            position: "fixed",
             zIndex: 9999,
             ...popupPosition,
           }}
@@ -124,10 +149,9 @@ function ColorBar(props) {
           <ChromePicker
             width={320}
             disableAlpha={true}
-            type="chrome"
             onChange={(result, evt) => {
               const newColors = [...colors];
-              newColors[currentlyEditing] = result.hex.replace('#', '');
+              newColors[currentlyEditing] = result.hex.replace("#", "");
               onChange(newColors);
             }}
             color={colors[currentlyEditing]}

@@ -1,7 +1,0 @@
-lockfileVersion: 5.3
-
-specifiers:
-  jbx: ^2.4.0
-
-dependencies:
-  jbx: link:../../../../.npm-packages/pnpm-global/5/node_modules/jbx
