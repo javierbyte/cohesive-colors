@@ -1,9 +1,12 @@
-import { Text, A } from 'jbx';
+import { Text, A } from "jbx";
 
 export default function Credits() {
   return (
     <Text>
-      Made by <A href="https://javier.xyz">javierbyte</A>.{' Based on '}
+      Website by <A href="https://javier.xyz">javierbyte</A>
+      {". Code on "}
+      <A href="https://github.com/javierbyte/cohesive-colors">GitHub</A>
+      {". Based on "}
       <A
         target="_blank"
         rel="noopener noreferrer"
@@ -11,7 +14,7 @@ export default function Credits() {
       >
         this idea
       </A>
-      {'.'}
+      {" by Erica Schoonmaker."}
     </Text>
   );
 }

@@ -19,9 +19,9 @@
   color: #0007;
   line-height: 1;
   font-size: 16px;
-  width: 80px;
-  height: 80px;
-  border-radius: 80px;
+  width: 72px;
+  height: 72px;
+  border-radius: 72px;
   margin-right: -12px;
   margin-bottom: -12px;
 
@@ -31,4 +31,12 @@
   transform: scale(1);
 
   outline: none;
+}
+
+@media screen and (max-width: 768px) {
+  .jbx-colorbar--element {
+    width: 64px;
+    height: 64px;
+    border-radius: 64px;
+  }
 }
