@@ -14,9 +14,7 @@ export default function Home() {
         <Space h={1} />
         <Text>Tool that can help you to create cohesive color palettes.</Text>
         <Space h={2} />
-        <Suspense>
-          <CohesiveColors />
-        </Suspense>
+        <CohesiveColors />
         <HR />
         <MoreExperiments exclude="cohesive-colors" />
         <Space h={2} />
