@@ -1,5 +1,5 @@
 import "./globals.css";
-import "../../node_modules/jbx/dist/main.css";
+import "jbx/main.css";
 import type { Metadata } from "next";
 
 const title = "Cohesive Colors";

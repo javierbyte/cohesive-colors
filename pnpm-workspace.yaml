@@ -1,0 +1,4 @@
+allowBuilds:
+  unrs-resolver: true
+minimumReleaseAgeExclude:
+  - jbx@2.11.0
