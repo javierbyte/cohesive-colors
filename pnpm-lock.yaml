@@ -33,8 +33,8 @@ importers:
         specifier: 14.1.4
         version: 14.1.4(eslint@9.0.0(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.4.4)
       jbx:
-        specifier: ^2.11.0
-        version: 2.11.0(react@18.2.0)
+        specifier: ^2.12.0
+        version: 2.12.0(react@18.2.0)
       next:
         specifier: 14.1.4
         version: 14.1.4(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -1044,8 +1044,8 @@ packages:
     resolution: {integrity: sha512-N3yCS/NegsOBokc8GAdM8UcmfsKiSS8cipheD/nivzr700H+nsMOxJjQnvwOcRYVuFkdH0wGUvW2WbXGmrZGbQ==}
     engines: {node: '>=14'}
 
-  jbx@2.11.0:
-    resolution: {integrity: sha512-VC2v/XHsJya4ymkwg0xNAvZMwgwq+AyTVT6CwM3AcZn83DvOrapQ6MG8DSsaZEudUwEzb1gKj8Xc4MzFVp1MCA==}
+  jbx@2.12.0:
+    resolution: {integrity: sha512-V7vZ1ozD9YFGAbUSAX1tkPgfWstvy2f3Am9HDMgLwe/k0dODzMipD7P+ffHvjM5Myc/VdSSUyYHPYrhnil+U6A==}
     engines: {node: '>=18'}
     peerDependencies:
       react: ^17 || ^18 || ^19
@@ -2701,7 +2701,7 @@ snapshots:
     optionalDependencies:
       '@pkgjs/parseargs': 0.11.0
 
-  jbx@2.11.0(react@18.2.0):
+  jbx@2.12.0(react@18.2.0):
     dependencies:
       react: 18.2.0
 

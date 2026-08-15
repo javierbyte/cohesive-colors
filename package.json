@@ -17,7 +17,7 @@
     "color-blend": "^4.0.0",
     "eslint": "9.0.0",
     "eslint-config-next": "14.1.4",
-    "jbx": "^2.11.0",
+    "jbx": "^2.12.0",
     "next": "14.1.4",
     "nextjs-google-analytics": "^2.3.3",
     "react": "18.2.0",
