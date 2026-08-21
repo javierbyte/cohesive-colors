@@ -2,7 +2,7 @@
 
 Create more cohesive color palettes.
 
-[![cohesive-colors](docs-assets/screenshot.jpg)](http://javier.xyz/cohesive-colors/)
+[![cohesive-colors](docs-assets/screenshot.jpg)](http://javier.xyz/cohesive-colors)
 
 For programatic use see [colorblendjs](https://github.com/javierbyte/colorblendjs).
 

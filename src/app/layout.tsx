@@ -2,6 +2,8 @@ import "./globals.css";
 import "jbx/main.css";
 import type { Metadata } from "next";
 
+import GithubCorner from "../GithubCorner";
+
 const title = "Cohesive Colors";
 const description = "Create more cohesive color palettes";
 const canonical = "https://javier.xyz/cohesive-colors";
@@ -27,7 +29,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <GithubCorner />
+        {children}
+      </body>
     </html>
   );
 }
