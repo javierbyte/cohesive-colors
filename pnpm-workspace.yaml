@@ -1,4 +1,8 @@
 allowBuilds:
   unrs-resolver: true
 minimumReleaseAgeExclude:
-  - jbx@2.11.0 || 2.12.0
+  - jbx
+updateConfig:
+  ignoreDependencies:
+    - eslint
+    - typescript

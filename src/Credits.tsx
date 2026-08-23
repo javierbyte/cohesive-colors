@@ -3,8 +3,8 @@ import { Text, A } from "jbx";
 export default function Credits() {
   return (
     <Text>
-      Website by <A href="https://javier.xyz">javierbyte</A>
-      {". Code on "}
+      Made by <A href="https://javier.xyz">Javier Bórquez</A>
+      {". Online since 2015. Code on "}
       <A href="https://github.com/javierbyte/cohesive-colors">GitHub</A>
       {". Based on "}
       <A
