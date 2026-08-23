@@ -8,9 +8,6 @@ let scrollPosition = 0;
 
 const ColorbarContainer = Component(`jbx-colorbar-container`);
 const Colorbar = Component(`jbx-colorbar`);
-const ColorbarElement = Component<{
-  onClick?: (evt: React.MouseEvent<HTMLElement>) => void;
-}>(`jbx-colorbar--element`);
 
 const bodyLock = {
   enable() {
@@ -35,15 +32,6 @@ const bodyLock = {
   },
 };
 
-function getParents(elem: Node) {
-  var parents = [];
-  // @ts-ignore
-  for (; elem && elem !== document; elem = elem.parentNode) {
-    parents.push(elem);
-  }
-  return parents as HTMLElement[];
-}
-
 function ColorBar(props: {
   colors: ColorSet;
   onChange?: (newColors: ColorSet) => void;
@@ -59,35 +47,26 @@ function ColorBar(props: {
   });
 
   useEffect(() => {
-    window.addEventListener("click", (evt: Event) => {
-      if (action !== "EDIT" || !evt.target) return;
+    if (action !== "EDIT") return;
 
-      const element = evt.target as HTMLElement;
+    function closePicker(evt: MouseEvent) {
+      if (
+        evt.target instanceof Element &&
+        !evt.target.closest('[class*="chrome-picker"]')
+      ) {
+        currentlyEditingSet(null);
+      }
+    }
 
-      const path = getParents(element);
-
-      try {
-        if (
-          path.find((el) => {
-            if (!el.classList) return false;
-            return Array.from(el.classList).find((className) =>
-              className.includes("chrome-picker")
-            );
-          })
-        ) {
-        } else {
-          currentlyEditingSet(null);
-        }
-      } catch (e) {}
-    });
-  }, []);
+    window.addEventListener("click", closePicker);
+    return () => window.removeEventListener("click", closePicker);
+  }, [action]);
 
   useEffect(() => {
-    if (currentlyEditing === null) {
-      bodyLock.disable();
-    } else {
-      bodyLock.enable();
-    }
+    if (currentlyEditing === null) return;
+
+    bodyLock.enable();
+    return () => bodyLock.disable();
   }, [currentlyEditing]);
 
   function onColorClick(evt: React.MouseEvent<HTMLElement>, index: number) {
@@ -105,14 +84,11 @@ function ColorBar(props: {
 
       popupPositionSet({
         top: Math.floor(elRect.top + elRect.height),
-        left: leftPosition,
+        left: Math.max(0, leftPosition),
       });
     }
     if (action === "COPY") {
-      navigator &&
-        navigator.clipboard &&
-        navigator.clipboard.writeText &&
-        navigator.clipboard.writeText(`#${colors[index]}`);
+      void navigator.clipboard?.writeText(`#${colors[index]}`);
     }
   }
 
@@ -121,18 +97,23 @@ function ColorBar(props: {
       <Colorbar>
         {colors.map((color, index) => {
           return (
-            <ColorbarElement
+            <button
+              type="button"
               key={index}
-              onClick={(evt: React.MouseEvent<HTMLElement>) =>
-                onColorClick(evt, index)
+              className="jbx-colorbar--element"
+              aria-label={
+                action === "COPY"
+                  ? `Copy #${color}`
+                  : `Edit color #${color}`
               }
+              onClick={(evt) => onColorClick(evt, index)}
               style={{
                 backgroundColor: `#${color}`,
                 zIndex:
                   currentlyEditing === index ? 100000 : colors.length - index,
                 borderRadius: currentlyEditing === index ? 0 : "50%",
               }}
-            ></ColorbarElement>
+            />
           );
         })}
       </Colorbar>
@@ -149,7 +130,7 @@ function ColorBar(props: {
           <ChromePicker
             width={320}
             disableAlpha={true}
-            onChange={(result, evt) => {
+            onChange={(result) => {
               const newColors = [...colors];
               newColors[currentlyEditing] = result.hex.replace("#", "");
               onChange(newColors);

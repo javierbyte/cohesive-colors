@@ -4,7 +4,7 @@ import { multiply } from "color-blend";
 
 import type { ColorSet } from "../types";
 
-function colorToRgbArray(color: any) {
+function colorToRgbArray(color: ColorInput) {
   const rgbColor = new TinyColor(color).toRgb();
   return rgbColor;
 }

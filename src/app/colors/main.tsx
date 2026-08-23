@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { Fragment, useState, useEffect } from "react";
+import { Fragment, useState } from "react";
 
 import ColorBar from "./ColorBar";
 
@@ -21,31 +21,39 @@ import {
 import { srcColors } from "../../colors";
 
 const URL = "https://javier.xyz/cohesive-colors";
+const DEFAULT_OVERLAY = "FF9C00";
+const DEFAULT_INTENSITY = 0.3;
+const HEX_COLOR = /^[0-9a-f]{6}$/i;
+
+function readColors(value: string | null) {
+  const colors = value?.split(",").filter((color) => HEX_COLOR.test(color));
+  return colors?.length ? colors.slice(0, 20) : srcColors[0];
+}
+
+function readIntensity(value: string | null) {
+  const intensity = Number(value);
+  return value !== null && Number.isFinite(intensity)
+    ? Math.min(1, Math.max(0, intensity))
+    : DEFAULT_INTENSITY;
+}
 
 export function CohesiveColors() {
-  const [colorSources] = useState(srcColors);
-  const [colorScheme, colorSchemeSet] = useState(srcColors[0]);
-
   const search = useSearchParams();
-
-  const [overlayColor, overlayColorSet] = useState("FF9C00");
-  const [overlayIntensity, overlayIntensitySet] = useState(0.3);
+  const [colorSources] = useState(srcColors);
+  const [colorScheme, colorSchemeSet] = useState(() =>
+    readColors(search.get("src"))
+  );
+  const [overlayColor, overlayColorSet] = useState(() => {
+    const value = search.get("overlay");
+    return value && HEX_COLOR.test(value) ? value : DEFAULT_OVERLAY;
+  });
+  const [overlayIntensity, overlayIntensitySet] = useState(() =>
+    readIntensity(search.get("intensity"))
+  );
 
   const shareUrl = `${URL}?src=${colorScheme.join(
     ","
   )}&overlay=${overlayColor}&intensity=${overlayIntensity}`;
-
-  useEffect(() => {
-    const colorSchemeQuery = search.get("src");
-    if (colorSchemeQuery) colorSchemeSet(colorSchemeQuery.split(","));
-
-    const overlayColorQuery = search.get("overlay");
-    if (overlayColorQuery) overlayColorSet(overlayColorQuery);
-
-    const overlayIntensityQuery = search.get("intensity");
-    if (overlayIntensityQuery)
-      overlayIntensitySet(Number(overlayIntensityQuery));
-  }, []);
 
   return (
     <Fragment>
@@ -53,7 +61,7 @@ export function CohesiveColors() {
         <Bullet value={1} />
         Choose starting colors
       </HeaderH3>
-      <Text>Anything you want! Click any clolor to edit it.</Text>
+      <Text>Anything you want! Click any color to edit it.</Text>
       <Space h={1} />
       <ColorBar colors={colorScheme} onChange={colorSchemeSet} action="EDIT" />
       <Space h={1} />
@@ -121,8 +129,9 @@ export function CohesiveColors() {
           <Range
             aria-label="Scale"
             value={overlayIntensity}
-            // @ts-ignore
-            onChange={(evt) => overlayIntensitySet(evt.target.value)}
+            onChange={(evt) =>
+              overlayIntensitySet(evt.currentTarget.valueAsNumber)
+            }
             min={0}
             max={1}
             step={0.01}
@@ -142,7 +151,6 @@ export function CohesiveColors() {
             any color to copy.
           </Text>
         </Box>
-        {/* @ts-ignore */}
         <Button
           onClick={() => {
             const colorsStr = FixMyColors(
@@ -153,10 +161,7 @@ export function CohesiveColors() {
               .map((color) => `#${color}`)
               .join(", ");
 
-            window.navigator &&
-              window.navigator.clipboard &&
-              window.navigator.clipboard.writeText &&
-              window.navigator.clipboard.writeText(colorsStr);
+            void window.navigator.clipboard?.writeText(colorsStr);
           }}
         >
           Copy All
@@ -176,15 +181,12 @@ export function CohesiveColors() {
           type="text"
           style={{ maxWidth: "70vw" }}
           value={shareUrl}
-          disabled={true}
+          readOnly
         />
         <Space w={1} />
         <Button
           onClick={() => {
-            navigator &&
-              navigator.clipboard &&
-              navigator.clipboard.writeText &&
-              navigator.clipboard.writeText(shareUrl);
+            void navigator.clipboard?.writeText(shareUrl);
           }}
         >
           Copy URL

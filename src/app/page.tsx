@@ -4,8 +4,6 @@ import { CohesiveColors } from "./colors/main";
 import Credits from "../Credits";
 import { Suspense, Fragment } from "react";
 
-import { Analytics } from "./analytics";
-
 export default function Home() {
   return (
     <Fragment>
@@ -22,7 +20,6 @@ export default function Home() {
         <Space h={2} />
         <Credits />
       </Container>
-      <Analytics />
     </Fragment>
   );
 }
