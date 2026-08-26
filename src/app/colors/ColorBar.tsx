@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { ChromePicker } from "@hello-pangea/color-picker";
+import { TinyColor } from "@ctrl/tinycolor";
 
 import { Component } from "jbx";
-import type { ColorSet } from "../types";
+import type { ColorSet, LockSet } from "../types";
 
 let scrollPosition = 0;
 
@@ -32,12 +33,36 @@ const bodyLock = {
   },
 };
 
+function LockIcon(props: { size?: number }) {
+  const { size = 20 } = props;
+
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <rect x="4" y="10" width="16" height="11" rx="2" />
+      <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+    </svg>
+  );
+}
+
 function ColorBar(props: {
   colors: ColorSet;
   onChange?: (newColors: ColorSet) => void;
   action?: "EDIT" | "COPY";
+  locked?: LockSet;
+  onLockToggle?: (index: number) => void;
 }) {
-  const { colors, onChange, action } = props;
+  const { colors, onChange, action, locked = [], onLockToggle } = props;
 
   const [currentlyEditing, currentlyEditingSet] = useState<number | null>(null);
 
@@ -52,7 +77,7 @@ function ColorBar(props: {
     function closePicker(evt: MouseEvent) {
       if (
         evt.target instanceof Element &&
-        !evt.target.closest('[class*="chrome-picker"]')
+        !evt.target.closest('[class*="chrome-picker"], .jbx-colorbar--popup')
       ) {
         currentlyEditingSet(null);
       }
@@ -79,7 +104,7 @@ function ColorBar(props: {
 
       const leftPosition = Math.min(
         Math.floor(elRect.left),
-        window.innerWidth - 350
+        window.innerWidth - 350,
       );
 
       popupPositionSet({
@@ -92,34 +117,43 @@ function ColorBar(props: {
     }
   }
 
+  const editingIsLocked =
+    currentlyEditing !== null && !!locked[currentlyEditing];
+
   return (
     <ColorbarContainer>
       <Colorbar>
         {colors.map((color, index) => {
+          const isLocked = !!locked[index];
+          const label =
+            action === "COPY" ? `Copy #${color}` : `Edit color #${color}`;
+
           return (
             <button
               type="button"
               key={index}
               className="jbx-colorbar--element"
-              aria-label={
-                action === "COPY"
-                  ? `Copy #${color}`
-                  : `Edit color #${color}`
-              }
+              aria-label={isLocked ? `${label} (locked)` : label}
               onClick={(evt) => onColorClick(evt, index)}
               style={{
                 backgroundColor: `#${color}`,
+                color: new TinyColor(color).isDark()
+                  ? "#ffffffb3"
+                  : "#0000004d",
                 zIndex:
                   currentlyEditing === index ? 100000 : colors.length - index,
                 borderRadius: currentlyEditing === index ? 0 : "50%",
               }}
-            />
+            >
+              {isLocked && <LockIcon size={14} />}
+            </button>
           );
         })}
       </Colorbar>
 
       {!!onChange && currentlyEditing !== null && (
         <div
+          className="jbx-colorbar--popup"
           style={{
             transition: "top 0.1s, left 0.1s",
             position: "fixed",
@@ -137,6 +171,22 @@ function ColorBar(props: {
             }}
             color={colors[currentlyEditing]}
           />
+
+          {!!onLockToggle && (
+            <button
+              type="button"
+              className="jbx-colorbar--lock"
+              role="switch"
+              aria-checked={editingIsLocked}
+              onClick={() => onLockToggle(currentlyEditing)}
+            >
+              <LockIcon size={16} />
+              <span className="jbx-colorbar--lock-label">
+                {editingIsLocked ? "Locked" : "Lock color"}
+              </span>
+              <span className="jbx-colorbar--lock-switch" aria-hidden="true" />
+            </button>
+          )}
         </div>
       )}
     </ColorbarContainer>

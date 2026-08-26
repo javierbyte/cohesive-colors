@@ -19,6 +19,7 @@ import {
   Bullet,
 } from "jbx";
 import { srcColors } from "../../colors";
+import type { ColorSet, LockSet } from "../types";
 
 const URL = "https://javier.xyz/cohesive-colors";
 const DEFAULT_OVERLAY = "FF9C00";
@@ -37,11 +38,25 @@ function readIntensity(value: string | null) {
     : DEFAULT_INTENSITY;
 }
 
+// Kept the same length as the color scheme, so every color has a lock state
+// and `locked[index]` is never out of sync with `colorScheme[index]`.
+function readLocked(value: string | null, colorScheme: ColorSet): LockSet {
+  const flags = value?.split(",") ?? [];
+  return colorScheme.map((_color, index) => flags[index] === "1");
+}
+
+function noLocks(colorScheme: ColorSet): LockSet {
+  return colorScheme.map(() => false);
+}
+
 export function CohesiveColors() {
   const search = useSearchParams();
   const [colorSources] = useState(srcColors);
   const [colorScheme, colorSchemeSet] = useState(() =>
     readColors(search.get("src"))
+  );
+  const [locked, lockedSet] = useState(() =>
+    readLocked(search.get("locked"), colorScheme)
   );
   const [overlayColor, overlayColorSet] = useState(() => {
     const value = search.get("overlay");
@@ -51,9 +66,27 @@ export function CohesiveColors() {
     readIntensity(search.get("intensity"))
   );
 
+  const someLocked = locked.some(Boolean);
+
   const shareUrl = `${URL}?src=${colorScheme.join(
     ","
-  )}&overlay=${overlayColor}&intensity=${overlayIntensity}`;
+  )}&overlay=${overlayColor}&intensity=${overlayIntensity}${
+    someLocked ? `&locked=${locked.map((isLocked) => (isLocked ? 1 : 0))}` : ``
+  }`;
+
+  const fixedColors = FixMyColors(
+    colorScheme,
+    overlayColor,
+    overlayIntensity,
+    locked
+  );
+
+  function randomColorSchemeSet() {
+    const randomColorScheme =
+      colorSources[Math.floor(Math.random() * colorSources.length)];
+    colorSchemeSet(randomColorScheme);
+    lockedSet(noLocks(randomColorScheme));
+  }
 
   return (
     <Fragment>
@@ -61,26 +94,32 @@ export function CohesiveColors() {
         <Bullet value={1} />
         Choose starting colors
       </HeaderH3>
-      <Text>Anything you want! Click any color to edit it.</Text>
+      <Text>
+        Anything you want! Click any color to edit it, or to lock it so the
+        overlay leaves it untouched.
+      </Text>
       <Space h={1} />
-      <ColorBar colors={colorScheme} onChange={colorSchemeSet} action="EDIT" />
+      <ColorBar
+        colors={colorScheme}
+        onChange={colorSchemeSet}
+        action="EDIT"
+        locked={locked}
+        onLockToggle={(index) =>
+          lockedSet(
+            locked.map((isLocked, i) => (i === index ? !isLocked : isLocked))
+          )
+        }
+      />
       <Space h={1} />
       <Inline>
-        <Button
-          onClick={() => {
-            const randomColorScheme =
-              colorSources[Math.floor(Math.random() * colorSources.length)];
-            colorSchemeSet(randomColorScheme);
-          }}
-        >
-          Random
-        </Button>
+        <Button onClick={randomColorSchemeSet}>Random</Button>
         <Space w={1} />
         <Button
           style={{ width: 42 }}
           disabled={colorScheme.length < 2}
           onClick={() => {
             colorSchemeSet(colorScheme.slice(0, -1));
+            lockedSet(locked.slice(0, -1));
           }}
         >
           -
@@ -97,6 +136,7 @@ export function CohesiveColors() {
                 Math.floor(Math.random() * randomColorScheme.length)
               ];
             colorSchemeSet([...colorScheme, randomColor]);
+            lockedSet([...locked, false]);
           }}
         >
           +
@@ -147,17 +187,14 @@ export function CohesiveColors() {
             Result
           </HeaderH3>
           <Text>
-            All the original colors with a small hint of the overlay. Click on
-            any color to copy.
+            All the original colors with a small hint of the overlay
+            {someLocked ? `, except the locked ones` : ``}. Click on any color to
+            copy.
           </Text>
         </Box>
         <Button
           onClick={() => {
-            const colorsStr = FixMyColors(
-              colorScheme,
-              overlayColor,
-              overlayIntensity
-            )
+            const colorsStr = fixedColors
               .map((color) => `#${color}`)
               .join(", ");
 
@@ -168,10 +205,7 @@ export function CohesiveColors() {
         </Button>
       </Inline>
       <Space h={1} />
-      <ColorBar
-        colors={FixMyColors(colorScheme, overlayColor, overlayIntensity)}
-        action="COPY"
-      />
+      <ColorBar colors={fixedColors} action="COPY" locked={locked} />
       <Space h={2} />
       <Text>Share your color palette.</Text>
       <Space h={0.5} />
