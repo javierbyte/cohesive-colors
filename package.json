@@ -2,7 +2,7 @@
   "name": "next-cohesive-colors",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@11.21.0",
+  "packageManager": "pnpm@11.23.0",
   "engines": {
     "node": ">=20.9.0"
   },
@@ -23,9 +23,9 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
-    "@types/node": "26.2.0",
+    "@types/node": "26.3.0",
     "@types/react": "19.2.18",
-    "@types/react-dom": "19.2.4",
+    "@types/react-dom": "19.2.5",
     "eslint": "9.39.5",
     "eslint-config-next": "16.3.2",
     "typescript": "6.0.2"

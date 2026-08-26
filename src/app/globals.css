@@ -43,7 +43,10 @@
   appearance: none;
   border: none;
   text-align: center;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: top;
   text-transform: uppercase;
   user-select: none;
   font-variant-numeric: tabular-nums;
@@ -58,9 +61,14 @@
   margin-right: -12px;
   margin-bottom: -12px;
 
-  box-shadow: rgba(0, 0, 0, 0.05) 0 1px 0, rgba(0, 0, 0, 0.02) 0 3px 16px;
+  box-shadow:
+    rgba(0, 0, 0, 0.05) 0 1px 0,
+    rgba(0, 0, 0, 0.02) 0 3px 16px;
 
-  transition: transform 0.1s, background-color 0.1s, border-radius 0.3s;
+  transition:
+    transform 0.1s,
+    background-color 0.1s,
+    border-radius 0.3s;
   transform: scale(1);
 
   outline: none;
@@ -77,4 +85,85 @@
     height: 64px;
     border-radius: 64px;
   }
+}
+
+.jbx-colorbar--element svg {
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+.jbx-colorbar--popup {
+  width: 320px;
+}
+
+.jbx-colorbar--lock {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px;
+  border: none;
+  border-radius: 2px;
+  background: #fff;
+  color: #666;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1;
+  text-align: left;
+  cursor: pointer;
+
+  box-shadow:
+    rgba(0, 0, 0, 0.3) 0 0 2px,
+    rgba(0, 0, 0, 0.3) 0 4px 8px;
+
+  transition: color 0.15s;
+}
+
+.jbx-colorbar--lock[aria-checked="true"] {
+  color: #333;
+}
+
+.jbx-colorbar--lock:focus-visible {
+  outline: 3px solid var(--accent-color);
+  outline-offset: 3px;
+}
+
+.jbx-colorbar--lock-label {
+  flex: 1 1 auto;
+  font-weight: 500;
+}
+
+.jbx-colorbar--lock-switch {
+  position: relative;
+  flex: none;
+  width: 34px;
+  height: 20px;
+  border-radius: 20px;
+  background: #dcdcdc;
+  transition: background-color 0.2s;
+}
+
+.jbx-colorbar--lock-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+
+  box-shadow: rgba(0, 0, 0, 0.25) 0 1px 2px;
+
+  transition: transform 0.2s;
+}
+
+.jbx-colorbar--lock[aria-checked="true"] .jbx-colorbar--lock-switch {
+  background: #666;
+}
+
+.jbx-colorbar--lock[aria-checked="true"] .jbx-colorbar--lock-switch::after {
+  transform: translateX(14px);
 }
